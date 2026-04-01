@@ -1,0 +1,65 @@
+{
+  "wonderWorldTitle": "WonderWorld Games",
+  "wonderWorldDesc": {
+    "line1": "Explore everyday objects in a fun",
+    "line2": "and magical way."
+  },
+
+  "socialStoryTitle": "Social Storyland",
+  "socialStoryDesc": {
+    "line1": "Practice real-life situations in a calm,",
+    "line2": "guided way."
+  },
+
+  "roccoTitle": "Say hi to your friend Rocco! He loves chatting.",
+  "roccoDesc": {
+    "line1": "Share your day with him, your feelings,or anything on",
+    "line2": "your mind."
+  },
+  "objectLearningTitle": "Object Learning Game",
+  "objectIdentificationTitle": "Object Identification Game",
+  "backButton": "Back",
+  "selectObjectTitle": "Select object to learn",
+    "back": "Back",
+    "next": "Next",
+    "repeatAfterMe": "Repeat after me Cookie",
+    "learnToSay": "Learn to say \"Cookie\"",
+    "question": "Can you find Cookie?",
+    "book": "Book",
+    "moon": "Moon",
+    "cookie": "Cookie",
+    "good":"Yes! you did it ",
+    "try":"Play Again",
+    "saycar":"Learn to say \"Car\"",
+        "repeatAfterMeCar": "Repeat after me Car",
+        "questioncar":"Can you find Car?",
+        "car":"Car",
+        "ball":"Ball",
+        "shoes":"Shoes",
+    "sayShoes":"Learn to say \"Shoes\"",
+        "repeatAfterMeShoes": "Repeat after me Shoes",
+        "questionShoes":"Can you find Shoes?",
+    "sayBall":"Learn to say \"Ball\"",
+        "repeatAfterMeBall": "Repeat after me Ball",
+                "questionBall":"Can you find Ball?",
+                "uploadpicture":"Upload Picture",
+"adult": "Adult Verification",
+"shoeQuestion":"How many zeros are there in Thousand?",
+              "Submit": "Submit",
+              "upload":"Upload picture from your device",
+              "Continue":"Continue",
+            "another":"Upload another picture",
+            "your":"These are your shoes",
+                        "yourcook":"These are your Cookies",
+              "yourball":"This is your ball",
+              "yourcar":"This is your car"
+
+
+
+
+   
+}
+
+
+  
+

@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #080f01;
+}
+
+body {
+  cursor: url('./assests/click.png') 122 122, auto;
+  background: #080f01;
+  overflow: hidden;
+}
+
+/* Keep custom cursor on all interactive elements */
+button,
+a,
+label,
+select,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  cursor: url('./assests/click.png') 122 122, auto;
+}
+
+/* Disabled state still shows not-allowed */
+button:disabled,
+input:disabled,
+[disabled],
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+/* Prevent any accidental white backgrounds on images */
+img {
+  background: transparent;
+}
+
+@font-face {
+  font-family: 'JameelNooriNastaleeq';
+  src: url('./assests/fonts/JameelNooriNastaleeq.ttf.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.urdu {
+  font-family: 'JameelNooriNastaleeq';
+  direction: rtl;
+  text-align: right;
+  font-size: 32px;
+}

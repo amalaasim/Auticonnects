@@ -1,0 +1,17 @@
+@font-face {
+  font-family: "JameelNooriNastaleeq";
+  src: url("./assests/fonts/JameelNooriNastaleeq.ttf.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-size: "32px";
+}
+
+body {
+  font-family: "JameelNooriNastaleeq", sans-serif;
+}
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}

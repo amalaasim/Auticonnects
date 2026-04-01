@@ -1,0 +1,7 @@
+{
+  "name": "Sparky - Live AI Cartoon",
+  "description": "A real-time interactive cartoon avatar powered by Gemini Live API that talks back to you.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
