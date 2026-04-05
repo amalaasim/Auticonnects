@@ -4,21 +4,27 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 // Assets
-import logo from "../assests/logo.png";
-import setting from "../assests/setting.png";
-import contact from "../assests/contact.png";
-import search from "../assests/search.png";
-import refresh from "../assests/refresh.png";
+import reportNew from "../assests/report-new.png";
+import signoutNew from "../assests/signout-new.png";
 import settings from "../assests/settings.png";
 import learning from "../assests/learning_button.png";
 import identification from "../assests/identification.png";
 import back from "../assests/back.png";
 import click from "../assests/click.png";
 import backbg from "../assests/backbg.png";
+import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
+import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
+import AppGreetingHeader from "../components/AppGreetingHeader";
 
 function GameSelection() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const topBarIcons = [
+    { volumeToggle: true, alt: "Volume" },
+    { src: reportNew, onClick: () => navigate("/reports") },
+    { src: settings, onClick: () => navigate("/settings") },
+    { src: signoutNew, logoutMenu: true },
+  ];
 
   // Helper to keep code clean since both buttons look similar
   const GameOption = ({ image, title, link, labelWidth, titleMarginLeft }) => (
@@ -123,25 +129,57 @@ function GameSelection() {
         }}
       >
         <Box
-          component="img"
-          src={logo}
+          component={AppGreetingHeader}
           sx={{
             width: "clamp(7.5rem, 18vw, 14rem)",
             height: "auto",
           }}
         />
         <Box sx={{ display: "flex", gap: "1rem" }}>
-          {[setting, contact, search, refresh, settings].map((img, i) => (
-            <Box
-              key={i}
-              component="img"
-              src={img}
-              sx={{
-                width: "clamp(1.7rem, 3.2vw, 2.8rem)",
-                height: "auto",
-                cursor: "pointer",
-              }}
-            />
+          {topBarIcons.map((item, i) => (
+            item.volumeToggle ? (
+              <TopBarVolumeIcon
+                key={i}
+                alt={item.alt}
+                sx={{
+                  width: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  height: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  objectFit: "contain",
+                  transform: "translateY(-11px)",
+                  opacity: 1,
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                }}
+              />
+            ) : item.logoutMenu ? (
+              <TopBarLogoutIcon
+                key={i}
+                src={item.src}
+                sx={{
+                  width: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  height: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  objectFit: "contain",
+                  transform: "translateY(-11px)",
+                  opacity: 1,
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                }}
+              />
+            ) : (
+              <Box
+                key={i}
+                component="img"
+                src={item.src}
+                onClick={item.onClick}
+                sx={{
+                  width: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  height: "clamp(1.7rem, 3.2vw, 2.8rem)",
+                  objectFit: "contain",
+                  transform: "translateY(-11px)",
+                  opacity: 1,
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  cursor: item.onClick ? "pointer" : "default",
+                }}
+              />
+            )
           ))}
         </Box>
       </Paper>

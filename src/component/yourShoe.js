@@ -19,12 +19,16 @@ import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import yourshoe from '../assests/yourshoe.mpeg';
 import yoururdu from '../assests/yourshoeurdu.ogg';
+import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 
 export default function Show() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const location = useLocation();
   const audioRef = useRef(null);
+  const [uploadedImage, setUploadedImage] = React.useState(
+    () => location.state?.uploadedImage || getCachedGameImage("shoe")
+  );
 
  useEffect(() => {
   const audio = audioRef.current;
@@ -40,8 +44,32 @@ export default function Show() {
   }
 }, [i18n.language]);
 
-  const uploadedImage =
-    location.state?.uploadedImage || localStorage.getItem("uploadedShoe");
+  useEffect(() => {
+    if (!location.state?.uploadedImage) return;
+    setUploadedImage(location.state.uploadedImage);
+    cacheGameImage("shoe", location.state.uploadedImage);
+  }, [location.state]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const hydrateSavedImage = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("shoe");
+        if (!ignore && savedImage) {
+          setUploadedImage(savedImage);
+        }
+      } catch (error) {
+        console.error("Failed to load shoe image:", error);
+      }
+    };
+
+    hydrateSavedImage();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <motion.div

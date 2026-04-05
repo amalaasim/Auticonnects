@@ -17,7 +17,7 @@ import click from '../assests/click.png';
 import backbg from '../assests/backbg.png';
 import {useRef,useEffect,useState} from 'react';
 import repeatCookie from '../assests/repeatball.mpeg';
-import amazing from '../assests/amazingball.mpeg';
+import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagainball.mpeg';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import { useNavigate } from "react-router-dom";
@@ -27,47 +27,85 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import back from '../assests/back.png';
 import repeatCookieurdu from '../assests/repeatballurdu.ogg';
-import amazbiscuiturdu from '../assests/amazballurdu.ogg';
+import amazbiscuiturdu from '../assests/finalurdu.mp4';
 import againcookie from '../assests/againballurdu.ogg';
+import { startSession } from "@/lib/analytics/client";
+import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
+import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
 import gradient from '../assests/gradient.png';
 import CloseIcon from '@mui/icons-material/Close';
 //upload popup
-export function UploadShoe() {
+export function UploadShoe({ onClose }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const fileInputRef = React.useRef(null);
-  const [imageFile, setImageFile] = React.useState(null);
+  const [previewImage, setPreviewImage] = React.useState(() => getCachedGameImage("ball"));
+  const [pendingImage, setPendingImage] = React.useState(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleUploadClick = () => fileInputRef.current.click();
+  useEffect(() => {
+    let ignore = false;
+
+    const hydrateSavedImage = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("ball");
+        if (!ignore && savedImage) {
+          setPreviewImage(savedImage);
+        }
+      } catch (error) {
+        console.error("Failed to load ball image:", error);
+      }
+    };
+
+    hydrateSavedImage();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleUploadClick = () => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  };
 
   const handleAnotherClick = () => {
-    setImageFile(null); // remove previous image
-    localStorage.removeItem("uploadedball"); // clear old image
-    fileInputRef.current.click(); // open file picker again
+    setPendingImage(null);
+    handleUploadClick();
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-
-      // Convert file to Base64 and store in localStorage
       const reader = new FileReader();
       reader.onloadend = () => {
-        localStorage.setItem("uploadedball", reader.result); // consistently use uploadedCookie
+        if (typeof reader.result !== "string") return;
+        setPendingImage(reader.result);
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleContinue = () => {
-    const savedImage = localStorage.getItem("uploadedball");
-    if (savedImage) {
-      navigate("/showball", { state: { uploadedImage: savedImage } });
+  const handleContinue = async () => {
+    const imageToUse = pendingImage || previewImage;
+    if (!imageToUse || isSaving) return;
+
+    try {
+      setIsSaving(true);
+      if (pendingImage) {
+        await saveGameImage("ball", pendingImage);
+      }
+      navigate(GAME_IMAGE_CONFIG.ball.route, { state: { uploadedImage: imageToUse } });
+    } catch (error) {
+      console.error("Failed to save ball image:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -85,6 +123,19 @@ export function UploadShoe() {
       }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto`, position: "relative" }}>
+        <CloseIcon
+          onClick={onClose}
+          sx={{
+            position: "fixed",
+            top: "calc(50% - 290px)",
+            left: "calc(50% + 250px)",
+            transform: "translate(-50%, -50%)",
+            fontSize: { lg: 42, sm: 32 },
+            color: "#5d2a00",
+            zIndex: 4,
+            cursor: "pointer",
+          }}
+        />
         <Box
           component="img"
           src={pegion}
@@ -133,8 +184,8 @@ export function UploadShoe() {
             zIndex: 3,
           }}
         >
-          {imageFile ? (
-            <Box component="img" src={URL.createObjectURL(imageFile)} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          {previewImage ? (
+            <Box component="img" src={previewImage} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
             <Typography sx={{ color: "#c9742e", textAlign: "center", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq":"chewy", 
                      fontSize:{lg:i18n.language === "ur" ? "30px" : "20px",sm:i18n.language === "ur" ? "20px" :"20px"} }}>
@@ -162,7 +213,7 @@ export function UploadShoe() {
           <Box
             onClick={handleContinue}
             sx={{
-              width: imageFile ? "50%" : "100%",
+              width: previewImage ? "50%" : "100%",
               height: "100%",
               cursor: "pointer",
               position: "relative",
@@ -188,7 +239,7 @@ export function UploadShoe() {
           </Box>
 
           {/* Another Button (only if image uploaded) */}
-          {imageFile && (
+          {previewImage && (
             <Box
               onClick={handleAnotherClick}
               sx={{
@@ -470,6 +521,35 @@ function Learnobjball() {
     localStorage.setItem("ball_select_done", "false");
   }, []);
 
+  useEffect(() => {
+    let ignore = false;
+
+    const ensureSession = async () => {
+      if (window.sessionStorage.getItem("analytics:wonderworld:ball")) return;
+
+      try {
+        const sessionId = await startSession({
+          gameKey: "wonderworld",
+          moduleKey: "ball",
+          sourceApp: "main-app",
+          language: i18n.language,
+        });
+
+        if (!ignore) {
+          ensureWonderworldSessionState("ball", sessionId, i18n.language);
+        }
+      } catch (error) {
+        console.error("Failed to start ball analytics session:", error);
+      }
+    };
+
+    ensureSession();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const incrementVoiceTries = () => {
     const current = parseInt(localStorage.getItem("ball_voice_tries") || "0", 10);
     localStorage.setItem("ball_voice_tries", String(current + 1));
@@ -655,12 +735,30 @@ useEffect(() => {
   useEffect(() => {
     if (!audioFinished || autoAdvanceRef.current) return;
     autoAdvanceRef.current = true;
-    const savedImage = localStorage.getItem("uploadedBall");
-    if (savedImage) {
-      navigate("/showball");
-    } else {
-      navigate("/findball"); // agar image nahi hai to find page
-    }
+    let ignore = false;
+
+    const resolveNextRoute = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("ball");
+        if (ignore) return;
+        if (savedImage) {
+          navigate("/showball");
+        } else {
+          navigate("/findball");
+        }
+      } catch (error) {
+        console.error("Failed to resolve ball image:", error);
+        if (!ignore) {
+          navigate("/findball");
+        }
+      }
+    };
+
+    resolveNextRoute();
+
+    return () => {
+      ignore = true;
+    };
   }, [audioFinished, navigate]);
 
   <style>
@@ -873,7 +971,9 @@ opacity:"0.9", }}>{t("sayBall")}</Typography>
                         ? "Great job! ✅"
                         : speechVerified
                         ? "Verified: ball ✅"
-                        : `Say “ball” to continue (${speechStep}/2)`}
+                        : i18n.language === "ur"
+                          ? `آگے جانے کے لیے گیند بولیں (${speechStep}/2)`
+                          : `Say “ball” to continue (${speechStep}/2)`}
                     </Typography>
                     {speechStatus && (
                       <Typography
@@ -917,10 +1017,9 @@ opacity:"0.9", }}>{t("sayBall")}</Typography>
         }}
       />
     )}
-    {showUpload && <UploadShoe />}
+    {showUpload && <UploadShoe onClose={() => setShowUpload(false)} />}
     </motion.div>
   )
 }
 
 export default Learnobjball;
-

@@ -20,6 +20,8 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import your from '../assests/yourcookie.mpeg';
 import yoururdu from '../assests/yourbiscuiturdu.mp4';
+import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
+import { getWonderworldSpeechConfig } from "@/lib/wonderworldSpeech";
 
 export default function Cookie() {
   const navigate = useNavigate();
@@ -34,6 +36,10 @@ const [speechVerified, setSpeechVerified] = React.useState(false);
 const [speechStatus, setSpeechStatus] = React.useState("");
 const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
 const speechVerifiedRef = useRef(false);
+const [uploadedImage, setUploadedImage] = React.useState(
+  () => location.state?.uploadedImage || getCachedGameImage("cookie")
+);
+
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
     if (!audio) {
@@ -68,169 +74,111 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [speechVerified, navigate]);
 
-useEffect(() => {
-  const listenForCookie = () =>
-    new Promise((resolve, reject) => {
-      let resolved = false;
-      let attemptCounted = false;
-      cancelListenRef.current = false;
-      const targetWord = i18n.language === "ur" ? "biscuit" : "cookie";
-      const recognitionLang = "en-US";
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+const incrementVoiceTries = () => {
+  const current = parseInt(localStorage.getItem("cookie_voice_tries") || "0", 10);
+  localStorage.setItem("cookie_voice_tries", String(current + 1));
+};
 
-      if (!SpeechRecognition) {
-        setSpeechStatus("Speech recognition not supported on this device.");
-        reject(new Error("SpeechRecognition not supported"));
-        return;
+const listenForCookie = () =>
+  new Promise((resolve, reject) => {
+    let resolved = false;
+    let attemptCounted = false;
+    cancelListenRef.current = false;
+    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig("cookie", i18n.language);
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechStatus("Speech recognition not supported on this device.");
+      reject(new Error("SpeechRecognition not supported"));
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = recognitionLang;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+    recognition.continuous = false;
+
+    const ensureMicPermission = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) return true;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+        return true;
+      } catch (_) {
+        setSpeechStatus("Microphone permission blocked.");
+        return false;
       }
+    };
 
-      const recognition = new SpeechRecognition();
-      recognition.lang = recognitionLang;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 5;
-      recognition.continuous = false;
+    const startListening = async () => {
+      if (retryListenRef.current) {
+        clearTimeout(retryListenRef.current);
+        retryListenRef.current = null;
+      }
+      setSpeechVerified(false);
+      setSpeechStatus(`Listening… say “${targetWord}”`);
+      const hasPermission = await ensureMicPermission();
+      if (!hasPermission) return;
+      try {
+        recognition.start();
+      } catch (_) {
+        // Ignore duplicate starts
+      }
+    };
 
-      const ensureMicPermission = async () => {
-        if (!navigator.mediaDevices?.getUserMedia) return true;
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach((track) => track.stop());
-          return true;
-        } catch (_) {
-          setSpeechStatus("Microphone permission blocked.");
-          return false;
-        }
-      };
+    recognition.onresult = (event) => {
+      const transcripts = Array.from(event.results || []).flatMap((result) =>
+        Array.from(result || []).map((item) => item.transcript.toLowerCase())
+      );
+      const transcript = transcripts[0] || "";
 
-      const startListening = async () => {
+      if (!attemptCounted) {
+        incrementVoiceTries();
+        attemptCounted = true;
+      }
+      setSpeechStatus(`Heard: ${transcript}`);
+      if (matches(transcripts)) {
+        setSpeechVerified(true);
+        speechVerifiedRef.current = true;
+        setSpeechStatus(`Great! You said ${targetWord}.`);
         if (retryListenRef.current) {
           clearTimeout(retryListenRef.current);
           retryListenRef.current = null;
         }
+        resolved = true;
+        recognition.stop();
+        resolve();
+      } else {
         setSpeechVerified(false);
-        setSpeechStatus(`Listening… say “${targetWord}”`);
-        const hasPermission = await ensureMicPermission();
-        if (!hasPermission) return;
-        try {
-          recognition.start();
-        } catch (_) {}
-      };
-
-      recognition.onresult = (event) => {
-        const transcripts = Array.from(event.results || []).flatMap((result) =>
-          Array.from(result || []).map((item) => item.transcript.toLowerCase())
-        );
-        const transcript = transcripts[0] || "";
-        const variants = [
-          "cookie",
-          "cooki",
-          "kuki",
-          "kookie",
-          "biscuit",
-          "biscut",
-          "biskit",
-          "biskut",
-          "biscoot",
-          "biscuet",
-          "bisquite",
-          "biskoot",
-          "biscot",
-          "baskit",
-          "biskat",
-          "biscat",
-          "biscuitt",
-          "بسکٹ",
-          "بسکِٹ",
-          "بِسکٹ",
-          "بسکِت",
-          "بیسکٹ",
-          "بِسکِت",
-          "بِسکِٹ",
-          "بسکُٹ",
-          "بسکٹٹ",
-          "بِسکُٹ",
-          "بیسکِٹ",
-          "بسکٹا",
-          "بسکٹو",
-        ];
-        const matches = transcripts.some((value) => {
-          const normalized = value.replace(/[\s\-_.']/g, "");
-          const words = value
-            .split(/\s+/)
-            .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-            .filter(Boolean);
-
-          if (variants.some((v) => normalized.includes(v) || words.includes(v))) {
-            return true;
-          }
-
-          return words.some((word) => {
-            if (word.length > 8) return false;
-            if (/^cook/.test(word)) return true;
-            if (/^bisc/.test(word)) return true;
-            if (/^bisk/.test(word)) return true;
-            if (/^بسک/.test(word)) return true;
-            if (/^بِسک/.test(word)) return true;
-            return false;
-          });
-        });
-        setSpeechStatus(`Heard: ${transcript}`);
-        if (!attemptCounted) {
-          attemptCounted = true;
-        }
-        if (matches) {
-          setSpeechVerified(true);
-          speechVerifiedRef.current = true;
-          setSpeechStatus(`Great! You said ${targetWord}.`);
-          if (retryListenRef.current) {
-            clearTimeout(retryListenRef.current);
-            retryListenRef.current = null;
-          }
-          resolved = true;
-          recognition.stop();
-          resolve();
-        } else {
-          setSpeechVerified(false);
-          speechVerifiedRef.current = false;
-          setSpeechStatus(`Try again: say “${targetWord}”.`);
-        }
-      };
-
-      recognition.onerror = (event) => {
-        const error = event?.error || "unknown";
-        if (error === "aborted") return;
-        if (error === "no-speech") {
-          setSpeechStatus(`Listening… say “${targetWord}”`);
-          return;
-        }
-        if (error === "audio-capture") {
-          setSpeechStatus("Microphone not available.");
-          return;
-        }
-        if (error === "not-allowed") {
-          setSpeechStatus("Microphone permission blocked.");
-          return;
-        }
-        setSpeechStatus(`Speech error: ${error}`);
-      };
-
-      recognition.onend = () => {
-        if (cancelListenRef.current) {
-          resolved = true;
-          resolve();
-          return;
-        }
-        if (!resolved && allowListeningRef.current) {
-          retryListenRef.current = setTimeout(startListening, 800);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      if (allowListeningRef.current) {
-        startListening();
+        speechVerifiedRef.current = false;
+        setSpeechStatus(`Try again: say “${targetWord}”.`);
       }
-    });
+    };
+
+    recognition.onerror = () => {
+      setSpeechStatus("Couldn't hear you. Try again.");
+    };
+
+    recognition.onend = () => {
+      if (cancelListenRef.current) {
+        resolved = true;
+        resolve();
+        return;
+      }
+      if (!resolved && allowListeningRef.current) {
+        retryListenRef.current = setTimeout(startListening, 800);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    if (allowListeningRef.current) {
+      startListening();
+    }
+  });
+
+useEffect(() => {
 
   const runSequence = async () => {
     const audio = audioRef.current;
@@ -266,8 +214,32 @@ useEffect(() => {
   };
 }, [i18n.language]);
 
-  // Get uploaded image from localStorage or navigation state
-  const uploadedImage = location.state?.uploadedImage || localStorage.getItem("uploadedCookie");
+useEffect(() => {
+  if (!location.state?.uploadedImage) return;
+  setUploadedImage(location.state.uploadedImage);
+  cacheGameImage("cookie", location.state.uploadedImage);
+}, [location.state]);
+
+useEffect(() => {
+  let ignore = false;
+
+  const hydrateSavedImage = async () => {
+    try {
+      const savedImage = await loadSavedGameImage("cookie");
+      if (!ignore && savedImage) {
+        setUploadedImage(savedImage);
+      }
+    } catch (error) {
+      console.error("Failed to load cookie image:", error);
+    }
+  };
+
+  hydrateSavedImage();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 
 
   return (
@@ -457,7 +429,13 @@ useEffect(() => {
                 color: speechVerified ? "#B9FFB3" : "#FFE1B3",
               }}
             >
-              {speechVerified ? "Verified: cookie ✅" : "Say “cookie” to continue"}
+              {speechVerified
+                ? i18n.language === "ur"
+                  ? "تصدیق ہوگئی: بسکٹ ✅"
+                  : "Verified: cookie ✅"
+                : i18n.language === "ur"
+                  ? "آگے جانے کے لیے بسکٹ بولیں"
+                  : "Say “cookie” to continue"}
             </Typography>
             {speechStatus && (
               <Typography

@@ -17,13 +17,6 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-center gap-5">
-      {/* Left Button - Retry */}
-      <img 
-        src={assetUrl("/images/retry-circle.png")} 
-        alt="Retry"
-        className="h-14 w-14 cursor-pointer hover:scale-110 transition-transform active:scale-95"
-      />
-      
       {/* Center Button - Play/Pause */}
       {!isConnected ? (
         <img 

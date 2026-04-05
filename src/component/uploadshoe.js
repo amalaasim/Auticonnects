@@ -7,25 +7,52 @@ import { useNavigate } from "react-router-dom";
 import click from '../assests/click.png';
 import pegion from '../assests/pegion.png';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
 
 export function UploadShoe() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const fileInputRef = React.useRef(null);
-  const [imageFile, setImageFile] = React.useState(null);
+  const [previewImage, setPreviewImage] = React.useState(() => getCachedGameImage("shoe"));
+  const [pendingImage, setPendingImage] = React.useState(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleUploadClick = () => fileInputRef.current.click();
+  React.useEffect(() => {
+    let ignore = false;
+
+    const hydrateSavedImage = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("shoe");
+        if (!ignore && savedImage) {
+          setPreviewImage(savedImage);
+        }
+      } catch (error) {
+        console.error("Failed to load shoe image:", error);
+      }
+    };
+
+    hydrateSavedImage();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleUploadClick = () => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-
-      // Convert file to Base64 and store in localStorage
       const reader = new FileReader();
       reader.onloadend = () => {
-        localStorage.setItem("uploadedShoe", reader.result);
+        if (typeof reader.result !== "string") return;
+        setPendingImage(reader.result);
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -66,11 +93,15 @@ export function UploadShoe() {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-            }}
-          >
+          }}
+        >
+          {previewImage ? (
+            <Box component="img" src={previewImage} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          ) : (
             <Typography sx={{ color: "#c9742e", textAlign: "center" }}>
               <FileUploadIcon sx={{ fontSize: 40 }} /><br />{t("upload")}
             </Typography>
+          )}
           </Box>
 
           <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
@@ -78,12 +109,23 @@ export function UploadShoe() {
           <Button
             variant="contained"
             sx={{ backgroundColor: "#d56509", color: "#482406", position: "absolute", marginTop: "-14%", marginLeft: "36.2%", width: "25%" }}
-            onClick={() => {
-              const savedImage = localStorage.getItem("uploadedShoe");
-              if (savedImage) {
-                navigate("/showShoe", { state: { uploadedImage: savedImage } });
-              } else {
+            onClick={async () => {
+              const imageToUse = pendingImage || previewImage;
+              if (!imageToUse || isSaving) {
                 alert("Please upload an image first");
+                return;
+              }
+
+              try {
+                setIsSaving(true);
+                if (pendingImage) {
+                  await saveGameImage("shoe", pendingImage);
+                }
+                navigate(GAME_IMAGE_CONFIG.shoe.route, { state: { uploadedImage: imageToUse } });
+              } catch (error) {
+                console.error("Failed to save shoe image:", error);
+              } finally {
+                setIsSaving(false);
               }
             }}
           >

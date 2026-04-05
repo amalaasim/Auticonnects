@@ -20,6 +20,8 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import yourcar from '../assests/yourcar.mpeg';
 import yourcarurdu from '../assests/yourcarurdu.ogg';
+import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
+import { getWonderworldSpeechConfig } from "@/lib/wonderworldSpeech";
 export default function Car() {
   const navigate = useNavigate();
   const {t}=useTranslation();
@@ -27,14 +29,15 @@ export default function Car() {
 const audioRef = useRef(null);
 const recognitionRef = useRef(null);
 const retryListenRef = useRef(null);
-const listenTimeoutRef = useRef(null);
 const cancelListenRef = useRef(false);
 const allowListeningRef = useRef(true);
-const startListeningRef = useRef(null);
 const [speechVerified, setSpeechVerified] = React.useState(false);
 const [speechStatus, setSpeechStatus] = React.useState("");
 const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
 const speechVerifiedRef = useRef(false);
+const [uploadedImage, setUploadedImage] = React.useState(
+  () => location.state?.uploadedImage || getCachedGameImage("car")
+);
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
     if (!audio) {
@@ -69,152 +72,96 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [speechVerified, navigate]);
 
-useEffect(() => {
-  const listenForCar = () =>
-    new Promise((resolve, reject) => {
-      let resolved = false;
-      cancelListenRef.current = false;
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+const incrementVoiceTries = () => {
+  const current = parseInt(localStorage.getItem("car_voice_tries") || "0", 10);
+  localStorage.setItem("car_voice_tries", String(current + 1));
+};
 
-      if (!SpeechRecognition) {
-        setSpeechStatus("Speech recognition not supported on this device.");
-        reject(new Error("SpeechRecognition not supported"));
-        return;
+const listenForCar = () =>
+  new Promise((resolve, reject) => {
+    let resolved = false;
+    cancelListenRef.current = false;
+    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig("car", i18n.language);
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechStatus("Speech recognition not supported on this device.");
+      reject(new Error("SpeechRecognition not supported"));
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = recognitionLang;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+    recognition.continuous = false;
+
+    const startListening = () => {
+      if (retryListenRef.current) {
+        clearTimeout(retryListenRef.current);
+        retryListenRef.current = null;
       }
+      setSpeechVerified(false);
+      setSpeechStatus(`Listening… say “${targetWord}”`);
+      try {
+        recognition.start();
+      } catch (_) {
+        // Ignore duplicate starts
+      }
+    };
 
-      const recognition = new SpeechRecognition();
-      recognition.lang = i18n.language === "ur" ? "ur-PK" : "en-US";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 5;
-      recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const result = event.results[event.resultIndex] || event.results[0];
+      const transcripts = Array.from(result || []).map((item) =>
+        item.transcript.toLowerCase()
+      );
+      const transcript = transcripts[0] || "";
 
-      const finishAsVerified = (status) => {
-        if (resolved) return;
-        resolved = true;
+      if (result?.isFinal) {
+        incrementVoiceTries();
+      }
+      setSpeechStatus(`Heard: ${transcript}`);
+      if (matches(transcripts)) {
         setSpeechVerified(true);
         speechVerifiedRef.current = true;
-        setSpeechStatus(status);
-        if (listenTimeoutRef.current) {
-          clearTimeout(listenTimeoutRef.current);
-          listenTimeoutRef.current = null;
-        }
-        try {
-          recognition.stop();
-        } catch (_) {}
-        resolve();
-      };
-
-      const startListening = () => {
+        setSpeechStatus(`Great! You said ${targetWord}.`);
         if (retryListenRef.current) {
           clearTimeout(retryListenRef.current);
           retryListenRef.current = null;
         }
-        if (listenTimeoutRef.current) {
-          clearTimeout(listenTimeoutRef.current);
-          listenTimeoutRef.current = null;
-        }
+        resolved = true;
+        recognition.stop();
+        resolve();
+      } else {
         setSpeechVerified(false);
-        setSpeechStatus("Listening… say “car”");
-        listenTimeoutRef.current = setTimeout(() => {
-          finishAsVerified("Continuing...");
-        }, 5000);
-        try {
-          recognition.start();
-        } catch (_) {
-          // Ignore duplicate starts
-        }
-      };
-      startListeningRef.current = startListening;
-
-      recognition.onresult = (event) => {
-        const transcripts = Array.from(event.results || []).flatMap((result) =>
-          Array.from(result || []).map((item) => item.transcript.toLowerCase())
-        );
-        const transcript = transcripts[0] || "";
-        setSpeechStatus(`Heard: ${transcript}`);
-        const exactVariants = [
-          "car",
-          "cars",
-          "carr",
-          "care",
-          "cur",
-          "kar",
-          "kaar",
-          "gari",
-          "gaari",
-          "گاڑی",
-          "گاڑي",
-        ];
-        const matches = transcripts.some((value) => {
-          const normalized = value.replace(/[\s\-_.']/g, "");
-          const words = value
-            .split(/\s+/)
-            .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-            .filter(Boolean);
-
-          if (
-            exactVariants.some(
-              (variant) =>
-                normalized.includes(variant) || words.includes(variant)
-            )
-          ) {
-            return true;
-          }
-
-          return words.some((word) => {
-            if (word.length > 5) return false;
-            if (/^[ck].*(r|re|rr)$/.test(word)) return true;
-            if (/^ca/.test(word)) return true;
-            if (/^ka/.test(word)) return true;
-            if (/^gar/i.test(word)) return true;
-            return false;
-          });
-        });
-
-        if (matches) {
-          finishAsVerified("Great! You said car.");
-        } else {
-          setSpeechVerified(false);
-          speechVerifiedRef.current = false;
-          setSpeechStatus("Try again: say “car”.");
-        }
-      };
-
-      recognition.onerror = (event) => {
-        const error = event?.error || "unknown";
-        if (error === "aborted") return;
-        if (error === "no-speech") {
-          setSpeechStatus("No speech detected. Try again.");
-        } else if (error === "audio-capture") {
-          setSpeechStatus("Microphone not available.");
-        } else if (error === "not-allowed") {
-          setSpeechStatus("Microphone permission blocked.");
-        } else {
-          setSpeechStatus(`Speech error: ${error}`);
-        }
-      };
-
-      recognition.onend = () => {
-        if (listenTimeoutRef.current) {
-          clearTimeout(listenTimeoutRef.current);
-          listenTimeoutRef.current = null;
-        }
-        if (cancelListenRef.current) {
-          resolved = true;
-          resolve();
-          return;
-        }
-        if (!resolved && allowListeningRef.current) {
-          retryListenRef.current = setTimeout(startListening, 800);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      if (allowListeningRef.current) {
-        startListening();
+        speechVerifiedRef.current = false;
+        setSpeechStatus(`Try again: say “${targetWord}”.`);
       }
-    });
+    };
+
+    recognition.onerror = () => {
+      setSpeechStatus("Couldn't hear you. Try again.");
+    };
+
+    recognition.onend = () => {
+      if (cancelListenRef.current) {
+        resolved = true;
+        resolve();
+        return;
+      }
+      if (!resolved && allowListeningRef.current) {
+        retryListenRef.current = setTimeout(startListening, 800);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    if (allowListeningRef.current) {
+      startListening();
+    }
+  });
+
+useEffect(() => {
 
   const runSequence = async () => {
     const audio = audioRef.current;
@@ -242,10 +189,6 @@ useEffect(() => {
       clearTimeout(retryListenRef.current);
       retryListenRef.current = null;
     }
-    if (listenTimeoutRef.current) {
-      clearTimeout(listenTimeoutRef.current);
-      listenTimeoutRef.current = null;
-    }
     if (audioRef.current) audioRef.current.onended = null;
     setIsLionSpeaking(false);
     try {
@@ -253,8 +196,46 @@ useEffect(() => {
     } catch (_) {}
   };
 }, [i18n.language]);
-  // Get uploaded image from localStorage or navigation state
-  const uploadedImage = location.state?.uploadedImage || localStorage.getItem("uploadedCar");
+
+useEffect(() => {
+  return () => {
+    if (retryListenRef.current) {
+      clearTimeout(retryListenRef.current);
+      retryListenRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+    }
+  };
+}, []);
+useEffect(() => {
+  if (!location.state?.uploadedImage) return;
+  setUploadedImage(location.state.uploadedImage);
+  cacheGameImage("car", location.state.uploadedImage);
+}, [location.state]);
+
+useEffect(() => {
+  let ignore = false;
+
+  const hydrateSavedImage = async () => {
+    try {
+      const savedImage = await loadSavedGameImage("car");
+      if (!ignore && savedImage) {
+        setUploadedImage(savedImage);
+      }
+    } catch (error) {
+      console.error("Failed to load car image:", error);
+    }
+  };
+
+  hydrateSavedImage();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
   return (
     <motion.div
       initial={{ opacity: 0, x: 60 }}
@@ -441,7 +422,13 @@ useEffect(() => {
                 color: speechVerified ? "#B9FFB3" : "#FFE1B3",
               }}
             >
-              {speechVerified ? "Verified: car ✅" : "Say “car” to continue"}
+              {speechVerified
+                ? i18n.language === "ur"
+                  ? "تصدیق ہوگئی: گاڑی ✅"
+                  : "Verified: car ✅"
+                : i18n.language === "ur"
+                  ? "آگے جانے کے لیے گاڑی بولیں"
+                  : "Say “car” to continue"}
             </Typography>
             {speechStatus && (
               <Typography

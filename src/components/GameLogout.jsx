@@ -7,10 +7,10 @@ const AUTH_ROUTES = new Set([
   "/forgot-password",
   "/reset-password",
   "/email-verified",
+  "/garden",
   "/child-profile/name",
   "/child-profile/age",
   "/child-profile/character",
-  "/child-profile/language",
 ]);
 
 function GameLogout() {

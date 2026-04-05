@@ -1,25 +1,42 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
 
 const EmailVerified: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signOut } = useAuth();
 
   useEffect(() => {
-    toast({
-      title: 'Email Verified Successfully!',
-      description: 'Your email has been verified. You can now log in to your account.',
-    });
+    let active = true;
 
-    const timer = setTimeout(() => {
-      navigate('/login');
-    }, 2000);
+    const finalizeVerification = async () => {
+      await signOut();
 
-    return () => clearTimeout(timer);
-  }, [navigate, toast]);
+      if (!active) return;
+
+      toast({
+        title: 'Email Verified Successfully!',
+        description: 'Your email has been verified. You can now log in to your account.',
+      });
+
+      const timer = setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    };
+
+    const cleanupPromise = finalizeVerification();
+
+    return () => {
+      active = false;
+      cleanupPromise.then((cleanup) => cleanup?.());
+    };
+  }, [navigate, signOut, toast]);
 
   return (
     <AuthBackground>

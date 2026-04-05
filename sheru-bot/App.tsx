@@ -6,8 +6,9 @@ import { CartoonAvatar } from './components/CartoonAvatar';
 import { TopBar } from './components/TopBar';
 import { BottomControls } from './components/BottomControls';
 import { EmotionDisplay } from './components/EmotionDisplay';
-import { SessionStorage } from './utils/sessionStorage';
 import { assetUrl } from './utils/assetUrls';
+import { finishSession, startSession } from '../src/lib/analytics/client';
+import { normalizeFocusMetrics } from '../src/lib/analytics/mappers';
 
 const App: React.FC = () => {
   const { connect, disconnect, isConnected, isConnecting, aiVolume, userVolume, error, sendPrompt } = useGeminiLive();
@@ -26,28 +27,74 @@ const App: React.FC = () => {
   const gazeReminderSentRef = useRef(false);
   const gazeReminderCountRef = useRef(0);
   const sessionStartTimeRef = useRef<number>(0);
+  const analyticsSessionIdRef = useRef<string | null>(null);
   const lastEmotionRef = useRef<string>("neutral");
   const emotionChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const focusTimeRef = useRef(0);
+  const distractedTimeRef = useRef(0);
+  const distractionCountRef = useRef(0);
+  const lastAttentionChangeRef = useRef<number | null>(null);
+  const previousIsLookingRef = useRef<boolean | null>(null);
 
   const handleStart = async () => {
     sessionStartTimeRef.current = Date.now();
+    focusTimeRef.current = 0;
+    distractedTimeRef.current = 0;
+    distractionCountRef.current = 0;
+    lastAttentionChangeRef.current = Date.now();
+    previousIsLookingRef.current = isLooking;
+
+    try {
+      analyticsSessionIdRef.current = await startSession({
+        gameKey: 'sheru_bot',
+        moduleKey: 'sheru_bot',
+        sourceApp: 'sheru-bot',
+        startedAt: new Date(sessionStartTimeRef.current).toISOString(),
+      });
+    } catch (analyticsError) {
+      console.error('Failed to start Sheru Bot analytics session:', analyticsError);
+    }
+
     await connect();
   };
 
   const handleStop = () => {
     // Save session data before disconnecting
-    if (isConnected && sessionStartTimeRef.current > 0) {
+    if (isConnected && sessionStartTimeRef.current > 0 && analyticsSessionIdRef.current) {
       const sessionDuration = Date.now() - sessionStartTimeRef.current;
-      
-     SessionStorage.saveSession({
-        ...sessionData,
-        endTime: Date.now(),
+      const now = Date.now();
+      const lastChange = lastAttentionChangeRef.current;
+      const previousIsLooking = previousIsLookingRef.current;
+      let focusTime = focusTimeRef.current;
+      let distractedTime = distractedTimeRef.current;
+
+      if (lastChange != null && previousIsLooking != null) {
+        const elapsed = now - lastChange;
+        if (previousIsLooking) {
+          focusTime += elapsed;
+        } else {
+          distractedTime += elapsed;
+        }
+      }
+
+      finishSession({
+        sessionId: analyticsSessionIdRef.current,
+        status: 'completed',
+        endedAt: new Date(now).toISOString(),
+        resultMetrics: {
+          score_percent: sessionData.totalSamples > 0 ? 100 : 0,
+          engagement_level: sessionDuration >= 60000 ? 'High' : sessionDuration >= 30000 ? 'Medium' : 'Low',
+          gaze_reminders: gazeReminderCountRef.current,
+        },
         emotionCounts,
-        gazeReminders: gazeReminderCountRef.current,
-        conversationDuration: sessionDuration,
+        focusMetrics: normalizeFocusMetrics(
+          focusTime,
+          distractedTime,
+          distractionCountRef.current
+        ),
+      }).catch((analyticsError) => {
+        console.error('Failed to finish Sheru Bot analytics session:', analyticsError);
       });
-      
-      console.log('📊 Session saved with emotion data');
     }
     
     disconnect();
@@ -55,6 +102,7 @@ const App: React.FC = () => {
     gazeReminderSentRef.current = false;
     gazeReminderCountRef.current = 0;
     sessionStartTimeRef.current = 0;
+    analyticsSessionIdRef.current = null;
   };
 
   const isAiTalking = aiVolume > 0.05;
@@ -62,7 +110,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAiTalking && !currentAiText) {
-      setCurrentAiText("Hello! I'm Mimi. How are you?");
+      setCurrentAiText("Hello! I'm Sheru.");
     } else if (!isAiTalking) {
       setCurrentAiText("");
     }
@@ -91,7 +139,7 @@ const App: React.FC = () => {
       if (!isLooking && !gazeReminderSentRef.current && isConnected) {
         console.log('👁️❌ Child is not looking after AI finished. Sending gentle reminder...');
         
-        // Send a gentle reminder to Mimi immediately
+        // Send a gentle reminder to Sheru immediately
         sendPrompt("The child is not looking at the screen. Gently and sweetly ask them to look at you, in a very friendly way. Keep it very short and caring.");
         
         // Mark that we've sent the reminder
@@ -118,6 +166,38 @@ const App: React.FC = () => {
 
   // Emotion-based interaction logic
   useEffect(() => {
+    if (!isConnected) {
+      lastAttentionChangeRef.current = null;
+      previousIsLookingRef.current = null;
+      return;
+    }
+
+    const now = Date.now();
+
+    if (lastAttentionChangeRef.current == null) {
+      lastAttentionChangeRef.current = now;
+      previousIsLookingRef.current = isLooking;
+      return;
+    }
+
+    const previousIsLooking = previousIsLookingRef.current;
+    const elapsed = now - lastAttentionChangeRef.current;
+
+    if (previousIsLooking === true) {
+      focusTimeRef.current += elapsed;
+    } else if (previousIsLooking === false) {
+      distractedTimeRef.current += elapsed;
+    }
+
+    if (previousIsLooking === true && isLooking === false) {
+      distractionCountRef.current += 1;
+    }
+
+    previousIsLookingRef.current = isLooking;
+    lastAttentionChangeRef.current = now;
+  }, [isConnected, isLooking]);
+
+  useEffect(() => {
     if (!isConnected || !currentEmotion) return;
 
     // If emotion changes significantly and AI is not talking
@@ -132,7 +212,7 @@ const App: React.FC = () => {
       // Wait a bit to see if emotion is stable, then react
       emotionChangeTimeoutRef.current = setTimeout(() => {
         if (!isAiTalking && isConnected) {
-          console.log(`😊 Emotion changed to: ${currentEmotion}. Informing Mimi...`);
+          console.log(`😊 Emotion changed to: ${currentEmotion}. Informing Sheru...`);
           
           let emotionPrompt = "";
           

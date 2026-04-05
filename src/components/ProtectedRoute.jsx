@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { hasParentalConsent } from "@/utils/onboarding";
 
 /**
  * Wraps routes that require authentication.
  * - If loading: shows a spinner.
  * - If not authenticated: redirects to /login.
- * - If authenticated but no profile yet: redirects to /child-profile/name.
+ * - If authenticated but onboarding is incomplete: redirects to parental consent / child profile flow.
  * - Otherwise: renders children.
  */
 function ProtectedRoute({ children }) {
@@ -27,14 +28,22 @@ function ProtectedRoute({ children }) {
     // Check if a profile row exists for this user
     supabase
       .from("profiles")
-      .select("id")
+      .select("id, child_name, child_age, favorite_character")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) {
+        const onboardingComplete =
+          !!data?.child_name &&
+          data?.child_age != null &&
+          !!data?.favorite_character;
+
+        if (onboardingComplete) {
           setHasProfile(true);
         } else {
-          navigate("/child-profile/name", { replace: true });
+          const nextOnboardingRoute = hasParentalConsent(user.id)
+            ? "/child-profile/name"
+            : "/child-profile/consent";
+          navigate(nextOnboardingRoute, { replace: true });
         }
         setProfileChecked(true);
       });

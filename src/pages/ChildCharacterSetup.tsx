@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User, Search, RotateCcw, Settings, Power, Check } from 'lucide-react';
+import { User, Search, RotateCcw, Settings, Check } from 'lucide-react';
 
 const ChildCharacterSetup: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -22,12 +23,6 @@ const ChildCharacterSetup: React.FC = () => {
       clickSoundRef.current.currentTime = 0;
       clickSoundRef.current.play().catch(() => {});
     }
-  };
-
-  const handleLogout = async () => {
-    playClickSound();
-    await signOut();
-    navigate('/login');
   };
 
   const characters = [
@@ -62,10 +57,53 @@ const ChildCharacterSetup: React.FC = () => {
       return;
     }
 
+    const childName = sessionStorage.getItem('childName');
+    const childAge = sessionStorage.getItem('childAge');
+
+    if (!childName || !childAge || !user?.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Missing profile information. Please start over.',
+      });
+      navigate('/child-profile/name');
+      return;
+    }
+
+    let favoriteCharacter = selectedCharacter;
+    if (favoriteCharacter === 'mimmi') {
+      favoriteCharacter = 'mimi';
+    }
+
     setLoading(true);
-    sessionStorage.setItem('favoriteCharacter', selectedCharacter);
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        user_id: user.id,
+        child_name: childName,
+        child_age: parseInt(childAge, 10),
+        favorite_character: favoriteCharacter,
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message,
+      });
+      setLoading(false);
+      return;
+    }
+
+    sessionStorage.removeItem('childName');
+    sessionStorage.removeItem('childAge');
+    sessionStorage.removeItem('favoriteCharacter');
+
     setLoading(false);
-    navigate('/child-profile/language');
+    navigate('/');
   };
 
   const handleBack = () => {
@@ -116,13 +154,6 @@ const ChildCharacterSetup: React.FC = () => {
           </button>
           <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
             <Settings className="w-5 h-5 text-white" />
-          </button>
-          <button
-            onClick={handleLogout}
-            title="Sign Out"
-            className="w-10 h-10 rounded-full bg-red-500/70 hover:bg-red-600/90 flex items-center justify-center transition-colors"
-          >
-            <Power className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>

@@ -53,7 +53,7 @@ export const CartoonAvatar: React.FC<CartoonAvatarProps> = ({
         {/* Cat Image - Single image that changes based on state */}
         <img
           src={catImage}
-          alt="Mimi"
+          alt="Sheru"
           draggable={false}
           className="absolute inset-0 w-full h-full"
           style={{

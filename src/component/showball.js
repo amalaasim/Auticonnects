@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import yourball from '../assests/yourball.mpeg';
 import yoururdu from '../assests/yourballurdu.ogg';
+import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 
 export default function Ball() {
   const navigate = useNavigate();
@@ -52,6 +53,9 @@ const playAndWait = (audio) => {
 const [speechVerified, setSpeechVerified] = React.useState(false);
 const [speechStatus, setSpeechStatus] = React.useState("");
 const speechVerifiedRef = useRef(false);
+const [uploadedImage, setUploadedImage] = React.useState(
+  () => location.state?.uploadedImage || getCachedGameImage("ball")
+);
 const handleNext = () => {
   if (!speechVerified) return;
   navigate("/findball");
@@ -69,6 +73,11 @@ useEffect(() => {
 
   return () => clearTimeout(timeoutId);
 }, [speechVerified, navigate]);
+
+const incrementVoiceTries = () => {
+  const current = parseInt(localStorage.getItem("ball_voice_tries") || "0", 10);
+  localStorage.setItem("ball_voice_tries", String(current + 1));
+};
 
 useEffect(() => {
   const listenForBall = () =>
@@ -148,6 +157,7 @@ useEffect(() => {
             return false;
           });
         });
+        incrementVoiceTries();
         setSpeechStatus(`Heard: ${transcript}`);
         if (matches) {
           setSpeechVerified(true);
@@ -166,18 +176,8 @@ useEffect(() => {
         }
       };
 
-      recognition.onerror = (event) => {
-        const error = event?.error || "unknown";
-        if (error === "aborted") return;
-        if (error === "no-speech") {
-          setSpeechStatus("No speech detected. Try again.");
-        } else if (error === "audio-capture") {
-          setSpeechStatus("Microphone not available.");
-        } else if (error === "not-allowed") {
-          setSpeechStatus("Microphone permission blocked.");
-        } else {
-          setSpeechStatus(`Speech error: ${error}`);
-        }
+      recognition.onerror = () => {
+        setSpeechStatus("Couldn't hear you. Try again.");
       };
 
       recognition.onend = () => {
@@ -220,8 +220,46 @@ useEffect(() => {
     setIsLionSpeaking(false);
   };
 }, [i18n.language]);
-  // Get uploaded image from localStorage or navigation state
-  const uploadedImage = location.state?.uploadedImage || localStorage.getItem("uploadedball");
+
+useEffect(() => {
+  return () => {
+    if (retryListenRef.current) {
+      clearTimeout(retryListenRef.current);
+      retryListenRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+    }
+  };
+}, []);
+useEffect(() => {
+  if (!location.state?.uploadedImage) return;
+  setUploadedImage(location.state.uploadedImage);
+  cacheGameImage("ball", location.state.uploadedImage);
+}, [location.state]);
+
+useEffect(() => {
+  let ignore = false;
+
+  const hydrateSavedImage = async () => {
+    try {
+      const savedImage = await loadSavedGameImage("ball");
+      if (!ignore && savedImage) {
+        setUploadedImage(savedImage);
+      }
+    } catch (error) {
+      console.error("Failed to load ball image:", error);
+    }
+  };
+
+  hydrateSavedImage();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 
   return (
     <motion.div
@@ -410,7 +448,13 @@ useEffect(() => {
                 color: speechVerified ? "#B9FFB3" : "#FFE1B3",
               }}
             >
-              {speechVerified ? "Verified: ball ✅" : "Say “ball” to continue"}
+              {speechVerified
+                ? i18n.language === "ur"
+                  ? "تصدیق ہوگئی: گیند ✅"
+                  : "Verified: ball ✅"
+                : i18n.language === "ur"
+                  ? "آگے جانے کے لیے گیند بولیں"
+                  : "Say “ball” to continue"}
             </Typography>
             {speechStatus && (
               <Typography

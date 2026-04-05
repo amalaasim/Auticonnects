@@ -20,6 +20,8 @@ import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import yourshoe from '../assests/yourshoe.mpeg';
 import yoururdu from '../assests/yourshoeurdu.ogg';
+import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
+import { getWonderworldSpeechConfig } from "@/lib/wonderworldSpeech";
 
 export default function Show() {
   const navigate = useNavigate();
@@ -52,6 +54,9 @@ export default function Show() {
   const [speechVerified, setSpeechVerified] = React.useState(false);
   const [speechStatus, setSpeechStatus] = React.useState("");
   const speechVerifiedRef = useRef(false);
+  const [uploadedImage, setUploadedImage] = React.useState(
+    () => location.state?.uploadedImage || getCachedGameImage("shoe")
+  );
 
 useEffect(() => {
   speechVerifiedRef.current = speechVerified;
@@ -66,117 +71,83 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [speechVerified, navigate]);
 
-useEffect(() => {
-  const listenForShoe = () =>
-    new Promise((resolve, reject) => {
-      const targetWord = i18n.language === "ur" ? "jootay" : "shoes";
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+const incrementVoiceTries = () => {
+  const current = parseInt(localStorage.getItem("shoe_voice_tries") || "0", 10);
+  localStorage.setItem("shoe_voice_tries", String(current + 1));
+};
 
-      if (!SpeechRecognition) {
-        setSpeechStatus("Speech recognition not supported on this device.");
-        reject(new Error("SpeechRecognition not supported"));
-        return;
+const listenForShoe = () => {
+  return new Promise((resolve, reject) => {
+    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig("shoe", i18n.language);
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechStatus("Speech recognition not supported on this device.");
+      reject(new Error("SpeechRecognition not supported"));
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = recognitionLang;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+    recognition.continuous = false;
+
+    const startListening = () => {
+      if (retryListenRef.current) {
+        clearTimeout(retryListenRef.current);
+        retryListenRef.current = null;
       }
+      setSpeechVerified(false);
+      setSpeechStatus(`Listening… say “${targetWord}”`);
+      try {
+        recognition.start();
+      } catch (_) {
+        // ignore
+      }
+    };
 
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 5;
-      recognition.continuous = false;
-
-      const startListening = () => {
+    recognition.onresult = (event) => {
+      const transcripts = Array.from(event.results || []).flatMap((result) =>
+        Array.from(result || []).map((item) => item.transcript.toLowerCase())
+      );
+      const transcript = transcripts[0] || "";
+      incrementVoiceTries();
+      setSpeechStatus(`Heard: ${transcript}`);
+      if (matches(transcripts)) {
+        setSpeechVerified(true);
+        speechVerifiedRef.current = true;
+        setSpeechStatus(`Great! You said ${targetWord}.`);
         if (retryListenRef.current) {
           clearTimeout(retryListenRef.current);
           retryListenRef.current = null;
         }
+        recognition.stop();
+        resolve();
+      } else {
         setSpeechVerified(false);
-        setSpeechStatus(`Listening… say “${targetWord}”`);
-        try {
-          recognition.start();
-        } catch (_) {}
-      };
+        speechVerifiedRef.current = false;
+        setSpeechStatus(`Try again: say “${targetWord}”.`);
+      }
+    };
 
-      recognition.onresult = (event) => {
-        const transcripts = Array.from(event.results || []).flatMap((result) =>
-          Array.from(result || []).map((item) => item.transcript.toLowerCase())
-        );
-        const transcript = transcripts[0] || "";
-        const variants = [
-          "shoe",
-          "shoes",
-          "sho",
-          "show",
-          "shoo",
-          "shu",
-          "joota",
-          "jootay",
-          "jootey",
-          "joote",
-          "jutay",
-          "jutey",
-          "jootae",
-          "jotay",
-          "jotey",
-          "jootie",
-          "juti",
-          "jooti",
-          "jootai",
-          "جوتا",
-          "جوتے",
-        ];
-        const matches = transcripts.some((value) => {
-          const normalized = value.replace(/[\s\-_.']/g, "");
-          const words = value
-            .split(/\s+/)
-            .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-            .filter(Boolean);
+    recognition.onerror = () => {
+      setSpeechStatus("Couldn't hear you. Try again.");
+    };
 
-          if (variants.some((v) => normalized.includes(v) || words.includes(v))) {
-            return true;
-          }
+    recognition.onend = () => {
+      if (!speechVerifiedRef.current) {
+        retryListenRef.current = setTimeout(startListening, 800);
+      }
+    };
 
-          return words.some((word) => {
-            if (word.length > 8) return false;
-            if (/^sho/.test(word)) return true;
-            if (/^shu/.test(word)) return true;
-            if (/^joo/.test(word)) return true;
-            if (/^jut/.test(word)) return true;
-            if (/^جو/.test(word)) return true;
-            return false;
-          });
-        });
-        setSpeechStatus(`Heard: ${transcript}`);
-        if (matches) {
-          setSpeechVerified(true);
-          speechVerifiedRef.current = true;
-          setSpeechStatus(`Great! You said ${targetWord}.`);
-          if (retryListenRef.current) {
-            clearTimeout(retryListenRef.current);
-            retryListenRef.current = null;
-          }
-          recognition.stop();
-          resolve();
-        } else {
-          setSpeechVerified(false);
-          speechVerifiedRef.current = false;
-          setSpeechStatus(`Try again: say “${targetWord}”.`);
-        }
-      };
+    recognitionRef.current = recognition;
+    startListening();
+  });
+};
 
-      recognition.onerror = () => {
-        setSpeechStatus("Couldn't hear you. Try again.");
-      };
-
-      recognition.onend = () => {
-        if (!speechVerifiedRef.current) {
-          retryListenRef.current = setTimeout(startListening, 800);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      startListening();
-    });
+useEffect(() => {
 
   const runSequence = async () => {
     try {
@@ -209,8 +180,32 @@ useEffect(() => {
   };
 }, [i18n.language]);
 
-  const uploadedImage =
-    location.state?.uploadedImage || localStorage.getItem("uploadedShoe");
+useEffect(() => {
+  if (!location.state?.uploadedImage) return;
+  setUploadedImage(location.state.uploadedImage);
+  cacheGameImage("shoe", location.state.uploadedImage);
+}, [location.state]);
+
+useEffect(() => {
+  let ignore = false;
+
+  const hydrateSavedImage = async () => {
+    try {
+      const savedImage = await loadSavedGameImage("shoe");
+      if (!ignore && savedImage) {
+        setUploadedImage(savedImage);
+      }
+    } catch (error) {
+      console.error("Failed to load shoe image:", error);
+    }
+  };
+
+  hydrateSavedImage();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 
   return (
     <motion.div
@@ -402,7 +397,13 @@ useEffect(() => {
                 color: speechVerified ? "#B9FFB3" : "#FFE1B3",
               }}
             >
-              {speechVerified ? "Verified: shoes ✅" : "Say “shoes” to continue"}
+              {speechVerified
+                ? i18n.language === "ur"
+                  ? "تصدیق ہوگئی: جوتے ✅"
+                  : "Verified: shoes ✅"
+                : i18n.language === "ur"
+                  ? "آگے جانے کے لیے جوتے بولیں"
+                  : "Say “shoes” to continue"}
             </Typography>
             {speechStatus && (
               <Typography

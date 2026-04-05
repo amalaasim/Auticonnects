@@ -5,7 +5,6 @@ import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
 import BackSignpost from '@/components/auth/BackSignpost';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import BackgroundMusic from '@/components/auth/BackgroundMusic';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +35,7 @@ const Login: React.FC = () => {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
-      navigate('/child-profile/name');
+      navigate('/');
     }
 
     setLoading(false);
@@ -44,8 +43,6 @@ const Login: React.FC = () => {
 
   return (
     <AuthBackground>
-      <BackgroundMusic />
-      
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 

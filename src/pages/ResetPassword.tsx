@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
-import BackgroundMusic from '@/components/auth/BackgroundMusic';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { useToast } from '@/hooks/use-toast';
@@ -54,6 +53,23 @@ const ResetPassword: React.FC = () => {
     const { error } = await updatePassword(password);
 
     if (error) {
+      const errorMessage = error.message.toLowerCase();
+
+      if (
+        errorMessage.includes('different from the old password') ||
+        errorMessage.includes('same password') ||
+        errorMessage.includes('same as the old password') ||
+        errorMessage.includes('same as your current password')
+      ) {
+        toast({
+          variant: 'destructive',
+          title: 'Password Reuse Not Allowed',
+          description: 'Your new password cannot be the same as your existing password.',
+        });
+        setLoading(false);
+        return;
+      }
+
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -72,8 +88,6 @@ const ResetPassword: React.FC = () => {
 
   return (
     <AuthBackground>
-      <BackgroundMusic />
-      
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 

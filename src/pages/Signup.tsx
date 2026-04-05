@@ -5,7 +5,6 @@ import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
 import BackSignpost from '@/components/auth/BackSignpost';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import BackgroundMusic from '@/components/auth/BackgroundMusic';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +13,7 @@ const logo = '/assets/logo.png';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, signOut } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -63,20 +62,19 @@ const Signup: React.FC = () => {
         description: error.message,
       });
     } else {
+      await signOut();
       toast({
         title: 'Account Created!',
         description: 'An email verification has been sent to your email address.',
       });
+      setEmailSent(true);
     }
 
     setLoading(false);
-    setEmailSent(true);
   };
 
   return (
     <AuthBackground>
-      <BackgroundMusic />
-      
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 

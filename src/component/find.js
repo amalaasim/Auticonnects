@@ -27,11 +27,19 @@ import nourdu from '../assests/nobiscuiturdu.mp4';
 import { useWebEyeGaze } from "../hooks/useWebEyeGaze";
 import lookHere from '../assests/look_here.mp4';
 import { useEmotionModel } from "../hooks/useEmotionModel";
+import { useAttentionMetrics } from "@/hooks/useAttentionMetrics";
+import { startSession } from "@/lib/analytics/client";
+import {
+  ensureWonderworldSessionState,
+  updateWonderworldEmotionCounts,
+  updateWonderworldFocusMetrics,
+} from "@/lib/analytics/sessionState";
 function Find() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [selectedImageSrc, setSelectedImageSrc] = React.useState(null);
   const [cameraAllowed, setCameraAllowed] = React.useState(true);
+  const [cameraPermissionResolved, setCameraPermissionResolved] = React.useState(false);
   const [selectionRecorded, setSelectionRecorded] = React.useState(false);
   const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
 
@@ -42,11 +50,15 @@ function Find() {
   const notLookingTimeoutRef = useRef(null);
   const notLookingIntervalRef = useRef(null);
   const navigateTimeoutRef = useRef(null);
-  const { isLooking, videoRef } = useWebEyeGaze({ enabled: cameraAllowed });
+  const { isLooking, videoRef } = useWebEyeGaze({ enabled: cameraPermissionResolved && cameraAllowed });
   const { emotionCounts, sampleEmotion } = useEmotionModel({
-    enabled: cameraAllowed,
+    enabled: cameraPermissionResolved && cameraAllowed,
     videoRef,
     currentSceneId: "find-cookie",
+  });
+  const { getMetrics } = useAttentionMetrics({
+    enabled: cameraPermissionResolved && cameraAllowed,
+    isLooking,
   });
 
   const dominantEmotion = React.useMemo(() => {
@@ -80,16 +92,20 @@ function Find() {
   let permissionStatus = null;
 
   const checkCameraPermission = async () => {
-    if (!navigator.permissions || !navigator.permissions.query) return;
+    if (!navigator.permissions || !navigator.permissions.query) {
+      setCameraPermissionResolved(true);
+      return;
+    }
 
     try {
       permissionStatus = await navigator.permissions.query({ name: "camera" });
       setCameraAllowed(permissionStatus.state !== "denied");
+      setCameraPermissionResolved(true);
       permissionStatus.onchange = () => {
         setCameraAllowed(permissionStatus.state !== "denied");
       };
     } catch (_) {
-      // If the Permissions API is unavailable or fails, keep default behavior.
+      setCameraPermissionResolved(true);
     }
   };
 
@@ -115,12 +131,53 @@ useEffect(() => {
   }
 }, [i18n.language, playTrackedAudio]);
 
-  useEffect(() => {
+useEffect(() => {
   const done = localStorage.getItem("cookie_select_done");
   if (done === "true") {
     setSelectionRecorded(true);
   }
 }, []);
+
+useEffect(() => {
+  let ignore = false;
+
+  const ensureSession = async () => {
+    if (window.sessionStorage.getItem("analytics:wonderworld:cookie")) return;
+
+    try {
+      const sessionId = await startSession({
+        gameKey: "wonderworld",
+        moduleKey: "cookie",
+        sourceApp: "main-app",
+        language: i18n.language,
+      });
+
+      if (!ignore) {
+        ensureWonderworldSessionState("cookie", sessionId, i18n.language);
+      }
+    } catch (error) {
+      console.error("Failed to ensure cookie analytics session:", error);
+    }
+  };
+
+  ensureSession();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
+
+useEffect(() => {
+  updateWonderworldEmotionCounts("cookie", emotionCounts);
+}, [emotionCounts]);
+
+useEffect(() => {
+  updateWonderworldFocusMetrics("cookie", getMetrics());
+
+  return () => {
+    updateWonderworldFocusMetrics("cookie", getMetrics());
+  };
+}, [cameraAllowed, isLooking, getMetrics]);
 
   const recordSelectTry = () => {
   const current = parseInt(localStorage.getItem("cookie_select_tries") || "0", 10);
@@ -136,7 +193,7 @@ useEffect(() => {
     audio.play().catch(() => {});
   };
 
-  if (!cameraAllowed) return;
+  if (!cameraPermissionResolved || !cameraAllowed) return;
 
   if (isLooking) {
     if (notLookingTimeoutRef.current) {
@@ -163,9 +220,9 @@ useEffect(() => {
           return;
         }
         playLookHere();
-      }, 15000);
+      }, 20000);
     }
-  }, 10000);
+  }, 20000);
 
   return () => {
     if (notLookingTimeoutRef.current) {
@@ -181,10 +238,10 @@ useEffect(() => {
 
 
   const handleSelect = async (img) => {
-  if (cameraAllowed) {
+  if (cameraPermissionResolved && cameraAllowed) {
     sampleEmotion().catch(() => {});
   }
-  if (cameraAllowed && !isLooking) return;
+  if (cameraPermissionResolved && cameraAllowed && !isLooking) return;
   if (!selectionRecorded) {
     recordSelectTry();
   }

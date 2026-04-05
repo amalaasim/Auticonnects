@@ -18,10 +18,10 @@ import click from '../assests/click.png';
 import backbg from '../assests/backbg.png';
 import contin from '../assests/continue.png';
 import repeatCookie from '../assests/repeatshoe.mpeg';
-import amazing from '../assests/amazingshoe.mpeg';
+import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagainshoe.mpeg';
 import repeatshoeurdu from '../assests/repeatshoeurdu.ogg';
-import amazshoeurdu from '../assests/amazshoeurdu.ogg';
+import amazshoeurdu from '../assests/finalurdu.mp4';
 import againshoe from '../assests/againshoeurdu.ogg';
 import back from '../assests/back.png';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
@@ -29,6 +29,9 @@ import { useNavigate } from "react-router-dom";
 import i18n from "../i18n";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import { startSession } from "@/lib/analytics/client";
+import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
+import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
@@ -36,39 +39,74 @@ import gradient from '../assests/gradient.png';
 import CloseIcon from '@mui/icons-material/Close';
 
 //upload popup
-export function UploadShoe() {
+export function UploadShoe({ onClose }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const fileInputRef = React.useRef(null);
-  const [imageFile, setImageFile] = React.useState(null);
+  const [previewImage, setPreviewImage] = React.useState(() => getCachedGameImage("shoe"));
+  const [pendingImage, setPendingImage] = React.useState(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleUploadClick = () => fileInputRef.current.click();
+  useEffect(() => {
+    let ignore = false;
+
+    const hydrateSavedImage = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("shoe");
+        if (!ignore && savedImage) {
+          setPreviewImage(savedImage);
+        }
+      } catch (error) {
+        console.error("Failed to load shoe image:", error);
+      }
+    };
+
+    hydrateSavedImage();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleUploadClick = () => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  };
 
   const handleAnotherClick = () => {
-    setImageFile(null); // remove previous image
-    localStorage.removeItem("uploadedShoe"); // clear old image
-    fileInputRef.current.click(); // open file picker again
+    setPendingImage(null);
+    handleUploadClick();
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-
-      // Convert file to Base64 and store in localStorage
       const reader = new FileReader();
       reader.onloadend = () => {
-        localStorage.setItem("uploadedShoe", reader.result); // consistently use uploadedCookie
+        if (typeof reader.result !== "string") return;
+        setPendingImage(reader.result);
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleContinue = () => {
-    const savedImage = localStorage.getItem("uploadedShoe");
-    if (savedImage) {
-      navigate("/showShoe", { state: { uploadedImage: savedImage } });
+  const handleContinue = async () => {
+    const imageToUse = pendingImage || previewImage;
+    if (!imageToUse || isSaving) return;
+
+    try {
+      setIsSaving(true);
+      if (pendingImage) {
+        await saveGameImage("shoe", pendingImage);
+      }
+      navigate(GAME_IMAGE_CONFIG.shoe.route, { state: { uploadedImage: imageToUse } });
+    } catch (error) {
+      console.error("Failed to save shoe image:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -86,6 +124,19 @@ export function UploadShoe() {
       }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto`, position: "relative" }}>
+        <CloseIcon
+          onClick={onClose}
+          sx={{
+            position: "fixed",
+            top: "calc(50% - 290px)",
+            left: "calc(50% + 250px)",
+            transform: "translate(-50%, -50%)",
+            fontSize: { lg: 42, sm: 32 },
+            color: "#5d2a00",
+            zIndex: 4,
+            cursor: "pointer",
+          }}
+        />
         <Box
           component="img"
           src={pegion}
@@ -134,8 +185,8 @@ export function UploadShoe() {
             zIndex: 3,
           }}
         >
-          {imageFile ? (
-            <Box component="img" src={URL.createObjectURL(imageFile)} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          {previewImage ? (
+            <Box component="img" src={previewImage} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
             <Typography sx={{ color: "#c9742e", textAlign: "center", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq":"chewy", 
                      fontSize:{lg:i18n.language === "ur" ? "30px" : "20px",sm:i18n.language === "ur" ? "20px" :"20px"} }}>
@@ -163,7 +214,7 @@ export function UploadShoe() {
           <Box
             onClick={handleContinue}
             sx={{
-              width: imageFile ? "50%" : "100%",
+              width: previewImage ? "50%" : "100%",
               height: "100%",
               cursor: "pointer",
               position: "relative",
@@ -189,7 +240,7 @@ export function UploadShoe() {
           </Box>
 
           {/* Another Button (only if image uploaded) */}
-          {imageFile && (
+          {previewImage && (
             <Box
               onClick={handleAnotherClick}
               sx={{
@@ -474,6 +525,35 @@ useEffect(() => {
   localStorage.setItem("shoe_select_done", "false");
 }, []);
 
+useEffect(() => {
+  let ignore = false;
+
+  const ensureSession = async () => {
+    if (window.sessionStorage.getItem("analytics:wonderworld:shoe")) return;
+
+    try {
+      const sessionId = await startSession({
+        gameKey: "wonderworld",
+        moduleKey: "shoe",
+        sourceApp: "main-app",
+        language: i18n.language,
+      });
+
+      if (!ignore) {
+        ensureWonderworldSessionState("shoe", sessionId, i18n.language);
+      }
+    } catch (error) {
+      console.error("Failed to start shoe analytics session:", error);
+    }
+  };
+
+  ensureSession();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
+
 const incrementVoiceTries = () => {
   const current = parseInt(localStorage.getItem("shoe_voice_tries") || "0", 10);
   localStorage.setItem("shoe_voice_tries", String(current + 1));
@@ -660,12 +740,30 @@ useEffect(() => {
   useEffect(() => {
     if (!audioFinished || autoAdvanceRef.current) return;
     autoAdvanceRef.current = true;
-    const savedImage = localStorage.getItem("uploadedShoe");
-    if (savedImage) {
-      navigate("/showShoe");
-    } else {
-      navigate("/findshoe"); // agar image nahi hai to find page
-    }
+    let ignore = false;
+
+    const resolveNextRoute = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("shoe");
+        if (ignore) return;
+        if (savedImage) {
+          navigate("/showShoe");
+        } else {
+          navigate("/findshoe");
+        }
+      } catch (error) {
+        console.error("Failed to resolve shoe image:", error);
+        if (!ignore) {
+          navigate("/findshoe");
+        }
+      }
+    };
+
+    resolveNextRoute();
+
+    return () => {
+      ignore = true;
+    };
   }, [audioFinished, navigate]);
   
     React.useEffect(() => {
@@ -846,9 +944,9 @@ opacity:"0.9",
                color:"rgba(130, 77, 31, 1)",
 opacity:"0.9", }}>{t("sayShoes")}</Typography> 
         <Box component='img' sx={{ width: {lg:"518px",sm:"40%"}, height: {lg:"300px",sm:"22%"}, marginLeft: {lg:"780px",sm:"49%"}, marginTop: "1.8%" }} src={brown} />
-        <Box component='img' sx={{ width:{lg:"200px",sm:"110px"}, height: {lg:"200px",sm:"100px"}, marginLeft: {lg:"800px",sm:"49%"}, marginTop: {lg:"-18%",sm:"-20%"} }} src={half} />
+        <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"800px",sm:"49%"}, marginTop: {lg:"-18%",sm:"-20%"} }} src={half} />
         <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"calc(62.5% + 50px)",sm:"61.5%"}, marginTop: {lg:"calc(-32% - 35px)",sm:"-38%"} }} src={full} />
-        <Box component='img' sx={{ width:{lg:"200px",sm:"90px"}, height: {lg:"180px",sm:"90px"}, marginLeft: {lg:"calc(72% + 45px)",sm:"75%"}, marginTop: {lg:"calc(-20% - 10px)",sm:"-30%"} }} src={three} />
+        <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"calc(72% + 45px)",sm:"75%"}, marginTop: {lg:"calc(-20% - 10px)",sm:"-30%"} }} src={three} />
         <Box component='img' sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"940px",sm:"60%"}, marginTop: {lg:"-12.5%",sm:"-24%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
         <Box component='img' sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={pause} />
         <Box component='img' sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"1087px",sm:"73%"}, marginTop: {lg:"-18.9%",sm:"-36%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
@@ -876,7 +974,9 @@ opacity:"0.9", }}>{t("sayShoes")}</Typography>
                         ? "Great job! ✅"
                         : speechVerified
                         ? "Verified: shoe ✅"
-                        : `Say “shoe” to continue (${speechStep}/2)`}
+                        : i18n.language === "ur"
+                          ? `آگے جانے کے لیے جوتے بولیں (${speechStep}/2)`
+                          : `Say “shoe” to continue (${speechStep}/2)`}
                     </Typography>
                     {speechStatus && (
                       <Typography
@@ -921,7 +1021,7 @@ opacity:"0.9", }}>{t("sayShoes")}</Typography>
     }}
   />
 )}
-{showUpload && <UploadShoe />}
+{showUpload && <UploadShoe onClose={() => setShowUpload(false)} />}
 
     </motion.div>
   )

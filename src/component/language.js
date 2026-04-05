@@ -4,10 +4,8 @@ import { Box, Paper } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 
 import bg from '../assests/language_bg.png';
-import logo from '../assests/logo.png';
-import contact from '../assests/contact.png';
-import search from '../assests/search.png';
-import refresh from '../assests/refresh.png';
+import reportNew from '../assests/report-new.png';
+import signoutNew from '../assests/signout-new.png';
 import settings from '../assests/settings.png';
 import blue_bg from '../assests/blue_bg.png';
 import select from '../assests/select_language.png';
@@ -15,9 +13,18 @@ import text from '../assests/text.png';
 import click from '../assests/click.png';
 import English from '../assests/English.png';
 import Urdu from '../assests/urdu.png';
+import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
+import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
+import AppGreetingHeader from "../components/AppGreetingHeader";
 
 export default function Language() {
   const navigate = useNavigate();
+  const topBarIcons = [
+    { volumeToggle: true, alt: "Volume" },
+    { src: reportNew, onClick: () => navigate("/reports") },
+    { src: settings, onClick: () => navigate("/settings") },
+    { src: signoutNew, logoutMenu: true },
+  ];
 
   const selectEnglish = () => {
     i18n.changeLanguage("en");
@@ -55,8 +62,7 @@ export default function Language() {
           }}
         >
           <Box
-            component="img"
-            src={logo}
+            component={AppGreetingHeader}
             sx={{
               width: { lg: "17%", md: "22%", sm: "30%", xs: "38%" },
               mt: { lg: "1.5%", md: "2%", sm: "6%", xs: "10%" },
@@ -64,17 +70,50 @@ export default function Language() {
           />
 
           <Box sx={{ display: "flex", gap: "0.5rem" }}>
-            {[contact, search, refresh, settings].map((img, i) => (
-              <Box
-                key={i}
-                component="img"
-                src={img}
-                sx={{
-                  width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
-                  height: "auto",
-                  mt: { lg: "27px", md: "30px", sm: "50px", xs: "70px" },
-                }}
-              />
+            {topBarIcons.map((item, i) => (
+              item.volumeToggle ? (
+                <TopBarVolumeIcon
+                  key={i}
+                  alt={item.alt}
+                  sx={{
+                    width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    objectFit: "contain",
+                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    opacity: 1,
+                    filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  }}
+                />
+              ) : item.logoutMenu ? (
+                <TopBarLogoutIcon
+                  key={i}
+                  src={item.src}
+                  sx={{
+                    width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    objectFit: "contain",
+                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    opacity: 1,
+                    filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  }}
+                />
+              ) : (
+                <Box
+                  key={i}
+                  component="img"
+                  src={item.src}
+                  onClick={item.onClick}
+                  sx={{
+                    width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    objectFit: "contain",
+                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    opacity: 1,
+                    filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                    cursor: item.onClick ? "pointer" : "default",
+                  }}
+                />
+              )
             ))}
           </Box>
         </Paper>

@@ -173,6 +173,11 @@
   pointer-events: none;
 }
 
+.lion-idle {
+  width: 401px;
+  height: 334px;
+}
+
 .final-score-layout {
   position: absolute;
   top: 220px;
@@ -184,9 +189,9 @@
 }
 
 .final-lion img {
-  width: 600px;
+  width: 520px;
   height: auto;
-  transform: translateY(100px);
+  transform: translate(-20px, 50px);
 }
 
 .final-stars {

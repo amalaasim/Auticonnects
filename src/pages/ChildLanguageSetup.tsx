@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User, Search, RotateCcw, Settings, Power } from 'lucide-react';
+import { User, Search, RotateCcw, Settings } from 'lucide-react';
 
 const ChildLanguageSetup: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -22,12 +22,6 @@ const ChildLanguageSetup: React.FC = () => {
       clickSoundRef.current.currentTime = 0;
       clickSoundRef.current.play().catch(() => {});
     }
-  };
-
-  const handleLogout = async () => {
-    playClickSound();
-    await signOut();
-    navigate('/login');
   };
 
   useEffect(() => {
@@ -171,13 +165,6 @@ const ChildLanguageSetup: React.FC = () => {
           </button>
           <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
             <Settings className="w-5 h-5 text-white" />
-          </button>
-          <button
-            onClick={handleLogout}
-            title="Sign Out"
-            className="w-10 h-10 rounded-full bg-red-500/70 hover:bg-red-600/90 flex items-center justify-center transition-colors"
-          >
-            <Power className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>

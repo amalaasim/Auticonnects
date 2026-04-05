@@ -1,10 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { playingInTheGarden } from "../data/playingInTheGarden";
 import { useWebEyeGaze } from "../gaze/useWebEyeGaze";
 import { useEmotionModel } from "../emotion/useEmotionModel";
+import { startSession, finishSession } from "../../../src/lib/analytics/client";
+import { normalizeFocusMetrics } from "../../../src/lib/analytics/mappers";
 import "../styles/StoryScreen.css";
+import finalGif from "../final.gif";
+import greenTryGif from "../green-try.gif";
 
 const StoryScreen = ({ initialLanguage = "en" }) => {
+  const navigate = useNavigate();
   const [currentSceneId, setCurrentSceneId] = useState(1);
   const [feedback, setFeedback] = useState(null);
   const [responses, setResponses] = useState([]);
@@ -14,6 +20,8 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const [language, setLanguage] = useState(initialLanguage);
 
   const [isLionTalking, setIsLionTalking] = useState(false);
+  const [idleLionGifVersion, setIdleLionGifVersion] = useState(0);
+  const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
   const audioRef = useRef(null);
 
   const [hoveredEmotion, setHoveredEmotion] = useState(null);
@@ -30,6 +38,8 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const lastAttentionChangeRef = useRef(Date.now());
   // Session start time
   const sessionStartRef = useRef(Date.now());
+  const analyticsSessionIdRef = useRef(null);
+  const analyticsFinalizedRef = useRef(false);
 
   // Helper: Check if camera is available (permission granted)
   const isCameraAvailable = () =>
@@ -170,6 +180,43 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   }, [initialLanguage]);
 
   useEffect(() => {
+    let ignore = false;
+
+    const ensureAnalyticsSession = async () => {
+      if (analyticsSessionIdRef.current) return;
+
+      try {
+        const sessionId = await startSession({
+          gameKey: "garden_story",
+          moduleKey: "garden_story",
+          sourceApp: "garden-story",
+          language,
+          startedAt: new Date(sessionStartRef.current).toISOString(),
+        });
+
+        if (!ignore) {
+          analyticsSessionIdRef.current = sessionId;
+        }
+      } catch (error) {
+        console.error("Failed to start Garden Story analytics session:", error);
+      }
+    };
+
+    ensureAnalyticsSession();
+
+    return () => {
+      ignore = true;
+    };
+  }, [language]);
+
+  const goHome = () => {
+    window.localStorage.setItem("app_language", language);
+    navigate("/english");
+  };
+
+  useEffect(() => {
+    if (!hasInteracted) return;
+
     let audioSrc = null;
 
     if (!currentScene) {
@@ -202,7 +249,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
         audioRef.current = null;
       }
     };
-  }, [currentSceneId, language]);
+  }, [currentSceneId, language, hasInteracted]);
 
   // Eye-gaze attention monitoring effect (self-rescheduling chained setTimeout)
   useEffect(() => {
@@ -216,21 +263,20 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       return;
     }
 
-    // First prompt after 10s, then repeat every 15s if still not looking
+    // First prompt after 20s, then repeat every 20s if still not looking
     const schedulePrompt = (delay) => {
       attentionTimerRef.current = setTimeout(() => {
         if (!isLooking && !audioRef.current) {
           playAudioSafely("/audio/en/lion-guide.mp3");
         }
-        // After the first prompt, repeat more slowly
         if (!isLooking) {
-          schedulePrompt(30000);
+          schedulePrompt(20000);
         }
       }, delay);
     };
 
     if (!attentionTimerRef.current) {
-      schedulePrompt(10000);
+      schedulePrompt(20000);
     }
 
     return () => {
@@ -275,6 +321,30 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     setSelectedEmotion(null);
   }, [currentSceneId]);
 
+  useEffect(() => {
+    if (isLionTalking) return;
+
+    const restartTimer = window.setInterval(() => {
+      setIdleLionGifVersion((current) => current + 1);
+    }, 6500);
+
+    return () => {
+      window.clearInterval(restartTimer);
+    };
+  }, [isLionTalking]);
+
+  useEffect(() => {
+    if (currentScene) return;
+
+    const restartTimer = window.setInterval(() => {
+      setFinalLionGifVersion((current) => current + 1);
+    }, 4900);
+
+    return () => {
+      window.clearInterval(restartTimer);
+    };
+  }, [currentScene]);
+
   if (!currentScene) {
     // PART 2: Build sessionData when story completes
     const sessionEndTime = Date.now();
@@ -316,15 +386,34 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
         })),
       },
     };
-    // PART 3: Expose sessionData for now (debug-only)
-    console.log("SESSION DATA (dashboard-ready):", sessionData);
-    window.__SESSION_DATA__ = sessionData;
-
     const totalAttempts = responses.length;
     const totalCorrect = responses.filter(r => r.isCorrect).length;
 
     const percentage =
       totalAttempts === 0 ? 0 : (totalCorrect / totalAttempts) * 100;
+
+    if (!analyticsFinalizedRef.current && analyticsSessionIdRef.current) {
+      analyticsFinalizedRef.current = true;
+      const focusMetrics = normalizeFocusMetrics(
+        focusTimeRef.current,
+        distractedTimeRef.current,
+        distractionCountRef.current
+      );
+
+      finishSession({
+        sessionId: analyticsSessionIdRef.current,
+        status: "completed",
+        endedAt: new Date(sessionEndTime).toISOString(),
+        resultMetrics: {
+          score_percent: Math.round(percentage || 0),
+          engagement_level: engagementLevel,
+        },
+        emotionCounts: modelEmotionCounts,
+        focusMetrics,
+      }).catch((error) => {
+        console.error("Failed to finish Garden Story analytics session:", error);
+      });
+    }
 
     let stars = 1;
     if (percentage >= 100) {
@@ -368,20 +457,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
               src="/ui/home.png"
               alt="Home"
               className="top-btn"
-              onClick={() => {
-                // Placeholder for future routing
-                console.log("Home clicked");
-              }}
-            />
-
-            <img
-              src="/ui/settings.png"
-              alt="Settings"
-              className="top-btn"
-              onClick={() => {
-                // Placeholder for future settings modal
-                console.log("Settings clicked");
-              }}
+              onClick={goHome}
             />
 
             <img
@@ -421,7 +497,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           <div className="final-score-layout">
             <div className="final-lion">
               <img
-                src="/characters/kk.gif"
+                src={`${finalGif}?v=${finalLionGifVersion}`}
                 alt="Lion narrator"
               />
             </div>
@@ -509,23 +585,6 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
         onClick={() => {
           if (!hasInteracted) {
             setHasInteracted(true);
-
-            // 🔑 Browser autoplay unlock for FIRST scene
-            if (currentSceneId === 1 && currentScene?.audio) {
-              let audioSrc = null;
-
-              if (typeof currentScene.audio === "string") {
-                audioSrc = currentScene.audio;
-              } else {
-                audioSrc =
-                  currentScene.audio?.[language] ||
-                  currentScene.audio?.en;
-              }
-
-              if (audioSrc) {
-                playAudioSafely(audioSrc);
-              }
-            }
           }
         }}
       >
@@ -535,19 +594,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             src="/ui/home.png"
             alt="Home"
             className="top-btn"
-            onClick={() => {
-              // Placeholder for future routing
-              console.log("Home clicked");
-            }}
-          />
-          <img
-            src="/ui/settings.png"
-            alt="Settings"
-            className="top-btn"
-            onClick={() => {
-              // Placeholder for future settings modal
-              console.log("Settings clicked");
-            }}
+            onClick={goHome}
           />
           <img
             src={isMuted ? "/ui/volume-off.png" : "/ui/volume-on.png"}
@@ -577,9 +624,9 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           />
         </div>
         <img
-          src={isLionTalking ? "/characters/he.gif" : "/characters/standinglion.gif"}
+          src={isLionTalking ? "/characters/he.gif" : `${greenTryGif}?v=${idleLionGifVersion}`}
           alt="Lion narrator"
-          className="lion"
+          className={`lion ${isLionTalking ? "" : "lion-idle"}`}
         />
         <div className="audio-controls">
           <img

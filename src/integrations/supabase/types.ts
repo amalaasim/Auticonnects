@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      game_uploaded_images: {
+        Row: {
+          created_at: string
+          game_key: string
+          id: string
+          image_data: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_key: string
+          id?: string
+          image_data: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_key?: string
+          id?: string
+          image_data?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          completion_percent: number | null
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          engagement_level: string | null
+          game_key: string
+          gaze_reminders: number | null
+          id: string
+          language: string | null
+          module_key: string
+          score_percent: number | null
+          select_tries: number | null
+          source_app: string
+          star_count: number | null
+          started_at: string
+          status: string
+          total_tries: number | null
+          updated_at: string
+          user_id: string
+          voice_tries: number | null
+        }
+        Insert: {
+          completion_percent?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          engagement_level?: string | null
+          game_key: string
+          gaze_reminders?: number | null
+          id?: string
+          language?: string | null
+          module_key: string
+          score_percent?: number | null
+          select_tries?: number | null
+          source_app: string
+          star_count?: number | null
+          started_at: string
+          status?: string
+          total_tries?: number | null
+          updated_at?: string
+          user_id: string
+          voice_tries?: number | null
+        }
+        Update: {
+          completion_percent?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          engagement_level?: string | null
+          game_key?: string
+          gaze_reminders?: number | null
+          id?: string
+          language?: string | null
+          module_key?: string
+          score_percent?: number | null
+          select_tries?: number | null
+          source_app?: string
+          star_count?: number | null
+          started_at?: string
+          status?: string
+          total_tries?: number | null
+          updated_at?: string
+          user_id?: string
+          voice_tries?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -56,6 +152,72 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      session_emotion_metrics: {
+        Row: {
+          created_at: string
+          emotion: string
+          id: string
+          sample_count: number
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emotion: string
+          id?: string
+          sample_count?: number
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emotion?: string
+          id?: string
+          sample_count?: number
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      session_focus_metrics: {
+        Row: {
+          created_at: string
+          distracted_time_ms: number
+          distraction_count: number
+          focus_ratio: number
+          focus_time_ms: number
+          id: string
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          distracted_time_ms?: number
+          distraction_count?: number
+          focus_ratio?: number
+          focus_time_ms?: number
+          id?: string
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          distracted_time_ms?: number
+          distraction_count?: number
+          focus_ratio?: number
+          focus_time_ms?: number
+          id?: string
+          session_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

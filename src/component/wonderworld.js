@@ -1,17 +1,14 @@
 import * as React from 'react';
 import { Paper, Box, Typography } from '@mui/material';
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { motion } from "framer-motion";
 
 import bg from '../assests/background.png';
-import logo from '../assests/logo.png';
-import setting from '../assests/setting.png';
-import contact from '../assests/contact.png';
-import search from '../assests/search.png';
-import refresh from '../assests/refresh.png';
+import reportNew from '../assests/report-new.png';
+import signoutNew from '../assests/signout-new.png';
 import settings from '../assests/settings.png';
 import cookie from '../assests/cookies.png';
 import car from '../assests/car.png';
@@ -24,12 +21,19 @@ import star3 from '../assests/3star.png';
 import click from '../assests/click.png';
 import end from '../assests/endtatoo.png';
 import backbg from '../assests/backbg.png';
-import object from '../assests/objlearn.mpeg'; // Your sound file
-import objecturdu from '../assests/learnobjecturdu.mp4';
+import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
+import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
+import AppGreetingHeader from "../components/AppGreetingHeader";
+
 function Wonderworld() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const audioRef = useRef(null);
+  const topBarIcons = [
+    { volumeToggle: true, alt: "Volume" },
+    { src: reportNew, onClick: () => navigate("/reports") },
+    { src: settings, onClick: () => navigate("/settings") },
+    { src: signoutNew, logoutMenu: true },
+  ];
 
   // TODO: Replace with DB-backed "most recent stars" once the API is attached.
   const getRecentStars = React.useCallback(() => {
@@ -68,20 +72,6 @@ useEffect(() => {
   };
 }, [getRecentStars]);
 
-useEffect(() => {
-  const audio = audioRef.current;
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-    audio.volume = 1;
-    audio.play().catch(() => {
-      setTimeout(() => {
-        audio.play().catch(() => console.log("Autoplay blocked"));
-      }, 1000);
-    });
-  }
-}, [i18n.language]);
-
 
   return (
     <motion.div
@@ -117,17 +107,59 @@ useEffect(() => {
               background: "linear-gradient(10deg, rgba(5, 8, 7, 0.6) 0%, rgba(11,61,46,0.4) 100%)",
             }}
           >
-            <Box component="img" sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, marginTop: { lg: "1.5%", md: "2%", sm: "3%", xs: "43%" } }} src={logo} />
+            <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, marginTop: { lg: "1.5%", md: "2%", sm: "3%", xs: "43%" } }} />
             <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
-              {[setting, contact, search, refresh, settings].map((img, i) => (
-                <Box key={i} component="img" sx={{ width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" }, height: "45.23px", marginTop: { lg: "27px", md: "30px", sm: "6%", xs: "205px" } }} src={img} />
+              {topBarIcons.map((item, i) => (
+                item.volumeToggle ? (
+                  <TopBarVolumeIcon
+                    key={i}
+                    alt={item.alt}
+                    sx={{
+                      width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
+                      height: "45.23px",
+                      objectFit: "contain",
+                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      opacity: 1,
+                      filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                    }}
+                  />
+                ) : item.logoutMenu ? (
+                  <TopBarLogoutIcon
+                    key={i}
+                    src={item.src}
+                    sx={{
+                      width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
+                      height: "45.23px",
+                      objectFit: "contain",
+                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      opacity: 1,
+                      filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                    }}
+                  />
+                ) : (
+                  <Box
+                    key={i}
+                    component="img"
+                    onClick={item.onClick}
+                    sx={{
+                      width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
+                      height: "45.23px",
+                      objectFit: "contain",
+                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      opacity: 1,
+                      filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                      cursor: item.onClick ? "pointer" : "default",
+                    }}
+                    src={item.src}
+                  />
+                )
               ))}
             </Box>
           </Paper>
 
           {/* Select object title */}
           <Box sx={{ display: "flex", flexDirection: "column" }}>
-            <Box component='img' sx={{ marginLeft: {lg:"620px",sm:"32%"}, marginTop: "70px", width: "350px", height: "70px", "&:hover": { transform: "scale(1.08)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={backbg} />
+            <Box component='img' sx={{ marginLeft: {lg:"620px",sm:"32%"}, marginTop: "70px", width: "350px", height: "70px" }} src={backbg} />
             <Typography sx={{
               fontSize: i18n.language === "ur" ? "38px" : "33px",
               marginTop: {lg:i18n.language === "ur" ? "-4.4%" :"-4%",sm:i18n.language === "ur" ? "-8.3%" :"-7%"},
@@ -141,7 +173,6 @@ useEffect(() => {
               fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" :'chewy',
               letterSpacing: "1px",
               color: "rgb(15, 21, 27,0.8)",
-              "&:hover": { transform: "scale(1.08)", boxShadow: "0 10px 25px rgba(0,0,0,0)" },
               opacity: "0.9",
             }}>
               {t("selectObjectTitle")}
@@ -232,13 +263,6 @@ useEffect(() => {
             </Typography>
             <Box component="img" sx={{ width: {lg:"305px",sm:"248px"}, height: "275px", marginLeft: {lg:"500px",sm:"330px"}, marginTop: {lg:"-28px",sm:"-7px"}, objectFit: "contain" }} src={end} />
           </Box>
-
-          {/* Audio element */}
-<audio
-  ref={audioRef}
-  src={i18n.language === "ur" ? objecturdu : object}
-  preload="auto"
-/>
         </Box>
       </Box>
     </motion.div>

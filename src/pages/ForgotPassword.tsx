@@ -5,7 +5,6 @@ import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
 import BackSignpost from '@/components/auth/BackSignpost';
 import HangingBoard from '@/components/auth/HangingBoard';
-import BackgroundMusic from '@/components/auth/BackgroundMusic';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { useToast } from '@/hooks/use-toast';
@@ -43,11 +42,9 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <AuthBackground>
-      <BackgroundMusic />
-      
-      <img 
-        src={logo} 
-        alt="Auti-Connects Logo" 
+      <img
+        src={logo}
+        alt="Auti-Connects Logo"
         className="absolute top-4 left-4 w-64 h-auto"
       />
 

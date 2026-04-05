@@ -1,12 +1,11 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "sonner";
 
 // Auth & context
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import GameLogout from "./components/GameLogout";
 
 // Auth pages
 import Login from "./pages/Login";
@@ -14,12 +13,16 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import EmailVerified from "./pages/EmailVerified";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import NewPasswordPage from "./pages/NewPasswordPage";
 
 // Onboarding pages
 import ChildNameSetup from "./pages/ChildNameSetup";
 import ChildAgeSetup from "./pages/ChildAgeSetup";
 import ChildCharacterSetup from "./pages/ChildCharacterSetup";
-import ChildLanguageSetup from "./pages/ChildLanguageSetup";
+import ParentalConsent from "./pages/ParentalConsent";
 
 // Game / app screens
 import Cookie from "./component/showCookie";
@@ -44,6 +47,10 @@ import Show from "./component/showShoe";
 import YourShoe from "./component/yourShoe";
 import Ball from "./component/showball";
 import Car from "./component/car";
+import splashVideo from "./assests/splash.mp4";
+import splashAudio from "./assests/splashaudio.mp3";
+
+const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -59,10 +66,10 @@ function AnimatedRoutes() {
         <Route path="/email-verified" element={<EmailVerified />} />
 
         {/* ── Onboarding routes (auth required, profile check skipped) ── */}
+        <Route path="/child-profile/consent" element={<ParentalConsent />} />
         <Route path="/child-profile/name" element={<ChildNameSetup />} />
         <Route path="/child-profile/age" element={<ChildAgeSetup />} />
         <Route path="/child-profile/character" element={<ChildCharacterSetup />} />
-        <Route path="/child-profile/language" element={<ChildLanguageSetup />} />
 
         {/* ── Protected game routes ── */}
         <Route path="/" element={<ProtectedRoute><Lanuguage /></ProtectedRoute>} />
@@ -85,6 +92,10 @@ function AnimatedRoutes() {
         <Route path="/showCookie" element={<ProtectedRoute><Cookie /></ProtectedRoute>} />
         <Route path="/showball" element={<ProtectedRoute><Ball /></ProtectedRoute>} />
         <Route path="/car" element={<ProtectedRoute><Car /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+        <Route path="/new-password" element={<ProtectedRoute><NewPasswordPage /></ProtectedRoute>} />
         <Route path="/final/learnobject" element={<ProtectedRoute><Final /></ProtectedRoute>} />
         <Route path="/final/learnobjectcar" element={<ProtectedRoute><Final /></ProtectedRoute>} />
         <Route path="/final/learnobjball" element={<ProtectedRoute><Final /></ProtectedRoute>} />
@@ -97,13 +108,80 @@ function AnimatedRoutes() {
 function App() {
   const audioRef = useRef(null);
   const clickAudioRef = useRef(null);
+  const splashVideoRef = useRef(null);
+  const splashAudioRef = useRef(null);
+  const [showSplash, setShowSplash] = useState(true);
+  const SPLASH_AUDIO_DURATION_SECONDS = 4;
+
+  const startSplashPlayback = () => {
+    const video = splashVideoRef.current;
+    const audio = splashAudioRef.current;
+    if (!video || !audio) return;
+
+    video.muted = true;
+    audio.muted = false;
+    audio.volume = 1;
+
+    video.play().catch(() => {});
+    audio.play().catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!showSplash) return;
+
+    const video = splashVideoRef.current;
+    const audio = splashAudioRef.current;
+    if (!video || !audio) return;
+    let splashTimeoutId;
+    let splashAudioTimeoutId;
+
+    video.muted = true;
+    audio.muted = false;
+    audio.volume = 1;
+    audio.currentTime = 0;
+    video.currentTime = 0;
+
+    const finishSplash = () => {
+      audio.pause();
+      audio.currentTime = 0;
+      setShowSplash(false);
+    };
+
+    startSplashPlayback();
+    splashTimeoutId = window.setTimeout(finishSplash, 12000);
+    splashAudioTimeoutId = window.setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, SPLASH_AUDIO_DURATION_SECONDS * 1000);
+    video.onended = finishSplash;
+    video.onerror = finishSplash;
+    audio.onerror = () => {};
+
+    return () => {
+      window.clearTimeout(splashTimeoutId);
+      window.clearTimeout(splashAudioTimeoutId);
+      video.onended = null;
+      video.onerror = null;
+      audio.onerror = null;
+      audio.pause();
+      video.pause();
+    };
+  }, [showSplash]);
 
   const handleUserInteraction = () => {
+    if (showSplash) {
+      startSplashPlayback();
+      return;
+    }
+
     const audio = audioRef.current;
     if (audio) {
+      const isMuted =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(MUSIC_MUTED_STORAGE_KEY) === "true";
       audio.volume = 0.1;
       audio.loop = true;
-      audio.muted = false;
+      audio.muted = isMuted;
       if (audio.paused) {
         audio.play().catch(() => {});
       }
@@ -123,13 +201,42 @@ function App() {
         onClick={handleUserInteraction}
         onTouchStart={handleUserInteraction}
       >
-        <audio ref={audioRef} src={voice} preload="auto" />
+        {showSplash && (
+          <div
+            onClick={startSplashPlayback}
+            onTouchStart={startSplashPlayback}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              background: "#000",
+            }}
+          >
+            <video
+              ref={splashVideoRef}
+              src={splashVideo}
+              preload="auto"
+              autoPlay
+              playsInline
+              muted
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center center",
+              }}
+            />
+            <audio ref={splashAudioRef} src={splashAudio} preload="auto" autoPlay />
+          </div>
+        )}
+        <audio ref={audioRef} src={voice} preload="auto" data-background-music="true" />
         <audio ref={clickAudioRef} src={click} preload="auto" />
 
-        <BrowserRouter>
-          <GameLogout />
-          <AnimatedRoutes />
-        </BrowserRouter>
+        {!showSplash && (
+          <BrowserRouter>
+            <AnimatedRoutes />
+          </BrowserRouter>
+        )}
       </div>
     </AuthProvider>
   );

@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material';
 import './final.css';
 import finalurdu from '../assests/finalurdu.mp4';
 import learnbg from '../assests/learn_bg.png';
-import cartoon from '../assests/finallion.gif';
+import cartoon from '../assests/final.gif';
 import board from '../assests/board.png';
 import brown from '../assests/brown_board.png';
 import star1 from '../assests/1star.png';
@@ -21,13 +21,21 @@ import i18n from "../i18n";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import amazing from '../assests/amazing.mpeg';
+import { finishSession } from "@/lib/analytics/client";
+import { consumeWonderworldSessionState } from "@/lib/analytics/sessionState";
+import {
+  buildWonderworldResultMetrics,
+  resolveWonderworldModuleFromRoute,
+} from "@/lib/analytics/mappers";
 
 function Final() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const audioRef = useRef(null);
+  const finalizedRef = useRef(false);
   const [starImg, setStarImg] = React.useState(star1);
+  const [finalGifVersion, setFinalGifVersion] = React.useState(0);
   const handleBack = () => navigate("/wonderworld");
   const starLayout =
     starImg === star1
@@ -55,26 +63,24 @@ function Final() {
         };
 
   useEffect(() => {
+    if (finalizedRef.current) return;
+    finalizedRef.current = true;
+
     let voiceKey = "cookie_voice_tries";
     let selectKey = "cookie_select_tries";
     let recentStarKey = "cookie";
-    let uploadKey = "uploadedCookie";
-
     if (location.state?.from === "findcar") {
       voiceKey = "car_voice_tries";
       selectKey = "car_select_tries";
       recentStarKey = "car";
-      uploadKey = "uploadedCar";
     } else if (location.state?.from === "findball") {
       voiceKey = "ball_voice_tries";
       selectKey = "ball_select_tries";
       recentStarKey = "ball";
-      uploadKey = "uploadedball";
     } else if (location.state?.from === "findshoe") {
       voiceKey = "shoe_voice_tries";
       selectKey = "shoe_select_tries";
       recentStarKey = "shoe";
-      uploadKey = "uploadedShoe";
     }
 
     const voiceTries = parseInt(localStorage.getItem(voiceKey) || "0", 10);
@@ -104,10 +110,29 @@ function Final() {
       );
     } catch (_) {}
 
-    localStorage.removeItem(uploadKey);
+    const moduleKey = resolveWonderworldModuleFromRoute(location.state?.from);
+    const storedSession = consumeWonderworldSessionState(moduleKey);
+
+    if (storedSession?.sessionId) {
+      const resultMetrics = buildWonderworldResultMetrics(
+        voiceTries,
+        selectTries,
+        starCount
+      );
+
+      finishSession({
+        sessionId: storedSession.sessionId,
+        status: "completed",
+        resultMetrics,
+        emotionCounts: storedSession.emotionCounts,
+        focusMetrics: storedSession.focusMetrics,
+      }).catch((error) => {
+        console.error("Failed to finish WonderWorld analytics session:", error);
+      });
+    }
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
   const audio = audioRef.current;
   if (audio) {
     audio.pause();
@@ -119,6 +144,16 @@ function Final() {
     });
   }
 }, [i18n.language]);
+
+  useEffect(() => {
+    const restartTimer = window.setInterval(() => {
+      setFinalGifVersion((current) => current + 1);
+    }, 4900);
+
+    return () => {
+      window.clearInterval(restartTimer);
+    };
+  }, []);
 
 
   const handleTry = () => {
@@ -236,7 +271,7 @@ function Final() {
           {/* cartoon */}
           <Box
             component="img"
-            src={cartoon}
+            src={`${cartoon}?v=${finalGifVersion}`}
             sx={{
               width: { lg: "401px", sm: "290px" },
               height: { lg: "405px", sm: "290px" },

@@ -19,55 +19,93 @@ import contin from '../assests/continue.png';
 import backbg from '../assests/backbg.png';
 import back from '../assests/back.png';
 import repeatCookie from '../assests/repeatcookie.mpeg';
-import amazing from '../assests/amazcookie.mpeg';
+import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagaincookie.mpeg';
 import repeatCookieurdu from '../assests/repeatcookieurdu.mp4';
-import amazbiscuiturdu from '../assests/amazbiscuiturdu.mp4';
+import amazbiscuiturdu from '../assests/finalurdu.mp4';
 import againcookie from '../assests/againbiscuiturdu.mp4';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import { useNavigate } from "react-router-dom";
 import i18n from "../i18n";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import { startSession } from "@/lib/analytics/client";
+import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
+import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
 import gradient from '../assests/gradient.png';
 import CloseIcon from '@mui/icons-material/Close';
 //upload popup
-export function UploadShoe() {
+export function UploadShoe({ onClose }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const fileInputRef = React.useRef(null);
-  const [imageFile, setImageFile] = React.useState(null);
+  const [previewImage, setPreviewImage] = React.useState(() => getCachedGameImage("cookie"));
+  const [pendingImage, setPendingImage] = React.useState(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleUploadClick = () => fileInputRef.current.click();
+  useEffect(() => {
+    let ignore = false;
+
+    const hydrateSavedImage = async () => {
+      try {
+        const savedImage = await loadSavedGameImage("cookie");
+        if (!ignore && savedImage) {
+          setPreviewImage(savedImage);
+        }
+      } catch (error) {
+        console.error("Failed to load cookie image:", error);
+      }
+    };
+
+    hydrateSavedImage();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleUploadClick = () => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  };
 
   const handleAnotherClick = () => {
-    setImageFile(null); // remove previous image
-    localStorage.removeItem("uploadedCookie"); // clear old image
-    fileInputRef.current.click(); // open file picker again
+    setPendingImage(null);
+    handleUploadClick();
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-
-      // Convert file to Base64 and store in localStorage
       const reader = new FileReader();
       reader.onloadend = () => {
-        localStorage.setItem("uploadedCookie", reader.result); // consistently use uploadedCookie
+        if (typeof reader.result !== "string") return;
+        setPendingImage(reader.result);
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleContinue = () => {
-    const savedImage = localStorage.getItem("uploadedCookie");
-    if (savedImage) {
-      navigate("/showCookie", { state: { uploadedImage: savedImage } });
+  const handleContinue = async () => {
+    const imageToUse = pendingImage || previewImage;
+    if (!imageToUse || isSaving) return;
+
+    try {
+      setIsSaving(true);
+      if (pendingImage) {
+        await saveGameImage("cookie", pendingImage);
+      }
+      navigate(GAME_IMAGE_CONFIG.cookie.route, { state: { uploadedImage: imageToUse } });
+    } catch (error) {
+      console.error("Failed to save cookie image:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -85,6 +123,19 @@ export function UploadShoe() {
       }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto`, position: "relative" }}>
+        <CloseIcon
+          onClick={onClose}
+          sx={{
+            position: "fixed",
+            top: "calc(50% - 290px)",
+            left: "calc(50% + 250px)",
+            transform: "translate(-50%, -50%)",
+            fontSize: { lg: 42, sm: 32 },
+            color: "#5d2a00",
+            zIndex: 4,
+            cursor: "pointer",
+          }}
+        />
         <Box
           component="img"
           src={pegion}
@@ -133,8 +184,8 @@ export function UploadShoe() {
             zIndex: 3,
           }}
         >
-          {imageFile ? (
-            <Box component="img" src={URL.createObjectURL(imageFile)} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          {previewImage ? (
+            <Box component="img" src={previewImage} sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
             <Typography sx={{ color: "#c9742e", textAlign: "center", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq":"chewy", 
                      fontSize:{lg:i18n.language === "ur" ? "30px" : "20px",sm:i18n.language === "ur" ? "20px" :"20px"} }}>
@@ -162,7 +213,7 @@ export function UploadShoe() {
           <Box
             onClick={handleContinue}
             sx={{
-              width: imageFile ? "50%" : "100%",
+              width: previewImage ? "50%" : "100%",
               height: "100%",
               cursor: "pointer",
               position: "relative",
@@ -188,7 +239,7 @@ export function UploadShoe() {
           </Box>
 
           {/* Another Button (only if image uploaded) */}
-          {imageFile && (
+          {previewImage && (
             <Box
               onClick={handleAnotherClick}
               sx={{
@@ -435,7 +486,7 @@ return(
 
 function Learnobj() {
   const navigate = useNavigate();
-    const { t } = useTranslation();
+  const { t } = useTranslation();
     
 const audio1Ref = useRef(null);
 const audio2Ref = useRef(null);
@@ -478,6 +529,35 @@ useEffect(() => {
   localStorage.setItem("cookie_voice_tries", "0");
   localStorage.setItem("cookie_select_tries", "0");
   localStorage.setItem("cookie_select_done", "false");
+}, []);
+
+useEffect(() => {
+  let ignore = false;
+
+  const ensureSession = async () => {
+    if (window.sessionStorage.getItem("analytics:wonderworld:cookie")) return;
+
+    try {
+      const sessionId = await startSession({
+        gameKey: "wonderworld",
+        moduleKey: "cookie",
+        sourceApp: "main-app",
+        language: i18n.language,
+      });
+
+      if (!ignore) {
+        ensureWonderworldSessionState("cookie", sessionId, i18n.language);
+      }
+    } catch (error) {
+      console.error("Failed to start cookie analytics session:", error);
+    }
+  };
+
+  ensureSession();
+
+  return () => {
+    ignore = true;
+  };
 }, []);
 
 const incrementVoiceTries = () => {
@@ -722,12 +802,30 @@ useEffect(() => {
 useEffect(() => {
   if (!audioFinished || autoAdvanceRef.current) return;
   autoAdvanceRef.current = true;
-  const savedImage = localStorage.getItem("uploadedCookie");
-  if (savedImage) {
-    navigate("/showCookie");
-  } else {
-    navigate("/find"); // agar image nahi hai to find page
-  }
+  let ignore = false;
+
+  const resolveNextRoute = async () => {
+    try {
+      const savedImage = await loadSavedGameImage("cookie");
+      if (ignore) return;
+      if (savedImage) {
+        navigate("/showCookie");
+      } else {
+        navigate("/find");
+      }
+    } catch (error) {
+      console.error("Failed to resolve cookie image:", error);
+      if (!ignore) {
+        navigate("/find");
+      }
+    }
+  };
+
+  resolveNextRoute();
+
+  return () => {
+    ignore = true;
+  };
 }, [audioFinished, navigate]);
 
 const handlePauseResume = () => {
@@ -1005,7 +1103,9 @@ opacity:"0.9", }}>{t("learnToSay")}</Typography>
                         ? "Great job! ✅"
                         : speechVerified
                         ? "Verified: cookie ✅"
-                        : `Say “cookie” to continue (${speechStep}/2)`}
+                        : i18n.language === "ur"
+                          ? `آگے جانے کے لیے بسکٹ بولیں (${speechStep}/2)`
+                          : `Say “cookie” to continue (${speechStep}/2)`}
                     </Typography>
                     {speechStatus && (
                       <Typography
@@ -1051,7 +1151,7 @@ opacity:"0.9", }}>{t("learnToSay")}</Typography>
         }}
       />
     )}
-    {showUpload && <UploadShoe />}
+    {showUpload && <UploadShoe onClose={() => setShowUpload(false)} />}
     </motion.div>
   )
 }
