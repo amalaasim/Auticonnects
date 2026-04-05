@@ -7,9 +7,7 @@ export default defineConfig(({ mode }) => {
   const sheruEnv = loadEnv(mode, "./sheru-bot", "");
   const geminiApiKey =
     rootEnv.VITE_GEMINI_API_KEY ||
-    rootEnv.GEMINI_API_KEY ||
     sheruEnv.VITE_GEMINI_API_KEY ||
-    sheruEnv.GEMINI_API_KEY ||
     "";
 
   return {
@@ -20,10 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     assetsInclude: ["**/*.mpeg"],
     define: {
-      "import.meta.env.GEMINI_API_KEY": JSON.stringify(geminiApiKey),
       "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiApiKey),
-      "process.env.API_KEY": JSON.stringify(geminiApiKey),
-      "process.env.GEMINI_API_KEY": JSON.stringify(geminiApiKey),
     },
     plugins: [
       {

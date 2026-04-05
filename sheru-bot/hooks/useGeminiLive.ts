@@ -68,20 +68,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
   };
 
   const getApiKey = () => {
-    const viteEnvKey =
-      import.meta.env.VITE_GEMINI_API_KEY ||
-      import.meta.env.GEMINI_API_KEY ||
-      import.meta.env.VITE_API_KEY;
-
-    if (viteEnvKey) {
-      return viteEnvKey;
-    }
-
-    if (typeof process !== "undefined") {
-      return process.env?.API_KEY || process.env?.GEMINI_API_KEY || null;
-    }
-
-    return null;
+    return import.meta.env.VITE_GEMINI_API_KEY || null;
   };
 
   const cleanup = useCallback(() => {
