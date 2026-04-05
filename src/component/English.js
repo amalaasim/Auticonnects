@@ -31,7 +31,7 @@ export default function English() {
   ];
 
   const openSheruBot = () => {
-    window.location.href = "/sheru-bot/index.html";
+    window.location.href = "/sheru-bot/";
   };
 
   return (

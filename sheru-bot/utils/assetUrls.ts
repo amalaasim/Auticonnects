@@ -5,7 +5,7 @@ export function assetUrl(path: string) {
     return path;
   }
 
-  return isEmbeddedInParentApp ? `/sheru-bot/public${path}` : path;
+  return isEmbeddedInParentApp ? `/sheru-bot${path}` : path;
 }
 
 export function appEntryUrl(path: string) {

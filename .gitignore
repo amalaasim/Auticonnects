@@ -11,6 +11,7 @@
 # production
 /build
 /dist
+/public/sheru-bot
 
 # misc
 .DS_Store
