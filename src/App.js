@@ -49,6 +49,7 @@ import Ball from "./component/showball";
 import Car from "./component/car";
 import splashVideo from "./assests/splash.mp4";
 import splashAudio from "./assests/splashaudio.mp3";
+import playCircle from "./assests/play-circle.svg";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 
@@ -113,7 +114,7 @@ function App() {
   const splashStartedRef = useRef(false);
   const [showSplash, setShowSplash] = useState(true);
   const [hasStartedSplash, setHasStartedSplash] = useState(false);
-  const SPLASH_AUDIO_DURATION_SECONDS = 4;
+  const SPLASH_AUDIO_DURATION_SECONDS = 3.5;
 
   const startSplashPlayback = () => {
     const video = splashVideoRef.current;
@@ -144,9 +145,13 @@ function App() {
     video.currentTime = 0;
     splashStartedRef.current = false;
 
-    const finishSplash = () => {
+    const stopSplashAudio = () => {
       audio.pause();
       audio.currentTime = 0;
+    };
+
+    const finishSplash = () => {
+      stopSplashAudio();
       setShowSplash(false);
     };
 
@@ -154,7 +159,7 @@ function App() {
       if (splashStartedRef.current) return;
       splashStartedRef.current = true;
       splashAudioCutoffId = window.setTimeout(
-        finishSplash,
+        stopSplashAudio,
         SPLASH_AUDIO_DURATION_SECONDS * 1000
       );
     };
@@ -230,7 +235,6 @@ function App() {
               preload="auto"
               playsInline
               muted
-              loop
               style={{
                 width: "100%",
                 height: "100%",
@@ -248,19 +252,24 @@ function App() {
                   position: "absolute",
                   left: "50%",
                   bottom: "10%",
-                  transform: "translateX(-50%)",
+                  transform: "translate(-50%, 40px)",
                   zIndex: 10000,
-                  padding: "14px 28px",
-                  borderRadius: "999px",
                   border: "none",
-                  background: "rgba(255, 255, 255, 0.92)",
-                  color: "#111",
-                  fontSize: "18px",
-                  fontWeight: 700,
+                  background: "transparent",
+                  padding: 0,
+                  lineHeight: 0,
                   cursor: "pointer",
                 }}
               >
-                Tap to Start
+                <img
+                  src={playCircle}
+                  alt="Play"
+                  style={{
+                    width: "88px",
+                    height: "88px",
+                    display: "block",
+                  }}
+                />
               </button>
             )}
           </div>
