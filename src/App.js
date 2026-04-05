@@ -110,6 +110,7 @@ function App() {
   const clickAudioRef = useRef(null);
   const splashVideoRef = useRef(null);
   const splashAudioRef = useRef(null);
+  const splashStartedRef = useRef(false);
   const [showSplash, setShowSplash] = useState(true);
   const SPLASH_AUDIO_DURATION_SECONDS = 4;
 
@@ -133,12 +134,14 @@ function App() {
     const audio = splashAudioRef.current;
     if (!video || !audio) return;
     let splashTimeoutId;
+    let splashAudioCutoffId;
 
     video.muted = true;
     audio.muted = false;
     audio.volume = 1;
     audio.currentTime = 0;
     video.currentTime = 0;
+    splashStartedRef.current = false;
 
     const finishSplash = () => {
       audio.pause();
@@ -146,25 +149,29 @@ function App() {
       setShowSplash(false);
     };
 
-    const handleSplashAudioProgress = () => {
-      if (audio.currentTime >= SPLASH_AUDIO_DURATION_SECONDS) {
-        finishSplash();
-      }
+    const handleSplashAudioPlaying = () => {
+      if (splashStartedRef.current) return;
+      splashStartedRef.current = true;
+      splashAudioCutoffId = window.setTimeout(
+        finishSplash,
+        SPLASH_AUDIO_DURATION_SECONDS * 1000
+      );
     };
 
     startSplashPlayback();
     splashTimeoutId = window.setTimeout(finishSplash, 12000);
     video.onended = finishSplash;
     video.onerror = finishSplash;
+    audio.onplaying = handleSplashAudioPlaying;
     audio.onerror = () => {};
-    audio.ontimeupdate = handleSplashAudioProgress;
 
     return () => {
       window.clearTimeout(splashTimeoutId);
+      window.clearTimeout(splashAudioCutoffId);
       video.onended = null;
       video.onerror = null;
+      audio.onplaying = null;
       audio.onerror = null;
-      audio.ontimeupdate = null;
       audio.pause();
       video.pause();
     };
@@ -218,7 +225,6 @@ function App() {
               ref={splashVideoRef}
               src={splashVideo}
               preload="auto"
-              autoPlay
               playsInline
               muted
               style={{
@@ -228,7 +234,7 @@ function App() {
                 objectPosition: "center center",
               }}
             />
-            <audio ref={splashAudioRef} src={splashAudio} preload="auto" autoPlay />
+            <audio ref={splashAudioRef} src={splashAudio} preload="auto" />
           </div>
         )}
         <audio ref={audioRef} src={voice} preload="auto" data-background-music="true" />
