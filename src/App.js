@@ -112,6 +112,7 @@ function App() {
   const splashAudioRef = useRef(null);
   const splashStartedRef = useRef(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [hasStartedSplash, setHasStartedSplash] = useState(false);
   const SPLASH_AUDIO_DURATION_SECONDS = 4;
 
   const startSplashPlayback = () => {
@@ -128,7 +129,7 @@ function App() {
   };
 
   useEffect(() => {
-    if (!showSplash) return;
+    if (!showSplash || !hasStartedSplash) return;
 
     const video = splashVideoRef.current;
     const audio = splashAudioRef.current;
@@ -158,7 +159,6 @@ function App() {
       );
     };
 
-    startSplashPlayback();
     splashTimeoutId = window.setTimeout(finishSplash, 12000);
     video.onended = finishSplash;
     video.onerror = finishSplash;
@@ -175,10 +175,13 @@ function App() {
       audio.pause();
       video.pause();
     };
-  }, [showSplash]);
+  }, [hasStartedSplash, showSplash]);
 
   const handleUserInteraction = () => {
     if (showSplash) {
+      if (!hasStartedSplash) {
+        setHasStartedSplash(true);
+      }
       startSplashPlayback();
       return;
     }
@@ -227,6 +230,7 @@ function App() {
               preload="auto"
               playsInline
               muted
+              loop
               style={{
                 width: "100%",
                 height: "100%",
@@ -235,6 +239,30 @@ function App() {
               }}
             />
             <audio ref={splashAudioRef} src={splashAudio} preload="auto" />
+            {!hasStartedSplash && (
+              <button
+                type="button"
+                onClick={handleUserInteraction}
+                onTouchStart={handleUserInteraction}
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  bottom: "10%",
+                  transform: "translateX(-50%)",
+                  zIndex: 10000,
+                  padding: "14px 28px",
+                  borderRadius: "999px",
+                  border: "none",
+                  background: "rgba(255, 255, 255, 0.92)",
+                  color: "#111",
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Tap to Start
+              </button>
+            )}
           </div>
         )}
         <audio ref={audioRef} src={voice} preload="auto" data-background-music="true" />
