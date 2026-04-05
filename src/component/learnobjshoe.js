@@ -740,30 +740,7 @@ useEffect(() => {
   useEffect(() => {
     if (!audioFinished || autoAdvanceRef.current) return;
     autoAdvanceRef.current = true;
-    let ignore = false;
-
-    const resolveNextRoute = async () => {
-      try {
-        const savedImage = await loadSavedGameImage("shoe");
-        if (ignore) return;
-        if (savedImage) {
-          navigate("/showShoe");
-        } else {
-          navigate("/findshoe");
-        }
-      } catch (error) {
-        console.error("Failed to resolve shoe image:", error);
-        if (!ignore) {
-          navigate("/findshoe");
-        }
-      }
-    };
-
-    resolveNextRoute();
-
-    return () => {
-      ignore = true;
-    };
+    navigate("/findshoe");
   }, [audioFinished, navigate]);
   
     React.useEffect(() => {

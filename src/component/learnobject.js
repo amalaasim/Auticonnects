@@ -802,30 +802,7 @@ useEffect(() => {
 useEffect(() => {
   if (!audioFinished || autoAdvanceRef.current) return;
   autoAdvanceRef.current = true;
-  let ignore = false;
-
-  const resolveNextRoute = async () => {
-    try {
-      const savedImage = await loadSavedGameImage("cookie");
-      if (ignore) return;
-      if (savedImage) {
-        navigate("/showCookie");
-      } else {
-        navigate("/find");
-      }
-    } catch (error) {
-      console.error("Failed to resolve cookie image:", error);
-      if (!ignore) {
-        navigate("/find");
-      }
-    }
-  };
-
-  resolveNextRoute();
-
-  return () => {
-    ignore = true;
-  };
+  navigate("/find");
 }, [audioFinished, navigate]);
 
 const handlePauseResume = () => {

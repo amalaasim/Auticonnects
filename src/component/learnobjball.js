@@ -735,30 +735,7 @@ useEffect(() => {
   useEffect(() => {
     if (!audioFinished || autoAdvanceRef.current) return;
     autoAdvanceRef.current = true;
-    let ignore = false;
-
-    const resolveNextRoute = async () => {
-      try {
-        const savedImage = await loadSavedGameImage("ball");
-        if (ignore) return;
-        if (savedImage) {
-          navigate("/showball");
-        } else {
-          navigate("/findball");
-        }
-      } catch (error) {
-        console.error("Failed to resolve ball image:", error);
-        if (!ignore) {
-          navigate("/findball");
-        }
-      }
-    };
-
-    resolveNextRoute();
-
-    return () => {
-      ignore = true;
-    };
+    navigate("/findball");
   }, [audioFinished, navigate]);
 
   <style>

@@ -772,30 +772,7 @@ const playAndWait = (audio) => {
   useEffect(() => {
     if (!audioFinished || autoAdvanceRef.current) return;
     autoAdvanceRef.current = true;
-    let ignore = false;
-
-    const resolveNextRoute = async () => {
-      try {
-        const savedImage = await loadSavedGameImage("car");
-        if (ignore) return;
-        if (savedImage) {
-          navigate("/car");
-        } else {
-          navigate("/findcar");
-        }
-      } catch (error) {
-        console.error("Failed to resolve car image:", error);
-        if (!ignore) {
-          navigate("/findcar");
-        }
-      }
-    };
-
-    resolveNextRoute();
-
-    return () => {
-      ignore = true;
-    };
+    navigate("/findcar");
   }, [audioFinished, navigate]);
 
 const handlePauseResume = () => {

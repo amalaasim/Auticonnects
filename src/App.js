@@ -133,7 +133,6 @@ function App() {
     const audio = splashAudioRef.current;
     if (!video || !audio) return;
     let splashTimeoutId;
-    let splashAudioTimeoutId;
 
     video.muted = true;
     audio.muted = false;
@@ -147,22 +146,25 @@ function App() {
       setShowSplash(false);
     };
 
+    const handleSplashAudioProgress = () => {
+      if (audio.currentTime >= SPLASH_AUDIO_DURATION_SECONDS) {
+        finishSplash();
+      }
+    };
+
     startSplashPlayback();
     splashTimeoutId = window.setTimeout(finishSplash, 12000);
-    splashAudioTimeoutId = window.setTimeout(() => {
-      audio.pause();
-      audio.currentTime = 0;
-    }, SPLASH_AUDIO_DURATION_SECONDS * 1000);
     video.onended = finishSplash;
     video.onerror = finishSplash;
     audio.onerror = () => {};
+    audio.ontimeupdate = handleSplashAudioProgress;
 
     return () => {
       window.clearTimeout(splashTimeoutId);
-      window.clearTimeout(splashAudioTimeoutId);
       video.onended = null;
       video.onerror = null;
       audio.onerror = null;
+      audio.ontimeupdate = null;
       audio.pause();
       video.pause();
     };
