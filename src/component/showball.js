@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 import yourball from '../assests/yourball.mpeg';
 import yoururdu from '../assests/yourballurdu.ogg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
-import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
+import { cleanupWonderworldListening, listenForWonderworldWord } from "@/lib/wonderworldSpeech";
 
 export default function Ball() {
   const navigate = useNavigate();
@@ -90,8 +90,6 @@ useEffect(() => {
       recognitionRef,
       retryListenRef,
       speechVerifiedRef,
-      cancelListenRef,
-      allowListeningRef,
       setSpeechVerified,
       setSpeechStatus,
       incrementVoiceTries,
@@ -121,11 +119,9 @@ useEffect(() => {
   runSequence();
 
   return () => {
-    stopWonderworldListening({
+    cleanupWonderworldListening({
       recognitionRef,
       retryListenRef,
-      cancelListenRef,
-      allowListeningRef,
     });
     setIsLionSpeaking(false);
   };
@@ -133,11 +129,9 @@ useEffect(() => {
 
 useEffect(() => {
   return () => {
-    stopWonderworldListening({
+    cleanupWonderworldListening({
       recognitionRef,
       retryListenRef,
-      cancelListenRef,
-      allowListeningRef,
     });
   };
 }, []);

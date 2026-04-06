@@ -60,10 +60,12 @@ export default function English() {
           }}
         >
           <Paper
+            dir="ltr"
             sx={{
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "flex-start",
               paddingLeft: "5%",
               paddingRight: "5%",
               marginTop:{lg:"-0.5%",sm:"-11.5%"},
@@ -77,10 +79,11 @@ export default function English() {
               sx={{
                 width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" },
                 marginTop: { lg: "1.5%", md: "2%", sm: "14%", xs: "43%" },
+                textAlign: "left",
               }}
             />
 
-            <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
+            <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem", direction: "ltr" }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
                   <TopBarVolumeIcon

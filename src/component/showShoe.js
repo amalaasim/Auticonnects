@@ -21,7 +21,7 @@ import { useEffect, useRef } from "react";
 import yourshoe from '../assests/yourshoe.mpeg';
 import yoururdu from '../assests/yourshoeurdu.ogg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
-import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
+import { cleanupWonderworldListening, listenForWonderworldWord } from "@/lib/wonderworldSpeech";
 
 export default function Show() {
   const navigate = useNavigate();
@@ -85,8 +85,6 @@ const listenForShoe = () => {
     recognitionRef,
     retryListenRef,
     speechVerifiedRef,
-    cancelListenRef,
-    allowListeningRef,
     setSpeechVerified,
     setSpeechStatus,
     incrementVoiceTries,
@@ -119,11 +117,9 @@ useEffect(() => {
   runSequence();
 
   return () => {
-    stopWonderworldListening({
+    cleanupWonderworldListening({
       recognitionRef,
       retryListenRef,
-      cancelListenRef,
-      allowListeningRef,
     });
     setIsLionSpeaking(false);
   };

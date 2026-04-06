@@ -32,6 +32,7 @@ import { motion } from "framer-motion";
 import { startSession } from "@/lib/analytics/client";
 import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
 import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
+import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
@@ -566,161 +567,18 @@ const incrementVoiceTries = () => {
 };
 
 const listenForCookie = () => {
-  return new Promise((resolve, reject) => {
-    let resolved = false;
-    let attemptCounted = false;
-    cancelListenRef.current = false;
-    const targetWord = i18n.language === "ur" ? "biscuit" : "cookie";
-    // "biscuit" is a loanword; en-US recognition is materially more reliable than ur-PK here.
-    const recognitionLang = "en-US";
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSpeechStatus("Speech recognition not supported on this device.");
-      reject(new Error("SpeechRecognition not supported"));
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = recognitionLang;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
-    recognition.continuous = false;
-
-    const ensureMicPermission = async () => {
-      if (!navigator.mediaDevices?.getUserMedia) return true;
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((track) => track.stop());
-        return true;
-      } catch (_) {
-        setSpeechStatus("Microphone permission blocked.");
-        return false;
-      }
-    };
-
-    const startListening = async () => {
-      if (retryListenRef.current) {
-        clearTimeout(retryListenRef.current);
-        retryListenRef.current = null;
-      }
-      setSpeechVerified(false);
-      setSpeechStatus(`Listening… say “${targetWord}”`);
-      const hasPermission = await ensureMicPermission();
-      if (!hasPermission) return;
-      try {
-        recognition.start();
-      } catch (_) {
-        // Ignore "start called twice" errors
-      }
-    };
-    startListeningRef.current = startListening;
-
-    recognition.onresult = (event) => {
-      const transcripts = Array.from(event.results || []).flatMap((result) =>
-        Array.from(result || []).map((item) => item.transcript.toLowerCase())
-      );
-      const transcript = transcripts[0] || "";
-      const variants = [
-        "cookie",
-        "cooki",
-        "kuki",
-        "kookie",
-        "biscuit",
-        "biscut",
-        "biskit",
-        "biskut",
-        "biscoot",
-        "biscuet",
-        "bisquite",
-        "biskoot",
-        "biscot",
-        "biscot",
-        "biscot",
-        "baskit",
-        "biskat",
-        "biscat",
-        "biscut",
-        "biscoot",
-        "biscuitt",
-        "بسکٹ",
-        "بسکِٹ",
-        "بِسکٹ",
-        "بسکِت",
-        "بیسکٹ",
-        "بِسکِت",
-        "بِسکِٹ",
-        "بسکُٹ",
-        "بسکٹٹ",
-        "بِسکُٹ",
-        "بیسکِٹ",
-        "بسکٹا",
-        "بسکٹو",
-      ];
-      const matches = transcripts.some((value) => {
-        const normalized = value.replace(/[\s\-_.']/g, "");
-        const words = value
-          .split(/\s+/)
-          .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-          .filter(Boolean);
-
-        if (variants.some((v) => normalized.includes(v) || words.includes(v))) {
-          return true;
-        }
-
-        return words.some((word) => {
-          if (word.length > 8) return false;
-          if (/^cook/.test(word)) return true;
-          if (/^bisc/.test(word)) return true;
-          if (/^bisk/.test(word)) return true;
-          if (/^بسک/.test(word)) return true;
-          if (/^بِسک/.test(word)) return true;
-          return false;
-        });
-      });
-      if (!attemptCounted) {
-        incrementVoiceTries();
-        attemptCounted = true;
-      }
-      setSpeechStatus(`Heard: ${transcript}`);
-      if (matches) {
-        setSpeechVerified(true);
-        speechVerifiedRef.current = true;
-        setSpeechStatus(`Great! You said ${targetWord}.`);
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        resolved = true;
-        recognition.stop();
-        resolve();
-      } else {
-        setSpeechVerified(false);
-        speechVerifiedRef.current = false;
-        setSpeechStatus(`Try again: say “${targetWord}”.`);
-      }
-    };
-
-    recognition.onerror = () => {
-      setSpeechStatus("Couldn't hear you. Try again.");
-    };
-
-    recognition.onend = () => {
-      if (cancelListenRef.current) {
-        resolved = true;
-        resolve();
-        return;
-      }
-      if (!resolved && allowListeningRef.current) {
-        retryListenRef.current = setTimeout(startListening, 800);
-      }
-    };
-
-    recognitionRef.current = recognition;
-    if (allowListeningRef.current) {
-      startListening();
-    }
+  return listenForWonderworldWord({
+    moduleKey: "cookie",
+    language: i18n.language,
+    recognitionRef,
+    retryListenRef,
+    speechVerifiedRef,
+    cancelListenRef,
+    allowListeningRef,
+    startListeningRef,
+    setSpeechVerified,
+    setSpeechStatus,
+    incrementVoiceTries,
   });
 };
 
@@ -730,11 +588,12 @@ useEffect(() => {
       clearTimeout(retryListenRef.current);
       retryListenRef.current = null;
     }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (_) {}
-    }
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
   };
 }, []);
 

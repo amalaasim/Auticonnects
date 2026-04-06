@@ -32,6 +32,7 @@ import { motion } from "framer-motion";
 import { startSession } from "@/lib/analytics/client";
 import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
 import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
+import { cleanupWonderworldListening, listenForWonderworldWord } from "@/lib/wonderworldSpeech";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
@@ -560,120 +561,15 @@ const incrementVoiceTries = () => {
 };
 
 const listenForShoe = () => {
-  return new Promise((resolve, reject) => {
-    const targetWord = i18n.language === "ur" ? "jootay" : "shoes";
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSpeechStatus("Speech recognition not supported on this device.");
-      reject(new Error("SpeechRecognition not supported"));
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
-    recognition.continuous = false;
-
-    const startListening = () => {
-      if (retryListenRef.current) {
-        clearTimeout(retryListenRef.current);
-        retryListenRef.current = null;
-      }
-      setSpeechVerified(false);
-      setSpeechStatus(`Listening… say “${targetWord}”`);
-      try {
-        recognition.start();
-      } catch (_) {
-        // ignore
-      }
-    };
-
-    recognition.onresult = (event) => {
-      const transcripts = Array.from(event.results || []).flatMap((result) =>
-        Array.from(result || []).map((item) => item.transcript.toLowerCase())
-      );
-      const transcript = transcripts[0] || "";
-      const variants = [
-        "shoe",
-        "shoes",
-        "sho",
-        "show",
-        "shoo",
-        "shu",
-        "joota",
-        "jootay",
-        "jootey",
-        "joote",
-        "jutay",
-        "jutey",
-        "joota",
-        "jootae",
-        "jotay",
-        "jotey",
-        "jootie",
-        "juti",
-        "jooti",
-        "joota",
-        "jootae",
-        "jootai",
-        "جوتا",
-        "جوتے",
-      ];
-      const matches = transcripts.some((value) => {
-        const normalized = value.replace(/[\s\-_.']/g, "");
-        const words = value
-          .split(/\s+/)
-          .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-          .filter(Boolean);
-
-        if (variants.some((v) => normalized.includes(v) || words.includes(v))) {
-          return true;
-        }
-
-        return words.some((word) => {
-          if (word.length > 8) return false;
-          if (/^sho/.test(word)) return true;
-          if (/^shu/.test(word)) return true;
-          if (/^joo/.test(word)) return true;
-          if (/^jut/.test(word)) return true;
-          if (/^جو/.test(word)) return true;
-          return false;
-        });
-      });
-      incrementVoiceTries();
-      setSpeechStatus(`Heard: ${transcript}`);
-      if (matches) {
-        setSpeechVerified(true);
-        speechVerifiedRef.current = true;
-        setSpeechStatus(`Great! You said ${targetWord}.`);
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        recognition.stop();
-        resolve();
-      } else {
-        setSpeechVerified(false);
-        speechVerifiedRef.current = false;
-        setSpeechStatus(`Try again: say “${targetWord}”.`);
-      }
-    };
-
-    recognition.onerror = () => {
-      setSpeechStatus("Couldn't hear you. Try again.");
-    };
-
-    recognition.onend = () => {
-      if (!speechVerifiedRef.current) {
-        retryListenRef.current = setTimeout(startListening, 800);
-      }
-    };
-
-    recognitionRef.current = recognition;
-    startListening();
+  return listenForWonderworldWord({
+    moduleKey: "shoe",
+    language: i18n.language,
+    recognitionRef,
+    retryListenRef,
+    speechVerifiedRef,
+    setSpeechVerified,
+    setSpeechStatus,
+    incrementVoiceTries,
   });
 };
 
@@ -683,11 +579,10 @@ useEffect(() => {
       clearTimeout(retryListenRef.current);
       retryListenRef.current = null;
     }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (_) {}
-    }
+    cleanupWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+    });
   };
 }, []);
 

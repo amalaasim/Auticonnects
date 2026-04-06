@@ -32,6 +32,7 @@ import { motion } from "framer-motion";
 import { startSession } from "@/lib/analytics/client";
 import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
 import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
+import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
@@ -563,138 +564,18 @@ const playAndWait = (audio) => {
   };
 
   const listenForCar = () => {
-    return new Promise((resolve, reject) => {
-      let resolved = false;
-      cancelListenRef.current = false;
-      const targetWord = i18n.language === "ur" ? "gaari" : "car";
-      const recognitionLang = "en-US";
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        setSpeechStatus("Speech recognition not supported on this device.");
-        reject(new Error("SpeechRecognition not supported"));
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = recognitionLang;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 5;
-      recognition.continuous = false;
-
-      const startListening = () => {
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        setSpeechVerified(false);
-        setSpeechStatus(`Listening… say “${targetWord}”`);
-        try {
-          recognition.start();
-        } catch (_) {
-          // Ignore "start called twice" errors
-        }
-      };
-      startListeningRef.current = startListening;
-
-      recognition.onresult = (event) => {
-        const result = event.results[event.resultIndex] || event.results[0];
-        const transcripts = Array.from(result || []).map((item) =>
-          item.transcript.toLowerCase()
-        );
-        const transcript = transcripts[0] || "";
-        const exactVariants = [
-          "car",
-          "cars",
-          "carr",
-          "care",
-          "cur",
-          "kar",
-          "kaar",
-          "gari",
-          "gaari",
-          "ghari",
-          "ghaari",
-          "ghaaree",
-          "ghari",
-          "ghaadi",
-          "gaady",
-          "garri",
-          "gaaree",
-          "گاڑی",
-          "گاڑي",
-        ];
-        const matches = transcripts.some((value) => {
-          const normalized = value.replace(/[\s\-_.']/g, "");
-          const words = value
-            .split(/\s+/)
-            .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-            .filter(Boolean);
-
-          if (
-            exactVariants.some(
-              (variant) =>
-                normalized.includes(variant) || words.includes(variant)
-            )
-          ) {
-            return true;
-          }
-
-          // Short-word fallback for Safari mishearing "car" as close phonetics.
-          return words.some((word) => {
-            if (word.length > 7) return false;
-            if (/^[ck].*(r|re|rr)$/.test(word)) return true;
-            if (/^ca/.test(word)) return true;
-            if (/^ka/.test(word)) return true;
-            if (/^gar/i.test(word)) return true;
-            if (/^ghar/i.test(word)) return true;
-            if (/^gha/i.test(word)) return true;
-            return false;
-          });
-        });
-
-        if (result?.isFinal) {
-          incrementVoiceTries();
-        }
-        setSpeechStatus(`Heard: ${transcript}`);
-        if (matches) {
-          setSpeechVerified(true);
-          speechVerifiedRef.current = true;
-          setSpeechStatus(`Great! You said ${targetWord}.`);
-          if (retryListenRef.current) {
-            clearTimeout(retryListenRef.current);
-            retryListenRef.current = null;
-          }
-          resolved = true;
-          recognition.stop();
-          resolve();
-        } else {
-          setSpeechVerified(false);
-          speechVerifiedRef.current = false;
-          setSpeechStatus(`Try again: say “${targetWord}”.`);
-        }
-      };
-
-      recognition.onerror = () => {
-        setSpeechStatus("Couldn't hear you. Try again.");
-      };
-
-      recognition.onend = () => {
-        if (cancelListenRef.current) {
-          resolved = true;
-          resolve();
-          return;
-        }
-        if (!resolved && allowListeningRef.current) {
-          retryListenRef.current = setTimeout(startListening, 800);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      if (allowListeningRef.current) {
-        startListening();
-      }
+    return listenForWonderworldWord({
+      moduleKey: "car",
+      language: i18n.language,
+      recognitionRef,
+      retryListenRef,
+      speechVerifiedRef,
+      cancelListenRef,
+      allowListeningRef,
+      startListeningRef,
+      setSpeechVerified,
+      setSpeechStatus,
+      incrementVoiceTries,
     });
   };
 
@@ -704,11 +585,12 @@ const playAndWait = (audio) => {
         clearTimeout(retryListenRef.current);
         retryListenRef.current = null;
       }
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (_) {}
-      }
+      stopWonderworldListening({
+        recognitionRef,
+        retryListenRef,
+        cancelListenRef,
+        allowListeningRef,
+      });
     };
   }, []);
   const playSequence = async () => {

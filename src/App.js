@@ -52,6 +52,44 @@ import splashAudio from "./assests/splashaudio.mp3";
 import playCircle from "./assests/play-circle.svg";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
+const SPLASH_SEEN_STORAGE_KEY = "app_splash_seen";
+
+function hasStoredAuthSession() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return Object.keys(window.localStorage).some((key) => {
+      if (!key.includes("auth-token")) return false;
+      const value = window.localStorage.getItem(key);
+      return !!value && value !== "{}";
+    });
+  } catch (_) {
+    return false;
+  }
+}
+
+function isAuthCallbackUrl() {
+  if (typeof window === "undefined") return false;
+
+  const { search, hash } = window.location;
+  return (
+    search.includes("code=") ||
+    search.includes("access_token=") ||
+    search.includes("refresh_token=") ||
+    hash.includes("access_token=") ||
+    hash.includes("refresh_token=")
+  );
+}
+
+function shouldSkipSplash() {
+  if (typeof window === "undefined") return false;
+
+  return (
+    window.localStorage.getItem(SPLASH_SEEN_STORAGE_KEY) === "true" ||
+    isAuthCallbackUrl() ||
+    hasStoredAuthSession()
+  );
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -112,7 +150,7 @@ function App() {
   const splashVideoRef = useRef(null);
   const splashAudioRef = useRef(null);
   const splashStartedRef = useRef(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => !shouldSkipSplash());
   const [hasStartedSplash, setHasStartedSplash] = useState(false);
   const SPLASH_AUDIO_DURATION_SECONDS = 3.5;
 
@@ -152,6 +190,9 @@ function App() {
 
     const finishSplash = () => {
       stopSplashAudio();
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SPLASH_SEEN_STORAGE_KEY, "true");
+      }
       setShowSplash(false);
     };
 

@@ -133,6 +133,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "biscuit",
     },
     recognitionLang: "en-US",
+    attemptMode: "firstResultOnce",
+    permissionMode: "requireMicPermission",
+    resultMode: "allResults",
+    controlMode: "allowCancel",
     matches: buildTranscriptMatcher(cookieVariants, (word) => {
       if (word.length > 8) return false;
       if (/^cook/.test(word)) return true;
@@ -149,6 +153,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "gaari",
     },
     recognitionLang: "en-US",
+    attemptMode: "finalResultOnly",
+    permissionMode: "noPermissionCheck",
+    resultMode: "currentResultOnly",
+    controlMode: "allowCancel",
     matches: buildTranscriptMatcher(carVariants, (word) => {
       if (word.length > 7) return false;
       if (/^[ck].*(r|re|rr)$/.test(word)) return true;
@@ -166,6 +174,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "gaind",
     },
     recognitionLang: "en-US",
+    attemptMode: "everyResult",
+    permissionMode: "noPermissionCheck",
+    resultMode: "allResults",
+    controlMode: "simpleRetry",
     matches: buildTranscriptMatcher(ballVariants, (word) => {
       if (word.length > 7) return false;
       if (/^ba/.test(word)) return true;
@@ -183,6 +195,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "jootay",
     },
     recognitionLang: "en-US",
+    attemptMode: "everyResult",
+    permissionMode: "noPermissionCheck",
+    resultMode: "allResults",
+    controlMode: "simpleRetry",
     matches: buildTranscriptMatcher(shoeVariants, (word) => {
       if (word.length > 8) return false;
       if (/^sho/.test(word)) return true;
@@ -202,26 +218,14 @@ export function getWonderworldSpeechConfig(moduleKey, language) {
   }
 
   return {
+    attemptMode: config.attemptMode,
+    controlMode: config.controlMode,
     recognitionLang: config.recognitionLang,
+    permissionMode: config.permissionMode,
+    resultMode: config.resultMode,
     targetWord: language === "ur" ? config.targetWordByLanguage.ur : config.targetWordByLanguage.en,
     matches: config.matches,
   };
-}
-
-function getRecognitionErrorMessage(error) {
-  switch (error) {
-    case "not-allowed":
-    case "service-not-allowed":
-      return "Microphone permission blocked.";
-    case "audio-capture":
-      return "Microphone unavailable. Check your device audio input.";
-    case "network":
-      return "Speech recognition network error. Try again.";
-    case "no-speech":
-      return "Couldn't hear you. Try again.";
-    default:
-      return "Couldn't hear you. Try again.";
-  }
 }
 
 async function ensureMicPermission() {
@@ -242,6 +246,11 @@ function extractTranscripts(event) {
   );
 }
 
+function extractCurrentResultTranscripts(event) {
+  const result = event.results[event.resultIndex] || event.results[0];
+  return Array.from(result || []).map((item) => item.transcript.toLowerCase());
+}
+
 export function listenForWonderworldWord({
   moduleKey,
   language,
@@ -250,6 +259,7 @@ export function listenForWonderworldWord({
   speechVerifiedRef,
   cancelListenRef,
   allowListeningRef,
+  startListeningRef,
   setSpeechVerified,
   setSpeechStatus,
   incrementVoiceTries,
@@ -258,7 +268,15 @@ export function listenForWonderworldWord({
   return new Promise((resolve, reject) => {
     let resolved = false;
     let attemptCounted = false;
-    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig(moduleKey, language);
+    const {
+      attemptMode,
+      controlMode,
+      permissionMode,
+      recognitionLang,
+      resultMode,
+      targetWord,
+      matches,
+    } = getWonderworldSpeechConfig(moduleKey, language);
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -285,38 +303,55 @@ export function listenForWonderworldWord({
       }
     };
 
-    const shouldAllowListening = () =>
-      !allowListeningRef || allowListeningRef.current;
+    const shouldAllowListening = () => !allowListeningRef || allowListeningRef.current;
 
     const startListening = async () => {
       clearRetry();
 
-      if ((cancelListenRef && cancelListenRef.current) || !shouldAllowListening()) {
+      if (
+        controlMode === "allowCancel" &&
+        ((cancelListenRef && cancelListenRef.current) || !shouldAllowListening())
+      ) {
         return;
       }
 
       setSpeechVerified(false);
-      setSpeechStatus(`Listening... say "${targetWord}"`);
+      setSpeechStatus(`Listening… say “${targetWord}”`);
 
-      const hasPermission = await ensureMicPermission();
-      if (!hasPermission) {
-        setSpeechStatus("Microphone permission blocked.");
-        return;
+      if (permissionMode === "requireMicPermission") {
+        const hasPermission = await ensureMicPermission();
+        if (!hasPermission) {
+          setSpeechStatus("Microphone permission blocked.");
+          return;
+        }
       }
 
       try {
         recognition.start();
       } catch (_) {
-        // Ignore duplicate starts while the browser is still settling.
+        // Ignore browser errors when start is called twice.
       }
     };
 
+    if (startListeningRef) {
+      startListeningRef.current = startListening;
+    }
+
     recognition.onresult = (event) => {
       const result = event.results[event.resultIndex] || event.results[0];
-      const transcripts = extractTranscripts(event);
+      const transcripts =
+        resultMode === "currentResultOnly"
+          ? extractCurrentResultTranscripts(event)
+          : extractTranscripts(event);
       const transcript = transcripts[0] || "";
 
-      if (!attemptCounted && (result?.isFinal || transcript)) {
+      if (attemptMode === "everyResult") {
+        incrementVoiceTries();
+      } else if (attemptMode === "finalResultOnly") {
+        if (result?.isFinal) {
+          incrementVoiceTries();
+        }
+      } else if (!attemptCounted) {
         incrementVoiceTries();
         attemptCounted = true;
       }
@@ -336,24 +371,31 @@ export function listenForWonderworldWord({
 
       setSpeechVerified(false);
       speechVerifiedRef.current = false;
-      setSpeechStatus(`Try again: say "${targetWord}".`);
+      setSpeechStatus(`Try again: say “${targetWord}”.`);
     };
 
-    recognition.onerror = (event) => {
-      if ((cancelListenRef && cancelListenRef.current) || !shouldAllowListening()) {
+    recognition.onerror = () => {
+      if (
+        controlMode === "allowCancel" &&
+        ((cancelListenRef && cancelListenRef.current) || !shouldAllowListening())
+      ) {
         return;
       }
-      setSpeechStatus(getRecognitionErrorMessage(event?.error));
+      setSpeechStatus("Couldn't hear you. Try again.");
     };
 
     recognition.onend = () => {
-      if (cancelListenRef && cancelListenRef.current) {
+      if (controlMode === "allowCancel" && cancelListenRef && cancelListenRef.current) {
         resolved = true;
         resolve();
         return;
       }
 
-      if (!resolved && shouldAllowListening()) {
+      if (
+        controlMode === "allowCancel"
+          ? !resolved && shouldAllowListening()
+          : !speechVerifiedRef.current
+      ) {
         retryListenRef.current = setTimeout(() => {
           startListening();
         }, retryDelay);
@@ -362,10 +404,33 @@ export function listenForWonderworldWord({
 
     recognitionRef.current = recognition;
 
-    if (shouldAllowListening()) {
-      startListening();
+    if (controlMode === "allowCancel") {
+      if (shouldAllowListening()) {
+        startListening();
+      }
+      return;
     }
+
+    startListening();
   });
+}
+
+export function cleanupWonderworldListening({
+  recognitionRef,
+  retryListenRef,
+}) {
+  if (retryListenRef?.current) {
+    clearTimeout(retryListenRef.current);
+    retryListenRef.current = null;
+  }
+
+  if (recognitionRef?.current) {
+    try {
+      recognitionRef.current.stop();
+    } catch (_) {
+      // Ignore redundant stop calls.
+    }
+  }
 }
 
 export function stopWonderworldListening({
@@ -382,16 +447,8 @@ export function stopWonderworldListening({
     allowListeningRef.current = false;
   }
 
-  if (retryListenRef?.current) {
-    clearTimeout(retryListenRef.current);
-    retryListenRef.current = null;
-  }
-
-  if (recognitionRef?.current) {
-    try {
-      recognitionRef.current.stop();
-    } catch (_) {
-      // Ignore browsers throwing on redundant stop calls.
-    }
-  }
+  cleanupWonderworldListening({
+    recognitionRef,
+    retryListenRef,
+  });
 }
