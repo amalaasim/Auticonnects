@@ -21,7 +21,7 @@ import { useEffect, useRef } from "react";
 import yourshoe from '../assests/yourshoe.mpeg';
 import yoururdu from '../assests/yourshoeurdu.ogg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
-import { getWonderworldSpeechConfig } from "@/lib/wonderworldSpeech";
+import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 
 export default function Show() {
   const navigate = useNavigate();
@@ -30,6 +30,8 @@ export default function Show() {
   const audioRef = useRef(null);
   const recognitionRef = useRef(null);
   const retryListenRef = useRef(null);
+  const cancelListenRef = useRef(false);
+  const allowListeningRef = useRef(true);
   const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
   const playAndWait = (audio) => {
     return new Promise((resolve) => {
@@ -77,73 +79,17 @@ const incrementVoiceTries = () => {
 };
 
 const listenForShoe = () => {
-  return new Promise((resolve, reject) => {
-    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig("shoe", i18n.language);
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSpeechStatus("Speech recognition not supported on this device.");
-      reject(new Error("SpeechRecognition not supported"));
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = recognitionLang;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
-    recognition.continuous = false;
-
-    const startListening = () => {
-      if (retryListenRef.current) {
-        clearTimeout(retryListenRef.current);
-        retryListenRef.current = null;
-      }
-      setSpeechVerified(false);
-      setSpeechStatus(`Listening… say “${targetWord}”`);
-      try {
-        recognition.start();
-      } catch (_) {
-        // ignore
-      }
-    };
-
-    recognition.onresult = (event) => {
-      const transcripts = Array.from(event.results || []).flatMap((result) =>
-        Array.from(result || []).map((item) => item.transcript.toLowerCase())
-      );
-      const transcript = transcripts[0] || "";
-      incrementVoiceTries();
-      setSpeechStatus(`Heard: ${transcript}`);
-      if (matches(transcripts)) {
-        setSpeechVerified(true);
-        speechVerifiedRef.current = true;
-        setSpeechStatus(`Great! You said ${targetWord}.`);
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        recognition.stop();
-        resolve();
-      } else {
-        setSpeechVerified(false);
-        speechVerifiedRef.current = false;
-        setSpeechStatus(`Try again: say “${targetWord}”.`);
-      }
-    };
-
-    recognition.onerror = () => {
-      setSpeechStatus("Couldn't hear you. Try again.");
-    };
-
-    recognition.onend = () => {
-      if (!speechVerifiedRef.current) {
-        retryListenRef.current = setTimeout(startListening, 800);
-      }
-    };
-
-    recognitionRef.current = recognition;
-    startListening();
+  return listenForWonderworldWord({
+    moduleKey: "shoe",
+    language: i18n.language,
+    recognitionRef,
+    retryListenRef,
+    speechVerifiedRef,
+    cancelListenRef,
+    allowListeningRef,
+    setSpeechVerified,
+    setSpeechStatus,
+    incrementVoiceTries,
   });
 };
 
@@ -153,6 +99,8 @@ useEffect(() => {
     try {
       const audio = audioRef.current;
       if (!audio) return;
+      allowListeningRef.current = true;
+      cancelListenRef.current = false;
       setSpeechVerified(false);
       setSpeechStatus("");
       setIsLionSpeaking(false);
@@ -160,7 +108,9 @@ useEffect(() => {
       audio.currentTime = 0;
       audio.volume = 1;
       await playAndWait(audio);
-      await listenForShoe();
+      if (!cancelListenRef.current) {
+        await listenForShoe();
+      }
     } catch (e) {
       console.log("Audio error", e);
     }
@@ -169,13 +119,12 @@ useEffect(() => {
   runSequence();
 
   return () => {
-    if (retryListenRef.current) {
-      clearTimeout(retryListenRef.current);
-      retryListenRef.current = null;
-    }
-    try {
-      recognitionRef.current?.stop();
-    } catch (_) {}
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
     setIsLionSpeaking(false);
   };
 }, [i18n.language]);

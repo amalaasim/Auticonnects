@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 import yourcar from '../assests/yourcar.mpeg';
 import yourcarurdu from '../assests/yourcarurdu.ogg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
-import { getWonderworldSpeechConfig } from "@/lib/wonderworldSpeech";
+import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 export default function Car() {
   const navigate = useNavigate();
   const {t}=useTranslation();
@@ -78,87 +78,17 @@ const incrementVoiceTries = () => {
 };
 
 const listenForCar = () =>
-  new Promise((resolve, reject) => {
-    let resolved = false;
-    cancelListenRef.current = false;
-    const { targetWord, recognitionLang, matches } = getWonderworldSpeechConfig("car", i18n.language);
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSpeechStatus("Speech recognition not supported on this device.");
-      reject(new Error("SpeechRecognition not supported"));
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = recognitionLang;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
-    recognition.continuous = false;
-
-    const startListening = () => {
-      if (retryListenRef.current) {
-        clearTimeout(retryListenRef.current);
-        retryListenRef.current = null;
-      }
-      setSpeechVerified(false);
-      setSpeechStatus(`Listening… say “${targetWord}”`);
-      try {
-        recognition.start();
-      } catch (_) {
-        // Ignore duplicate starts
-      }
-    };
-
-    recognition.onresult = (event) => {
-      const result = event.results[event.resultIndex] || event.results[0];
-      const transcripts = Array.from(result || []).map((item) =>
-        item.transcript.toLowerCase()
-      );
-      const transcript = transcripts[0] || "";
-
-      if (result?.isFinal) {
-        incrementVoiceTries();
-      }
-      setSpeechStatus(`Heard: ${transcript}`);
-      if (matches(transcripts)) {
-        setSpeechVerified(true);
-        speechVerifiedRef.current = true;
-        setSpeechStatus(`Great! You said ${targetWord}.`);
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        resolved = true;
-        recognition.stop();
-        resolve();
-      } else {
-        setSpeechVerified(false);
-        speechVerifiedRef.current = false;
-        setSpeechStatus(`Try again: say “${targetWord}”.`);
-      }
-    };
-
-    recognition.onerror = () => {
-      setSpeechStatus("Couldn't hear you. Try again.");
-    };
-
-    recognition.onend = () => {
-      if (cancelListenRef.current) {
-        resolved = true;
-        resolve();
-        return;
-      }
-      if (!resolved && allowListeningRef.current) {
-        retryListenRef.current = setTimeout(startListening, 800);
-      }
-    };
-
-    recognitionRef.current = recognition;
-    if (allowListeningRef.current) {
-      startListening();
-    }
+  listenForWonderworldWord({
+    moduleKey: "car",
+    language: i18n.language,
+    recognitionRef,
+    retryListenRef,
+    speechVerifiedRef,
+    cancelListenRef,
+    allowListeningRef,
+    setSpeechVerified,
+    setSpeechStatus,
+    incrementVoiceTries,
   });
 
 useEffect(() => {
@@ -183,31 +113,25 @@ useEffect(() => {
   runSequence();
 
   return () => {
-    cancelListenRef.current = true;
-    allowListeningRef.current = false;
-    if (retryListenRef.current) {
-      clearTimeout(retryListenRef.current);
-      retryListenRef.current = null;
-    }
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
     if (audioRef.current) audioRef.current.onended = null;
     setIsLionSpeaking(false);
-    try {
-      recognitionRef.current?.stop();
-    } catch (_) {}
   };
 }, [i18n.language]);
 
 useEffect(() => {
   return () => {
-    if (retryListenRef.current) {
-      clearTimeout(retryListenRef.current);
-      retryListenRef.current = null;
-    }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (_) {}
-    }
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
   };
 }, []);
 useEffect(() => {

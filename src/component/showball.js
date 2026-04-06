@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import yourball from '../assests/yourball.mpeg';
 import yoururdu from '../assests/yourballurdu.ogg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
+import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 
 export default function Ball() {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export default function Ball() {
 const audioRef = useRef(null);
 const recognitionRef = useRef(null);
 const retryListenRef = useRef(null);
+const cancelListenRef = useRef(false);
+const allowListeningRef = useRef(true);
 const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
@@ -81,119 +84,25 @@ const incrementVoiceTries = () => {
 
 useEffect(() => {
   const listenForBall = () =>
-    new Promise((resolve, reject) => {
-      const targetWord = i18n.language === "ur" ? "gaind" : "ball";
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        setSpeechStatus("Speech recognition not supported on this device.");
-        reject(new Error("SpeechRecognition not supported"));
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 5;
-      recognition.continuous = false;
-
-      const startListening = () => {
-        if (retryListenRef.current) {
-          clearTimeout(retryListenRef.current);
-          retryListenRef.current = null;
-        }
-        setSpeechVerified(false);
-        setSpeechStatus(`Listening… say “${targetWord}”`);
-        try {
-          recognition.start();
-        } catch (_) {}
-      };
-
-      recognition.onresult = (event) => {
-        const transcripts = Array.from(event.results || []).flatMap((result) =>
-          Array.from(result || []).map((item) => item.transcript.toLowerCase())
-        );
-        const transcript = transcripts[0] || "";
-        const variants = [
-          "ball",
-          "bal",
-          "boll",
-          "bawl",
-          "bol",
-          "baal",
-          "gaind",
-          "gaen",
-          "gain",
-          "gand",
-          "gaindh",
-          "gainda",
-          "gaynd",
-          "gayn",
-          "ghaind",
-          "ghaenda",
-          "گیند",
-          "گیندا",
-        ];
-        const matches = transcripts.some((value) => {
-          const normalized = value.replace(/[\s\-_.']/g, "");
-          const words = value
-            .split(/\s+/)
-            .map((word) => word.replace(/[^a-z\u0600-\u06ff]/gi, "").toLowerCase())
-            .filter(Boolean);
-
-          if (variants.some((v) => normalized.includes(v) || words.includes(v))) {
-            return true;
-          }
-
-          return words.some((word) => {
-            if (word.length > 7) return false;
-            if (/^ba/.test(word)) return true;
-            if (/^bo/.test(word)) return true;
-            if (/^gai/.test(word)) return true;
-            if (/^gay/.test(word)) return true;
-            if (/^gha/.test(word)) return true;
-            if (/^گی/.test(word)) return true;
-            return false;
-          });
-        });
-        incrementVoiceTries();
-        setSpeechStatus(`Heard: ${transcript}`);
-        if (matches) {
-          setSpeechVerified(true);
-          speechVerifiedRef.current = true;
-          setSpeechStatus(`Great! You said ${targetWord}.`);
-          if (retryListenRef.current) {
-            clearTimeout(retryListenRef.current);
-            retryListenRef.current = null;
-          }
-          recognition.stop();
-          resolve();
-        } else {
-          setSpeechVerified(false);
-          speechVerifiedRef.current = false;
-          setSpeechStatus(`Try again: say “${targetWord}”.`);
-        }
-      };
-
-      recognition.onerror = () => {
-        setSpeechStatus("Couldn't hear you. Try again.");
-      };
-
-      recognition.onend = () => {
-        if (!speechVerifiedRef.current) {
-          retryListenRef.current = setTimeout(startListening, 800);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      startListening();
+    listenForWonderworldWord({
+      moduleKey: "ball",
+      language: i18n.language,
+      recognitionRef,
+      retryListenRef,
+      speechVerifiedRef,
+      cancelListenRef,
+      allowListeningRef,
+      setSpeechVerified,
+      setSpeechStatus,
+      incrementVoiceTries,
     });
 
   const runSequence = async () => {
     try {
       const audio = audioRef.current;
       if (!audio) return;
+      allowListeningRef.current = true;
+      cancelListenRef.current = false;
       setSpeechVerified(false);
       setSpeechStatus("");
       setIsLionSpeaking(false);
@@ -201,7 +110,9 @@ useEffect(() => {
       audio.currentTime = 0;
       audio.volume = 1;
       await playAndWait(audio);
-      await listenForBall();
+      if (!cancelListenRef.current) {
+        await listenForBall();
+      }
     } catch (e) {
       console.log("Audio error", e);
     }
@@ -210,28 +121,24 @@ useEffect(() => {
   runSequence();
 
   return () => {
-    if (retryListenRef.current) {
-      clearTimeout(retryListenRef.current);
-      retryListenRef.current = null;
-    }
-    try {
-      recognitionRef.current?.stop();
-    } catch (_) {}
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
     setIsLionSpeaking(false);
   };
 }, [i18n.language]);
 
 useEffect(() => {
   return () => {
-    if (retryListenRef.current) {
-      clearTimeout(retryListenRef.current);
-      retryListenRef.current = null;
-    }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (_) {}
-    }
+    stopWonderworldListening({
+      recognitionRef,
+      retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
+    });
   };
 }, []);
 useEffect(() => {
