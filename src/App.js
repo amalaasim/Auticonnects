@@ -54,20 +54,6 @@ import playCircle from "./assests/play-circle.svg";
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 const SPLASH_SEEN_STORAGE_KEY = "app_splash_seen";
 
-function hasStoredAuthSession() {
-  if (typeof window === "undefined") return false;
-
-  try {
-    return Object.keys(window.localStorage).some((key) => {
-      if (!key.includes("auth-token")) return false;
-      const value = window.localStorage.getItem(key);
-      return !!value && value !== "{}";
-    });
-  } catch (_) {
-    return false;
-  }
-}
-
 function isAuthCallbackUrl() {
   if (typeof window === "undefined") return false;
 
@@ -84,11 +70,12 @@ function isAuthCallbackUrl() {
 function shouldSkipSplash() {
   if (typeof window === "undefined") return false;
 
-  return (
-    window.localStorage.getItem(SPLASH_SEEN_STORAGE_KEY) === "true" ||
-    isAuthCallbackUrl() ||
-    hasStoredAuthSession()
-  );
+  if (isAuthCallbackUrl()) {
+    window.sessionStorage.setItem(SPLASH_SEEN_STORAGE_KEY, "true");
+    return true;
+  }
+
+  return window.sessionStorage.getItem(SPLASH_SEEN_STORAGE_KEY) === "true";
 }
 
 function AnimatedRoutes() {
@@ -191,7 +178,7 @@ function App() {
     const finishSplash = () => {
       stopSplashAudio();
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(SPLASH_SEEN_STORAGE_KEY, "true");
+        window.sessionStorage.setItem(SPLASH_SEEN_STORAGE_KEY, "true");
       }
       setShowSplash(false);
     };
