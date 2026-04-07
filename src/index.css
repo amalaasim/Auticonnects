@@ -33,6 +33,8 @@ input:disabled,
 /* Prevent any accidental white backgrounds on images */
 img {
   background: transparent;
+  display: block;
+  max-width: 100%;
 }
 
 input[type="number"]::-webkit-outer-spin-button,

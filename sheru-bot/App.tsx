@@ -44,16 +44,18 @@ const App: React.FC = () => {
     lastAttentionChangeRef.current = Date.now();
     previousIsLookingRef.current = isLooking;
 
-    try {
-      analyticsSessionIdRef.current = await startSession({
-        gameKey: 'sheru_bot',
-        moduleKey: 'sheru_bot',
-        sourceApp: 'sheru-bot',
-        startedAt: new Date(sessionStartTimeRef.current).toISOString(),
+    void startSession({
+      gameKey: 'sheru_bot',
+      moduleKey: 'sheru_bot',
+      sourceApp: 'sheru-bot',
+      startedAt: new Date(sessionStartTimeRef.current).toISOString(),
+    })
+      .then((sessionId) => {
+        analyticsSessionIdRef.current = sessionId;
+      })
+      .catch((analyticsError) => {
+        console.error('Failed to start Sheru Bot analytics session:', analyticsError);
       });
-    } catch (analyticsError) {
-      console.error('Failed to start Sheru Bot analytics session:', analyticsError);
-    }
 
     await connect();
   };

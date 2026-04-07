@@ -19,6 +19,8 @@ const BackSignpost: React.FC<BackSignpostProps> = ({ to, label = 'Back' }) => {
       <img 
         src={backSignpost} 
         alt={label}
+        loading="eager"
+        decoding="async"
         className="h-36 w-auto md:h-44 lg:h-56"
       />
     </button>

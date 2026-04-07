@@ -26,6 +26,13 @@ import objecturdu from '../assests/objecturdu.mp4';
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import learnBg from '../assests/learn_bg.png';
+import boardImage from '../assests/board.png';
+import brownBoardImage from '../assests/brown_board.png';
+import greenBgImage from '../assests/greenbg.png';
+import talkingLion from '../assests/talking.gif';
+import standingLionLoop from '../assests/standinglion-loop.gif';
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 
 function Wonderworld() {
   const navigate = useNavigate();
@@ -106,6 +113,39 @@ useEffect(() => {
     } catch (_) {}
   };
 }, [i18n.language]);
+
+useEffect(() => {
+  const nextAssets = [
+    learnBg,
+    boardImage,
+    brownBoardImage,
+    greenBgImage,
+    talkingLion,
+    standingLionLoop,
+    cookie,
+    car,
+    shoe,
+    ball,
+    backbg,
+    star,
+    star2,
+    star3,
+  ];
+
+  const preload = () => {
+    nextAssets.forEach((asset) => {
+      void preloadImageAsset(asset);
+    });
+  };
+
+  if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+    const idleId = window.requestIdleCallback(preload, { timeout: 1000 });
+    return () => window.cancelIdleCallback(idleId);
+  }
+
+  const timeoutId = window.setTimeout(preload, 200);
+  return () => window.clearTimeout(timeoutId);
+}, []);
 
 
   return (

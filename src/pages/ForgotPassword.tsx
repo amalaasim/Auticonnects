@@ -43,7 +43,10 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <AuthBackground className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0">
+    <AuthBackground
+      className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0"
+      assetUrls={[logo, '/assets/back.png', '/assets/hanging-board.png', layer1Board, layer2Board, blurLayerBoard]}
+    >
       <img
         src={logo}
         alt="Auti-Connects Logo"

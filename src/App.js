@@ -51,6 +51,15 @@ import splashVideo from "./Hicatvideo.MP4";
 import splashAudio from "./assests/splashaudio.mp3";
 import playCircle from "./assests/play-circle.svg";
 import splashLogo from "./assests/vidlogo.png";
+import appBackground from "./assests/background.png";
+import learnBg from "./assests/learn_bg.png";
+import boardImage from "./assests/board.png";
+import brownBoardImage from "./assests/brown_board.png";
+import greenBgImage from "./assests/greenbg.png";
+import backImage from "./assests/back.png";
+import standingLionLoop from "./assests/standinglion-loop.gif";
+import talkingLion from "./assests/talking.gif";
+import { preloadImageAsset } from "./lib/preloadImageAsset";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 const SPLASH_SEEN_STORAGE_KEY = "app_splash_seen";
@@ -142,6 +151,44 @@ function App() {
   const [hasStartedSplash, setHasStartedSplash] = useState(false);
   const [showSplashLogo, setShowSplashLogo] = useState(true);
   const SPLASH_AUDIO_DURATION_SECONDS = 3.5;
+
+  useEffect(() => {
+    const commonAssets = [
+      appBackground,
+      learnBg,
+      boardImage,
+      brownBoardImage,
+      greenBgImage,
+      backImage,
+      standingLionLoop,
+      talkingLion,
+      "/assets/logo.png",
+      "/assets/mascot.png",
+      "/assets/board.png",
+      "/assets/back.png",
+      "/assets/hanging-board.png",
+      "/assets/child-profile-bg-1.png",
+      "/assets/child-profile-bg-2.png",
+      "/assets/child-profile-bg-3.png",
+      "/assets/language-board.png",
+      "/backgrounds/garden.png",
+      "/sheru-bot/images/background.png",
+    ];
+
+    const preload = () => {
+      commonAssets.forEach((asset) => {
+        void preloadImageAsset(asset);
+      });
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const startSplashPlayback = () => {
     const video = splashVideoRef.current;

@@ -42,10 +42,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <AuthBackground className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0">
+    <AuthBackground
+      className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0"
+      assetUrls={[logo, '/assets/board.png']}
+    >
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 
+        loading="eager"
+        decoding="async"
         className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
       />
       

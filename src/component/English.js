@@ -15,6 +15,7 @@ import i18n from "../i18n";
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 
 // ✅ Import Framer Motion
 import { motion } from "framer-motion";
@@ -22,6 +23,37 @@ import { motion } from "framer-motion";
 export default function English() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    const nextAssets = [
+      bg,
+      game,
+      storyland,
+      back,
+      cartoon,
+      "/backgrounds/garden.png",
+      "/characters/green-try.gif",
+      "/characters/talking.gif",
+      "/sheru-bot/images/background.png",
+      "/sheru-bot/images/standinglion-loop.gif",
+      "/sheru-bot/images/talking.gif",
+    ];
+
+    const preload = () => {
+      nextAssets.forEach((asset) => {
+        void preloadImageAsset(asset);
+      });
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },
     { src: reportNew, alt: "Reports", onClick: () => navigate("/reports") },
