@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, Search, RotateCcw, Settings } from 'lucide-react';
+import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import signoutNew from '../assests/signout-new.png';
 
 const ChildAgeSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -85,20 +86,18 @@ const ChildAgeSetup: React.FC = () => {
           </p>
         </div>
 
-        {/* Right side - Icons */}
-        <div className="flex gap-4">
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <User className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Search className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <RotateCcw className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Settings className="w-5 h-5 text-white" />
-          </button>
+        {/* Right side - Sign out only */}
+        <div className="flex">
+          <TopBarLogoutIcon
+            src={signoutNew}
+            sx={{
+              width: '45.23px',
+              height: '45.23px',
+              objectFit: 'contain',
+              opacity: 1,
+              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
+            }}
+          />
         </div>
       </div>
 
@@ -129,7 +128,8 @@ const ChildAgeSetup: React.FC = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="absolute left-12 -bottom-8 transition-opacity hover:opacity-80 z-20"
+            className="absolute left-12 -bottom-8 appearance-none border-0 bg-transparent p-0 transition-opacity hover:opacity-80 z-20"
+            style={{ transform: 'translateY(-40px)' }}
           >
             <img 
               src="/assets/arrow.png" 
@@ -143,8 +143,8 @@ const ChildAgeSetup: React.FC = () => {
             How old is your kid?
           </h2>
           
-          <div className="absolute -bottom-8 right-12 flex items-center gap-12">
-            <div className="flex items-center gap-0">
+          <div className="absolute -bottom-6 right-12 flex items-center gap-12">
+            <div className="flex items-center gap-0 -translate-x-10 rotate-2">
               <input
                 type="number"
                 value={childAge}
@@ -152,7 +152,7 @@ const ChildAgeSetup: React.FC = () => {
                 placeholder=""
                 min="1"
                 max="18"
-                className="flex-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
+                className="flex-1 -translate-y-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
                 required
                 autoFocus
               />
@@ -163,7 +163,8 @@ const ChildAgeSetup: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !childAge.trim()}
-              className="flex-shrink-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ transform: 'translateY(-25px)' }}
             >
               <img 
                 src="/assets/arrow.png" 

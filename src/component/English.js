@@ -9,7 +9,7 @@ import storyland from '../assests/storyland.png';
 import back from '../assests/chat_bg.png';
 import click from '../assests/click.png';
 import { useNavigate } from "react-router-dom";
-import cartoon from '../assests/finalgif.gif';
+import cartoon from '../assests/talking.gif';
 import play from '../assests/play.png';
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";

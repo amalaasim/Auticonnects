@@ -7,7 +7,6 @@ import { startSession, finishSession } from "../../../src/lib/analytics/client";
 import { normalizeFocusMetrics } from "../../../src/lib/analytics/mappers";
 import "../styles/StoryScreen.css";
 import finalGif from "../final.gif";
-import greenTryGif from "../green-try.gif";
 
 const StoryScreen = ({ initialLanguage = "en" }) => {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const [language, setLanguage] = useState(initialLanguage);
 
   const [isLionTalking, setIsLionTalking] = useState(false);
-  const [idleLionGifVersion, setIdleLionGifVersion] = useState(0);
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
   const audioRef = useRef(null);
 
@@ -322,18 +320,6 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   }, [currentSceneId]);
 
   useEffect(() => {
-    if (isLionTalking) return;
-
-    const restartTimer = window.setInterval(() => {
-      setIdleLionGifVersion((current) => current + 1);
-    }, 6500);
-
-    return () => {
-      window.clearInterval(restartTimer);
-    };
-  }, [isLionTalking]);
-
-  useEffect(() => {
     if (currentScene) return;
 
     const restartTimer = window.setInterval(() => {
@@ -624,9 +610,9 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           />
         </div>
         <img
-          src={isLionTalking ? "/characters/he.gif" : `${greenTryGif}?v=${idleLionGifVersion}`}
+          src={isLionTalking ? "/characters/talking.gif" : "/characters/green-try.gif"}
           alt="Lion narrator"
-          className={`lion ${isLionTalking ? "" : "lion-idle"}`}
+          className={`lion ${isLionTalking ? "lion-talking" : "lion-idle"}`}
         />
         <div className="audio-controls">
           <img

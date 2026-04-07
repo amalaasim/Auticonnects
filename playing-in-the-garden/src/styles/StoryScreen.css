@@ -145,6 +145,9 @@
 .emotion-image {
   width: 72px;          /* match Figma later */
   height: 72px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
   cursor: pointer;
   transition: transform 0.15s ease, filter 0.15s ease;
 }
@@ -154,9 +157,16 @@
 }
 
 .emotion-crying {
-  width: 110px;
-  height: 110px;
-  transform: translateY(-17px);
+  width: 118px;
+  height: 118px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  object-position: center;
+  transform: translateY(-20px) rotate(-2deg);
+}
+
+.emotion-crying:hover {
+  transform: translateY(-20px) rotate(-2deg) scale(1.05);
 }
 
 .emotion-image,
@@ -168,14 +178,22 @@
   position: absolute;
   width: 456px;
   height: 379px;
-  top: 343px;
+  top: 325px;
   left: 985px;
   pointer-events: none;
+  z-index: 3;
 }
 
 .lion-idle {
-  width: 401px;
-  height: 334px;
+  width: 420px;
+  height: 350px;
+  top: 313px;
+}
+
+.lion-talking {
+  top: 305px;
+  width: 410px;
+  height: 341px;
 }
 
 .final-score-layout {

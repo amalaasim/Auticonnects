@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User, Search, RotateCcw, Settings, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
+import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import signoutNew from '../assests/signout-new.png';
 
 const ChildCharacterSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -141,20 +143,18 @@ const ChildCharacterSetup: React.FC = () => {
           </p>
         </div>
 
-        {/* Right side - Icons */}
-        <div className="flex gap-4">
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <User className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Search className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <RotateCcw className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Settings className="w-5 h-5 text-white" />
-          </button>
+        {/* Right side - Sign out only */}
+        <div className="flex">
+          <TopBarLogoutIcon
+            src={signoutNew}
+            sx={{
+              width: '45.23px',
+              height: '45.23px',
+              objectFit: 'contain',
+              opacity: 1,
+              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
+            }}
+          />
         </div>
       </div>
 
@@ -192,7 +192,8 @@ const ChildCharacterSetup: React.FC = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="absolute left-12 top-12 transition-opacity hover:opacity-80 z-20"
+            className="absolute left-12 top-12 appearance-none border-0 bg-transparent p-0 transition-opacity hover:opacity-80 z-20"
+            style={{ transform: 'translateY(10px)' }}
           >
             <img 
               src="/assets/arrow.png" 
@@ -215,8 +216,26 @@ const ChildCharacterSetup: React.FC = () => {
                         ? 'scale-105'
                         : 'hover:scale-102'
                     }`}
+                    style={
+                      character.value === 'bubbles'
+                        ? { transform: 'translateY(-20px) rotate(3deg)' }
+                        : character.value === 'rocco'
+                          ? { transform: 'translateY(-5px) rotate(3deg)' }
+                          : character.value === 'mimi'
+                            ? { transform: 'translateY(10px) rotate(3deg)' }
+                          : undefined
+                    }
                   >
-                    <p className="text-white font-bold text-5xl" style={{ fontFamily: "'Chewy', cursive" }}>
+                    <p
+                      className="text-white font-bold text-5xl"
+                      style={
+                        character.value === 'bubbles' || character.value === 'rocco'
+                          ? { fontFamily: "'Chewy', cursive", transform: 'translateY(6px)' }
+                          : character.value === 'mimi'
+                            ? { fontFamily: "'Chewy', cursive", transform: 'translateY(8px)' }
+                          : { fontFamily: "'Chewy', cursive" }
+                      }
+                    >
                       {character.name}
                     </p>
                     {selectedCharacter === character.value && (
@@ -272,7 +291,7 @@ const ChildCharacterSetup: React.FC = () => {
           type="button"
           onClick={() => handleSubmit()}
           disabled={loading || !selectedCharacter}
-          className="transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <img 
             src="/assets/arrow.png" 

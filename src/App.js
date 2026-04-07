@@ -47,9 +47,10 @@ import Show from "./component/showShoe";
 import YourShoe from "./component/yourShoe";
 import Ball from "./component/showball";
 import Car from "./component/car";
-import splashVideo from "./assests/splash.mp4";
+import splashVideo from "./Hicatvideo.MP4";
 import splashAudio from "./assests/splashaudio.mp3";
 import playCircle from "./assests/play-circle.svg";
+import splashLogo from "./assests/logo.png";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 const SPLASH_SEEN_STORAGE_KEY = "app_splash_seen";
@@ -139,6 +140,7 @@ function App() {
   const splashStartedRef = useRef(false);
   const [showSplash, setShowSplash] = useState(() => !shouldSkipSplash());
   const [hasStartedSplash, setHasStartedSplash] = useState(false);
+  const [showSplashLogo, setShowSplashLogo] = useState(true);
   const SPLASH_AUDIO_DURATION_SECONDS = 3.5;
 
   const startSplashPlayback = () => {
@@ -210,6 +212,25 @@ function App() {
     };
   }, [hasStartedSplash, showSplash]);
 
+  useEffect(() => {
+    if (!showSplash) {
+      setShowSplashLogo(true);
+      return;
+    }
+    if (!hasStartedSplash) {
+      setShowSplashLogo(true);
+      return;
+    }
+
+    const logoTimeoutId = window.setTimeout(() => {
+      setShowSplashLogo(false);
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(logoTimeoutId);
+    };
+  }, [hasStartedSplash, showSplash]);
+
   const handleUserInteraction = () => {
     if (showSplash) {
       if (!hasStartedSplash) {
@@ -268,6 +289,22 @@ function App() {
                 height: "100%",
                 objectFit: "cover",
                 objectPosition: "center center",
+              }}
+            />
+            <img
+              src={splashLogo}
+              alt="Video logo"
+              style={{
+                position: "absolute",
+                top: "6%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "min(28vw, 360px)",
+                height: "auto",
+                zIndex: 10000,
+                opacity: showSplashLogo ? 1 : 0,
+                transition: "opacity 500ms ease",
+                pointerEvents: "none",
               }}
             />
             <audio ref={splashAudioRef} src={splashAudio} preload="auto" />

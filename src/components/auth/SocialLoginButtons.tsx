@@ -19,20 +19,20 @@ const SocialLoginButtons: React.FC = () => {
   };
 
   return (
-    <div className="absolute bottom-8 right-0 w-80 px-4">
+    <div className="absolute bottom-8 right-0 w-[22rem] px-4">
       <div 
-        className="flex items-center justify-between rounded-xl px-6 py-4 shadow-lg border-2"
+        className="flex items-center justify-between gap-3 rounded-xl px-5 py-4 shadow-lg border-2"
         style={{ 
           backgroundColor: '#6B8E3D',
           backgroundImage: 'linear-gradient(to bottom, rgba(107, 142, 61, 0.9), rgba(85, 112, 48, 1))',
           borderColor: '#556930'
         }}
       >
-        <span className="text-xl font-medium flex items-center gap-2 text-black/60">
+        <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xl font-medium text-black/60 -translate-x-[30px]">
           Continue with <span className="text-xl">&gt;</span>
         </span>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0 -translate-x-[30px]">
           <button
             onClick={handleGoogleLogin}
             className="bg-white rounded-full p-2.5 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#6B8E3D] border border-white"

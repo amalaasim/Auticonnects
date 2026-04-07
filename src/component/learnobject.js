@@ -8,7 +8,7 @@ import full from '../assests/fullc.png';
 import half from '../assests/halfc.png';
 import three from '../assests/threec.png';
 import bg from '../assests/greenbg.png';
-import newgif from '../assests/he.gif';
+import newgif from '../assests/talking.gif';
 import standinglion from '../assests/standinglion.gif';
 import stop from '../assests/stop.png';
 import pause from '../assests/pause.png';
@@ -894,7 +894,7 @@ opacity:"0.9",
              {t("repeatAfterMe")}
               </Typography> 
               </Box>
-          <Box component='img' sx={{ width: { lg: "451.59px",sm:"44%" }, height: {lg:"390.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px" }} src={isLionSpeaking ? newgif : standinglion} />
+          <Box component='img' sx={{ width: { lg: "451.59px",sm:"44%" }, height: {lg:"390.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px", objectFit: "contain", transform: isLionSpeaking ? "none" : "translateY(18px) scale(1.05, 1.02)", transformOrigin: "center" }} src={isLionSpeaking ? newgif : standinglion} />
         </Box>
 
         <Box component='img' sx={{ width: {lg:"658.94px",sm:"60%"}, height: {lg:"481px",sm:"40%"}, borderRadius: "44.5px", marginLeft: {lg:"723px",sm:"40%"}, marginTop: {lg:"-40%",sm:"-69%"} }} src={board} />

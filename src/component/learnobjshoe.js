@@ -8,7 +8,7 @@ import full from '../assests/shoeo.png';
 import half from '../assests/shoeg.png';
 import three from '../assests/shoer.png';
 import bg from '../assests/greenbg.png';
-import newgif from '../assests/he.gif';
+import newgif from '../assests/talking.gif';
 import standinglion from '../assests/standinglion.gif';
 import stop from '../assests/stop.png';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
@@ -787,9 +787,9 @@ opacity:"0.9",
                   <Typography
              sx={{
                fontSize: i18n.language === "ur" ? "53px" : "33px",
-               marginTop: {lg:i18n.language === "ur" ? "-6.8%" : "-7.5%",sm:i18n.language === "ur" ? "-14%" : "-15%"},
+               marginTop: {lg:i18n.language === "ur" ? "calc(-6.8% - 5px)" : "calc(-7.5% - 5px)",sm:i18n.language === "ur" ? "calc(-14% - 5px)" : "calc(-15% - 5px)"},
                width:{lg:i18n.language === "ur" ? "22%":"15%",sm:i18n.language === "ur" ? "42%" : "35%"},
-               marginLeft: {lg:i18n.language === "ur" ? "24.8%" : "25%",sm:i18n.language === "ur" ? "22%" : "22%"},
+               marginLeft: {lg:i18n.language === "ur" ? "calc(24.8% + 10px)" : "calc(25% + 10px)",sm:i18n.language === "ur" ? "calc(22% + 10px)" : "calc(22% + 10px)"},
                whiteSpace: i18n.language === "ur" ? "nowrap" : "normal",
                fontStyle:"normal",
                lineHeight:"38px",
@@ -801,7 +801,7 @@ opacity:"0.9",
              {t("repeatAfterMeShoes")}
               </Typography> 
               </Box>
-          <Box component='img' sx={{ width: { lg: "400.59px",sm:"47%" }, height: {lg:"400.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px" }} src={isLionSpeaking ? newgif : standinglion} />
+          <Box component='img' sx={{ width: { lg: "400.59px",sm:"47%" }, height: {lg:"400.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px", objectFit: "contain", transform: isLionSpeaking ? "none" : "translateY(18px) scale(1.05, 1.02)", transformOrigin: "center" }} src={isLionSpeaking ? newgif : standinglion} />
         </Box>
 
         <Box component='img' sx={{ width: {lg:"658.94px",sm:"60%"}, height: {lg:"481px",sm:"40%"}, borderRadius: "44.5px", marginLeft: {lg:"723px",sm:"40%"}, marginTop: {lg:"-40.5%",sm:"-69%"} }} src={board} />

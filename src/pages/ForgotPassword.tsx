@@ -75,7 +75,7 @@ const ForgotPassword: React.FC = () => {
           
           <p className="w-full mt-3 text-md text-center text-yellow-800">
             Remember your password?{' '}
-            <Link to="/login" className="font-bold underline hover:opacity-80">
+            <Link to="/login" className="font-bold underline hover:opacity-80 text-yellow-800">
               Login
             </Link>
           </p>
@@ -85,6 +85,7 @@ const ForgotPassword: React.FC = () => {
       {sent && (
         <HangingBoard
           message="A password reset link has been sent to your email. Please follow the instructions."
+          messageClassName="translate-x-[45px]"
         />
       )}
     </AuthBackground>

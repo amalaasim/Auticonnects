@@ -85,7 +85,7 @@ const Signup: React.FC = () => {
       
       {!emailSent && (
         <WoodenBoard>
-          <h2 className="text-4xl font-bold mb-4 text-yellow-800">Sign Up</h2>
+          <h2 className="text-4xl font-bold mt-16 ml-6 mb-4 text-yellow-800">Sign Up</h2>
           
           {step === 1 ? (
             <form onSubmit={handleContinue} className="w-full space-y-1 px-4">
@@ -112,7 +112,7 @@ const Signup: React.FC = () => {
               </AuthButton>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="w-full space-y-1 px-4">
+            <form onSubmit={handleSubmit} className="w-full -mt-4 space-y-1 px-4">
               <AuthInput
                 type="password"
                 label="Enter your password"
@@ -138,7 +138,7 @@ const Signup: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => setStep(1)}
-                className="w-full text-md underline hover:opacity-80 text-yellow-700"
+                className="w-full -mt-1 text-md underline hover:opacity-80 text-yellow-700"
               >
                 ← Back
               </button>
@@ -150,9 +150,9 @@ const Signup: React.FC = () => {
             <div className={`w-2 h-2 rounded-full ${step === 2 ? 'bg-yellow-700' : 'bg-yellow-200'}`} />
           </div>
           
-          <p className="w-full mt-3 text-md text-center text-yellow-800">
+          <p className="w-full -mt-2 text-md text-center text-yellow-800">
             Already have an account?{' '}
-            <Link to="/login" className="font-bold underline hover:opacity-80">
+            <Link to="/login" className="font-bold underline hover:opacity-80 text-yellow-800">
               Login
             </Link>
           </p>
@@ -161,6 +161,7 @@ const Signup: React.FC = () => {
       {emailSent && (
         <HangingBoard
           message="A verification email has been sent to your email address. Please check your inbox."
+          messageClassName="translate-x-[10px]"
         />
       )}
 

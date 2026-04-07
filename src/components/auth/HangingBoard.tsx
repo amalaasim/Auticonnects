@@ -4,9 +4,10 @@ const hangingBoard = '/assets/hanging-board.png';
 interface HangingBoardProps {
   message: string;
   className?: string;
+  messageClassName?: string;
 }
 
-const HangingBoard: React.FC<HangingBoardProps> = ({ message, className = '' }) => {
+const HangingBoard: React.FC<HangingBoardProps> = ({ message, className = '', messageClassName = '' }) => {
   return (
     <div 
       className={`relative -top-24 animate-swing ${className}`}
@@ -16,7 +17,7 @@ const HangingBoard: React.FC<HangingBoardProps> = ({ message, className = '' }) 
         alt="Hanging wooden board" 
         className="h-[80vh]"
       />
-      <div className="absolute left-20 top-72 w-[30vw] inset-0 flex flex-col items-center justify-center">
+      <div className={`absolute left-20 top-72 w-[30vw] inset-0 flex flex-col items-center justify-center ${messageClassName}`}>
         <p className="text-4xl text-center text-amber-700 font-semibold">
           {message}
         </p>

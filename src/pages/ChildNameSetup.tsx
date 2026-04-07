@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { hasParentalConsent } from '@/utils/onboarding';
-import { User, Search, RotateCcw, Settings } from 'lucide-react';
+import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import signoutNew from '../assests/signout-new.png';
 
 const ChildNameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -79,19 +80,17 @@ const ChildNameSetup: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex gap-4">
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <User className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Search className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <RotateCcw className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={playClickSound} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-            <Settings className="w-5 h-5 text-white" />
-          </button>
+        <div className="flex">
+          <TopBarLogoutIcon
+            src={signoutNew}
+            sx={{
+              width: '45.23px',
+              height: '45.23px',
+              objectFit: 'contain',
+              opacity: 1,
+              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
+            }}
+          />
         </div>
       </div>
 
@@ -119,16 +118,17 @@ const ChildNameSetup: React.FC = () => {
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Enter your child's name"
               className="flex-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
-              style={{ fontFamily: "'Chewy', cursive" }}
+              style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-35px, -10px) rotate(2deg)' }}
               required
               autoFocus
             />
             <button
               type="submit"
               disabled={loading || !childName.trim()}
-              className="flex-shrink-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ transform: 'translateY(-20px)' }}
             >
-              <img src="/assets/arrow.png" alt="Submit" className="w-20 h-20 object-contain" />
+              <img src="/ui/next-button.png" alt="Submit" className="w-20 h-20 object-contain" />
             </button>
           </div>
         </form>
