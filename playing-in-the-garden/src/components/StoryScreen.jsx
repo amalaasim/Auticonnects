@@ -5,6 +5,7 @@ import { useWebEyeGaze } from "../gaze/useWebEyeGaze";
 import { useEmotionModel } from "../emotion/useEmotionModel";
 import { startSession, finishSession } from "../../../src/lib/analytics/client";
 import { normalizeFocusMetrics } from "../../../src/lib/analytics/mappers";
+import LoadingWheel from "../../../src/components/LoadingWheel";
 import "../styles/StoryScreen.css";
 import finalGif from "../final.gif";
 import playIcon from "../../../src/assests/play.png";
@@ -22,6 +23,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
 
   const [isLionTalking, setIsLionTalking] = useState(false);
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
+  const [finalAssetsReady, setFinalAssetsReady] = useState(false);
   const audioRef = useRef(null);
 
   const [hoveredEmotion, setHoveredEmotion] = useState(null);
@@ -211,6 +213,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     language === "ur"
       ? "ہم کھیلتے وقت ایک دوسرے کا خیال رکھتے ہیں، پیار سے کھیلتے ہیں۔ اللہ حافظ"
       : "We take care of each other while playing in the garden!";
+  const isScene6Urdu = currentSceneId === 6 && language === "ur";
 
   useEffect(() => {
     setLanguage(initialLanguage);
@@ -374,6 +377,57 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     };
   }, [currentScene]);
 
+  useEffect(() => {
+    if (currentScene) {
+      setFinalAssetsReady(false);
+      return;
+    }
+
+    const totalAttempts = responses.length;
+    const totalCorrect = responses.filter(r => r.isCorrect).length;
+    const percentage =
+      totalAttempts === 0 ? 0 : (totalCorrect / totalAttempts) * 100;
+
+    let stars = 1;
+    if (percentage >= 100) {
+      stars = 3;
+    } else if (percentage >= 66) {
+      stars = 2;
+    } else if (percentage >= 33) {
+      stars = 1;
+    }
+
+    const assetUrls = [
+      "/backgrounds/garden.png",
+      "/ui/text-banner.png",
+      "/ui/PlayAgain.png",
+      "/ui/home.png",
+      isMuted ? "/ui/volume-off.png" : "/ui/volume-on.png",
+      `/ui/stars/star-${stars}.png`,
+      `${finalGif}?v=${finalLionGifVersion}`,
+    ];
+
+    let cancelled = false;
+
+    const preloadImage = (src) =>
+      new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+        image.src = src;
+      });
+
+    Promise.all(assetUrls.map(preloadImage)).then(() => {
+      if (!cancelled) {
+        setFinalAssetsReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentScene, finalLionGifVersion, isMuted, responses]);
+
   if (!currentScene) {
     // PART 2: Build sessionData when story completes
     const sessionEndTime = Date.now();
@@ -451,6 +505,16 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       stars = 2;
     } else if (percentage >= 33) {
       stars = 1;
+    }
+
+    if (!finalAssetsReady) {
+      return (
+        <div className="story-container">
+          <div className="scene-wrapper final-loading-screen">
+            <LoadingWheel size={88} />
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -699,12 +763,23 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           className="text-banner"
         />
 
-        <div className="story-text-group">
-          <div className="story-text">
+        <div
+          className="story-text-group"
+          style={isScene6Urdu ? { left: "53%" } : undefined}
+        >
+          <div
+            className="story-text"
+            style={isScene6Urdu ? { fontSize: "30px" } : undefined}
+          >
             {sceneText.split("\n").map((line, lineIndex) => (
               <span
                 key={`line-${lineIndex}`}
-                style={{ display: "block", whiteSpace: "nowrap" }}
+                style={{
+                  display: "block",
+                  whiteSpace: "nowrap",
+                  marginBottom:
+                    lineIndex < sceneText.split("\n").length - 1 ? "0.22em" : "0",
+                }}
               >
                 {line.split(" ").map((word, wordIndex) => {
                   const cleanWord = word.replace(/[.,!?]/g, "");
@@ -743,7 +818,10 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           </div>
 
           {currentScene.askEmotion && (
-            <div className="emotion-selector">
+            <div
+              className="emotion-selector"
+              style={isScene6Urdu ? { marginTop: "12px" } : undefined}
+            >
               {currentScene.emotionOptions.map((emotion) => {
                 const key = emotion.toLowerCase();
                 const isActive = selectedEmotion === emotion || hoveredEmotion === emotion;
