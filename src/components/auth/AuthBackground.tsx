@@ -56,6 +56,7 @@ const AuthBackground: React.FC<AuthBackgroundProps> = ({
 
   return (
     <div
+      data-auth-shell="true"
       className={`relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden bg-[#dcecb7] px-4 pb-8 pt-20 sm:px-6 sm:pt-24 lg:justify-center lg:px-8 lg:pb-10 ${className}`}
     >
       <img

@@ -25,7 +25,6 @@ const WoodenBoard: React.FC<WoodenBoardProps> = ({ children, className = '', ani
     <div 
       className={`relative mx-auto aspect-[817/968] w-[min(92vw,32rem)] md:w-[min(76vw,38rem)] lg:w-[min(48vw,44rem)] xl:w-[min(42vw,46rem)] ${animated ? 'animate-bounce-in' : ''} ${className}`}
     >
-      <div className="absolute inset-0 rounded-[2.25rem] bg-[#e8c693]" />
       <img 
         src={signinBoard} 
         alt="Wooden sign board" 
