@@ -264,8 +264,8 @@ const App: React.FC = () => {
         autoPlay
       />
 
-      {/* Emotion Display - Top Right (below all buttons) */}
-      <div className="absolute top-28 right-6 z-50">
+      {/* Emotion Display - Bottom Left */}
+      <div className="absolute bottom-6 left-6 z-50">
         {isConnected && (
           <EmotionDisplay emotion={currentEmotion} confidence={emotionConfidence} />
         )}
@@ -286,7 +286,10 @@ const App: React.FC = () => {
 
       <TopBar />
 
-      <main className="flex-1 flex items-center justify-center w-full max-w-2xl relative z-10">
+      <main
+        className="flex-1 flex items-end justify-center w-full max-w-2xl relative z-10"
+        style={{ transform: 'translateY(50px)' }}
+      >
         <CartoonAvatar 
           isTalking={isAiTalking}
           volume={aiVolume}
@@ -297,7 +300,10 @@ const App: React.FC = () => {
         />
       </main>
 
-      <footer className="w-full max-w-4xl flex flex-col items-center gap-6 z-10">
+      <footer
+        className="w-full max-w-4xl flex flex-col items-center gap-6 z-10"
+        style={{ transform: 'translateY(50px)' }}
+      >
         <BottomControls
           isConnected={isConnected}
           isConnecting={isConnecting}
@@ -305,23 +311,25 @@ const App: React.FC = () => {
           onStop={handleStop}
         />
 
-        {/* Gaze Status Indicator */}
-        {isConnected && (
-          <div className={`px-3 py-1 border rounded text-xs ${
-            isLooking 
-              ? 'bg-green-500/10 border-green-500/30 text-green-200' 
-              : 'bg-blue-500/10 border-blue-500/30 text-blue-200'
-          }`}>
-            {isLooking ? '👀 Looking at screen' : '👁️ Not looking'}
-          </div>
-        )}
+        <div className="min-h-[68px] flex flex-col items-center gap-3">
+          {/* Gaze Status Indicator */}
+          {isConnected && (
+            <div className={`px-3 py-1 border rounded text-xs ${
+              isLooking 
+                ? 'bg-green-500/10 border-green-500/30 text-green-200' 
+                : 'bg-blue-500/10 border-blue-500/30 text-blue-200'
+            }`}>
+              {isLooking ? '👀 Looking at screen' : '👁️ Not looking'}
+            </div>
+          )}
 
-        {/* Error Messages */}
-        {error && (
-          <div className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-200 rounded-lg text-sm">
-            Voice Error: {error}
-          </div>
-        )}
+          {/* Error Messages */}
+          {error && (
+            <div className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-200 rounded-lg text-sm">
+              Voice Error: {error}
+            </div>
+          )}
+        </div>
       </footer>
     </div>
   );

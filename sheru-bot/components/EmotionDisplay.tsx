@@ -30,7 +30,7 @@ export const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ emotion, confide
   const colorClass = emotionColors[emotion] || emotionColors.neutral;
 
   return (
-    <div className={`fixed top-6 right-6 px-4 py-3 rounded-xl border backdrop-blur-sm ${colorClass} z-50 transition-all duration-300`}>
+    <div className={`px-4 py-3 rounded-xl border backdrop-blur-sm ${colorClass} z-50 transition-all duration-300`}>
       <div className="flex items-center gap-2">
         <span className="text-2xl">{emoji}</span>
         <div className="flex flex-col">

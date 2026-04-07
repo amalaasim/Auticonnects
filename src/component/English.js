@@ -9,8 +9,7 @@ import storyland from '../assests/storyland.png';
 import back from '../assests/chat_bg.png';
 import click from '../assests/click.png';
 import { useNavigate } from "react-router-dom";
-import cartoon from '../assests/talking.gif';
-import play from '../assests/play.png';
+import cartoon from '../assests/standinglion-loop.gif';
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
@@ -62,6 +61,7 @@ export default function English() {
           <Paper
             dir="ltr"
             sx={{
+              position: "relative",
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
@@ -74,18 +74,30 @@ export default function English() {
               border: "none",
               background: "transparent",
               boxShadow: "none",
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 26.91%, rgba(0, 0, 0, 0) 100%)",
+                pointerEvents: "none",
+                zIndex: 0,
+              },
             }}
           >
             <Box
               component={AppGreetingHeader}
               sx={{
+                position: "relative",
+                zIndex: 1,
                 width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" },
                 marginTop: 0,
                 textAlign: "left",
               }}
             />
 
-            <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem", direction: "ltr" }}>
+            <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "row", gap: "0.5rem", direction: "ltr" }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
                   <TopBarVolumeIcon
@@ -201,16 +213,16 @@ paddingTop:"2.3%",paddingLeft:"5%",height:"auto",borderRadius:"20px"}}>
           {/* Rocco */}
           <Box
             onClick={openSheruBot}
-            sx={{width:{ lg:"calc(100% - 8%)", md:"calc(100% - 8%)", sm:"98%", xs:"96%" }, mx:"auto", borderRadius:"20px", cursor: "pointer","&:hover": {
-                  transform: "scale(1.08)",
+            sx={{width:{ lg:"calc(100% - 4%)", md:"calc(100% - 4%)", sm:"98%", xs:"96%" }, mx:"auto", borderRadius:"20px", cursor: "pointer","&:hover": {
+                  transform: "scale(1.03)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
 
                 },}}
           >
           <Box sx={{ display: "flex", flexDirection: "column",marginTop:"-2%",borderRadius:"20px" }}>
-            <Box component="img" src={back} sx={{ width: {lg:"100%",sm:"98%"},
+            <Box component="img" src={back} sx={{ width: {lg:"100%",md:"100%",sm:"98%", xs:"100%"},
                   height: { lg: "22vh", md: "22vh", sm: "17vh", xs: "15vh" },
-               borderRadius:{lg:"7%"}, paddingLeft: {lg:"6%",sm:i18n.language === "ur" ? "12%" :"9%"}, paddingRight: "6%", 
+               borderRadius:{lg:"7%"}, paddingLeft: {lg:"2%", md:"2%", sm:i18n.language === "ur" ? "12%" :"9%", xs:"0"}, paddingRight: { lg:"2%", md:"2%", sm:"6%", xs:"0" }, 
                }} />
 
             <Typography  sx={{paddingBottom:"2.3%",
@@ -232,13 +244,7 @@ paddingTop:"2.3%",paddingLeft:"5%",height:"auto",borderRadius:"20px"}}>
           </Typography>
         </Box>
 
-       <Box
-        component="img"
-        src={play}
-        sx={{width:{lg:"190px",sm:"120px"},height:"90px",marginLeft:{lg:"60%",sm:"55%"},paddingLeft:"6%",marginRight:{lg:i18n.language === "ur" ? "65%" : "0%",sm:i18n.language === "ur" ? "55%" : "0%"},
-       marginTop:{lg: i18n.language === "ur" ?"-11%":"-8%",sm: i18n.language === "ur" ?"-18%":"-35%"}, cursor: "pointer", position: "relative", zIndex: 3, pointerEvents: "auto"}}
-      />
-       <Box  component="img" src={cartoon} sx={{width:{lg:"32%",sm:"235%"},height:"43%", marginLeft:"66%",marginRight:{lg:i18n.language === "ur" ? "70%" : "0%",sm:i18n.language === "ur" ? "65%" : "0%"},paddingLeft:"6%",marginTop:{lg: i18n.language === "ur" ?"-18%":"-16%",sm: i18n.language === "ur" ?"-24%":"-35%"}, position: "relative", zIndex: 1, pointerEvents: "none"}}/>
+       <Box component="img" src={cartoon} sx={{width:{lg:"32%",sm:"235%"},height:"43%", marginLeft:"66%",marginRight:{lg:i18n.language === "ur" ? "70%" : "0%",sm:i18n.language === "ur" ? "65%" : "0%"},paddingLeft:"6%",marginTop:{lg: i18n.language === "ur" ?"-18%":"-16%",sm: i18n.language === "ur" ?"-24%":"-35%"}, position: "relative", zIndex: 1, pointerEvents: "none"}}/>
        </Box>
        </Box>
       </Box>

@@ -9,10 +9,11 @@ import half from '../assests/shoeg.png';
 import three from '../assests/shoer.png';
 import bg from '../assests/greenbg.png';
 import newgif from '../assests/talking.gif';
-import standinglion from '../assests/standinglion.gif';
+import standinglion from '../assests/standinglion-loop.gif';
 import stop from '../assests/stop.png';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import pause from '../assests/pause.png';
+import play from '../assests/play.png';
 import retry from '../assests/retry.png';
 import click from '../assests/click.png';
 import backbg from '../assests/backbg.png';
@@ -20,6 +21,8 @@ import contin from '../assests/continue.png';
 import repeatCookie from '../assests/repeatshoe.mpeg';
 import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagainshoe.mpeg';
+import noSound from '../assests/no.mpeg';
+import noUrduSound from '../assests/nourdu.mpeg';
 import repeatshoeurdu from '../assests/repeatshoeurdu.ogg';
 import amazshoeurdu from '../assests/finalurdu.mp4';
 import againshoe from '../assests/againshoeurdu.ogg';
@@ -496,9 +499,15 @@ const audio3Ref = useRef(null);
 const recognitionRef = useRef(null);
 const retryListenRef = useRef(null);
 const autoAdvanceRef = useRef(false);
+const startListeningRef = useRef(null);
+const currentAudioRef = useRef(null);
+const allowListeningRef = useRef(true);
+const isPausedRef = useRef(false);
+const sequenceCancelRef = useRef(false);
+const cancelListenRef = useRef(false);
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
-    if (!audio) {
+    if (!audio || sequenceCancelRef.current) {
       setIsLionSpeaking(false);
       resolve();
       return;
@@ -517,6 +526,7 @@ const [audioFinished, setAudioFinished] = useState(false);
 const [speechVerified, setSpeechVerified] = useState(false);
 const [speechStatus, setSpeechStatus] = useState("");
 const [isLionSpeaking, setIsLionSpeaking] = useState(false);
+const [isPaused, setIsPaused] = useState(false);
 const speechVerifiedRef = useRef(false);
 const [speechStep, setSpeechStep] = useState(1);
 
@@ -561,15 +571,27 @@ const incrementVoiceTries = () => {
 };
 
 const listenForShoe = () => {
+const playMistakeSound = () => {
+    const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
+    setIsLionSpeaking(true);
+    audio.onended = () => setIsLionSpeaking(false);
+    audio.onpause = () => setIsLionSpeaking(false);
+    audio.play().catch(() => {});
+  };
+
   return listenForWonderworldWord({
     moduleKey: "shoe",
     language: i18n.language,
     recognitionRef,
     retryListenRef,
     speechVerifiedRef,
+    cancelListenRef,
+    allowListeningRef,
+    startListeningRef,
     setSpeechVerified,
     setSpeechStatus,
     incrementVoiceTries,
+    onMistake: playMistakeSound,
   });
 };
 
@@ -582,17 +604,22 @@ useEffect(() => {
     cleanupWonderworldListening({
       recognitionRef,
       retryListenRef,
+      cancelListenRef,
+      allowListeningRef,
     });
   };
 }, []);
 
-useEffect(() => {
-  const playSequence = async () => {
+const playSequence = async () => {
     try {
+      sequenceCancelRef.current = false;
+      isPausedRef.current = false;
+      allowListeningRef.current = true;
       setAudioFinished(false);
       setSpeechVerified(false);
       setSpeechStatus("");
       setIsLionSpeaking(false);
+      setIsPaused(false);
       setSpeechStep(1);
       autoAdvanceRef.current = false;
       audio1Ref.current.pause();
@@ -603,30 +630,40 @@ useEffect(() => {
       audio2Ref.current.currentTime = 0;
       audio3Ref.current.currentTime = 0;
 
+      currentAudioRef.current = audio1Ref.current;
       audio1Ref.current.volume = 1;
       await playAndWait(audio1Ref.current);
+      if (sequenceCancelRef.current) return;
 
       await wait(500);
       setSpeechStep(1);
       await listenForShoe();
+      if (sequenceCancelRef.current) return;
 
+      currentAudioRef.current = audio2Ref.current;
       audio2Ref.current.volume = 1;
       await playAndWait(audio2Ref.current);
+      if (sequenceCancelRef.current) return;
 
       await wait(500);
       setSpeechStep(2);
       await listenForShoe();
+      if (sequenceCancelRef.current) return;
 
+      currentAudioRef.current = audio3Ref.current;
       audio3Ref.current.volume = 1;
       await playAndWait(audio3Ref.current);
+      if (sequenceCancelRef.current) return;
+      currentAudioRef.current = null;
       setIsLionSpeaking(false);
-            setAudioFinished(true);
+      setAudioFinished(true);
     } catch (e) {
       setIsLionSpeaking(false);
       console.log("Audio error", e);
     }
   };
 
+useEffect(() => {
   playSequence();
 }, [i18n.language]);
   useEffect(() => {
@@ -637,6 +674,78 @@ useEffect(() => {
     autoAdvanceRef.current = true;
     navigate("/findshoe");
   }, [audioFinished, navigate]);
+
+const handlePauseResume = () => {
+  if (!isPausedRef.current) {
+    isPausedRef.current = true;
+    setIsPaused(true);
+    allowListeningRef.current = false;
+    if (retryListenRef.current) {
+      clearTimeout(retryListenRef.current);
+      retryListenRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+    }
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+    }
+    setIsLionSpeaking(false);
+    setSpeechStatus("Paused");
+  } else {
+    isPausedRef.current = false;
+    setIsPaused(false);
+    allowListeningRef.current = true;
+    if (currentAudioRef.current && currentAudioRef.current.paused) {
+      setIsLionSpeaking(true);
+      currentAudioRef.current.play().catch(() => {});
+    } else if (startListeningRef.current) {
+      try {
+        startListeningRef.current();
+      } catch (_) {}
+    }
+    setSpeechStatus("");
+  }
+};
+
+const handleStop = () => {
+  sequenceCancelRef.current = true;
+  isPausedRef.current = false;
+  setIsPaused(false);
+  allowListeningRef.current = false;
+  cancelListenRef.current = true;
+  if (retryListenRef.current) {
+    clearTimeout(retryListenRef.current);
+    retryListenRef.current = null;
+  }
+  if (recognitionRef.current) {
+    try {
+      recognitionRef.current.stop();
+    } catch (_) {}
+  }
+  [audio1Ref.current, audio2Ref.current, audio3Ref.current].forEach((a) => {
+    if (!a) return;
+    try {
+      a.pause();
+      a.currentTime = 0;
+      if (typeof a.onended === "function") a.onended();
+    } catch (_) {}
+  });
+  currentAudioRef.current = null;
+  setSpeechVerified(false);
+  setSpeechStatus("Stopped");
+  setIsLionSpeaking(false);
+  setAudioFinished(false);
+};
+
+const handleRestart = () => {
+  handleStop();
+  setTimeout(() => {
+    playSequence();
+  }, 0);
+};
   
     React.useEffect(() => {
    if (showPopup || showUpload) {
@@ -789,7 +898,7 @@ opacity:"0.9",
                fontSize: i18n.language === "ur" ? "53px" : "33px",
                marginTop: {lg:i18n.language === "ur" ? "calc(-6.8% - 5px)" : "calc(-7.5% - 5px)",sm:i18n.language === "ur" ? "calc(-14% - 5px)" : "calc(-15% - 5px)"},
                width:{lg:i18n.language === "ur" ? "22%":"15%",sm:i18n.language === "ur" ? "42%" : "35%"},
-               marginLeft: {lg:i18n.language === "ur" ? "calc(24.8% + 10px)" : "calc(25% + 10px)",sm:i18n.language === "ur" ? "calc(22% + 10px)" : "calc(22% + 10px)"},
+               marginLeft: {lg:i18n.language === "ur" ? "calc(24.8% + 2px)" : "calc(25% + 10px)",sm:i18n.language === "ur" ? "calc(22% + 2px)" : "calc(22% + 10px)"},
                whiteSpace: i18n.language === "ur" ? "nowrap" : "normal",
                fontStyle:"normal",
                lineHeight:"38px",
@@ -819,9 +928,9 @@ opacity:"0.9", }}>{t("sayShoes")}</Typography>
         <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"800px",sm:"49%"}, marginTop: {lg:"-18%",sm:"-20%"} }} src={half} />
         <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"calc(62.5% + 50px)",sm:"61.5%"}, marginTop: {lg:"calc(-32% - 35px)",sm:"-38%"} }} src={full} />
         <Box component='img' sx={{ width:{lg:"200px",sm:"120px"}, height: {lg:"200px",sm:"130px"}, marginLeft: {lg:"calc(72% + 45px)",sm:"75%"}, marginTop: {lg:"calc(-20% - 10px)",sm:"-30%"} }} src={three} />
-        <Box component='img' sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"940px",sm:"60%"}, marginTop: {lg:"-12.5%",sm:"-24%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
-        <Box component='img' sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={pause} />
-        <Box component='img' sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"1087px",sm:"73%"}, marginTop: {lg:"-18.9%",sm:"-36%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
+        <Box component='img' onClick={handleStop} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"940px",sm:"60%"}, marginTop: {lg:"-12.5%",sm:"-24%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
+        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={isPaused ? play : pause} />
+        <Box component='img' onClick={handleRestart} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"1087px",sm:"73%"}, marginTop: {lg:"-18.9%",sm:"-36%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
       </Box>
                   </Box>
                   <Box

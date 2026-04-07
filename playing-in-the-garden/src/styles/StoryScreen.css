@@ -100,7 +100,7 @@
 
   /* Layering */
   pointer-events: none;
-  white-space: nowrap;
+  white-space: pre-line;
 }
 
 /* Emotion selector (row of emojis) */
@@ -138,6 +138,17 @@
   z-index: 20;
 }
 
+.prev-button {
+  position: absolute;
+  top: calc(22% - 40px);
+  left: 28px;
+  width: 84px;
+  height: 84px;
+  transform: scaleX(-1) rotate(-5deg);
+  cursor: pointer;
+  z-index: 20;
+}
+
 .highlight-word {
   color: #65C6FF;  
 }
@@ -170,7 +181,8 @@
 }
 
 .emotion-image,
-.next-button {
+.next-button,
+.prev-button {
   cursor: url("/cursor/hand.png") 16 16, pointer;
 }
 

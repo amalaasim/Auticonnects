@@ -7,6 +7,7 @@ import { startSession, finishSession } from "../../../src/lib/analytics/client";
 import { normalizeFocusMetrics } from "../../../src/lib/analytics/mappers";
 import "../styles/StoryScreen.css";
 import finalGif from "../final.gif";
+import playIcon from "../../../src/assests/play.png";
 
 const StoryScreen = ({ initialLanguage = "en" }) => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   // const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [language, setLanguage] = useState(initialLanguage);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [isLionTalking, setIsLionTalking] = useState(false);
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
@@ -43,11 +45,27 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const isCameraAvailable = () =>
     videoRef.current && videoRef.current.srcObject;
 
-  const { emotionCounts: modelEmotionCounts } = useEmotionModel({
+  const {
+    emotionCounts: modelEmotionCounts,
+    currentEmotion,
+    emotionConfidence,
+  } = useEmotionModel({
     enabled: hasInteracted,
     videoRef,
     currentSceneId,
   });
+  const emotionEmoji = {
+    happy: "😊",
+    sad: "😢",
+    angry: "😠",
+    neutral: "😐",
+  }[currentEmotion] || "😐";
+  const emotionColors = {
+    happy: { bg: "rgba(34, 197, 94, 0.2)", border: "rgba(34, 197, 94, 0.5)", text: "#dcfce7" },
+    sad: { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 0.5)", text: "#dbeafe" },
+    angry: { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 0.5)", text: "#fecaca" },
+    neutral: { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" },
+  }[currentEmotion] || { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" };
 
   const correctFeedbackAudios = [
     "/audio/en/correct1.mp3"
@@ -69,6 +87,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       audioRef.current.currentTime = 0;
       audioRef.current = null;
       setIsLionTalking(false);
+      setIsPaused(false);
     }
 
     const audio = new Audio(src);
@@ -79,12 +98,14 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     audio.play().catch(() => {
       audioRef.current = null;
       setIsLionTalking(false);
+      setIsPaused(false);
       if (onEnded) onEnded();
     });
 
     audio.onended = () => {
       audioRef.current = null;
       setIsLionTalking(false);
+      setIsPaused(false);
       if (onEnded) onEnded();
     };
   };
@@ -96,9 +117,11 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     if (audioRef.current.paused) {
       audioRef.current.play();
       setIsLionTalking(true);
+      setIsPaused(false);
     } else {
       audioRef.current.pause();
       setIsLionTalking(false);
+      setIsPaused(true);
     }
   };
 
@@ -109,6 +132,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       audioRef.current = null;
       setIsLionTalking(false);
     }
+    setIsPaused(false);
   };
 
   const replayAudio = () => {
@@ -164,6 +188,13 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const currentScene = playingInTheGarden.find(
     scene => scene.id === currentSceneId
   );
+  const currentSceneIndex = playingInTheGarden.findIndex(
+    scene => scene.id === currentSceneId
+  );
+  const previousSceneId =
+    currentSceneIndex > 0
+      ? playingInTheGarden[currentSceneIndex - 1]?.id ?? null
+      : null;
   const sceneText =
     currentScene?.text?.[language] ||
     currentScene?.text?.en ||
@@ -476,7 +507,14 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           />
           <div className="story-text-group">
             <div className={`story-text ${language === "ur" ? "urdu" : ""}`}>
-              {sceneText || finalSceneText}
+              {(sceneText || finalSceneText).split("\n").map((line, index, arr) => (
+                <span
+                  key={`${line}-${index}`}
+                  style={{ display: "block", whiteSpace: "nowrap" }}
+                >
+                  {line}
+                </span>
+              ))}
             </div>
           </div>
           {/* New final score layout */}
@@ -529,19 +567,27 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             position: "fixed",
             bottom: 80,
             left: 20,
-            background: "rgba(0,0,0,0.6)",
-            color: "white",
-            padding: "8px 12px",
-            borderRadius: "8px",
+            background: emotionColors.bg,
+            border: `1px solid ${emotionColors.border}`,
+            color: emotionColors.text,
+            padding: "10px 14px",
+            borderRadius: "16px",
             fontSize: "14px",
+            backdropFilter: "blur(8px)",
             zIndex: 9999
           }}
         >
-          <div><strong>Emotion (Model)</strong></div>
-          <div>😊 Happy: {modelEmotionCounts.happy}</div>
-          <div>😐 Neutral: {modelEmotionCounts.neutral}</div>
-          <div>😢 Sad: {modelEmotionCounts.sad}</div>
-          <div>😠 Angry: {modelEmotionCounts.angry}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ fontSize: "26px", lineHeight: 1 }}>{emotionEmoji}</div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: "14px", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+                {currentEmotion}
+              </div>
+              <div style={{ fontSize: "12px", opacity: 0.8, lineHeight: 1.1 }}>
+                {Math.round((emotionConfidence || 0) * 100)}%
+              </div>
+            </div>
+          </div>
         </div>
         {/* Hidden video element for eye-gaze camera input */}
         <video
@@ -622,8 +668,8 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             onClick={stopAudio}
           />
           <img
-            src="/ui/audio-pause.png"
-            alt="Pause audio"
+            src={isPaused ? playIcon : "/ui/audio-pause.png"}
+            alt={isPaused ? "Play audio" : "Pause audio"}
             className="audio-btn pause"
             onClick={pauseAudio}
           />
@@ -643,41 +689,45 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
 
         <div className="story-text-group">
           <div className="story-text">
-            {sceneText.split(" ").map((word, index) => {
-              const cleanWord = word.replace(/[.,!?]/g, "");
+            {sceneText.split("\n").map((line, lineIndex) => (
+              <span
+                key={`line-${lineIndex}`}
+                style={{ display: "block", whiteSpace: "nowrap" }}
+              >
+                {line.split(" ").map((word, wordIndex) => {
+                  const cleanWord = word.replace(/[.,!?]/g, "");
 
-              // English highlights
-              const englishHighlights = ["happily", "crying"];
+                  const englishHighlights = ["happily", "crying"];
+                  const urduHighlightsScene1 = ["خوشی", "خوشی"];
+                  const urduHighlightsScene3 = ["رونے"];
 
-              // Urdu highlights (exact words, no lowercase)
-              const urduHighlightsScene1 = ["خوشی", "خوشی"];
-              const urduHighlightsScene3 = ["رونے"];
+                  let shouldHighlight = false;
 
-              let shouldHighlight = false;
+                  if (language === "en") {
+                    shouldHighlight = englishHighlights.includes(cleanWord.toLowerCase());
+                  }
 
-              if (language === "en") {
-                shouldHighlight = englishHighlights.includes(cleanWord.toLowerCase());
-              }
+                  if (language === "ur") {
+                    if (currentSceneId === 1 && urduHighlightsScene1.includes(cleanWord)) {
+                      shouldHighlight = true;
+                    }
+                    if (currentSceneId === 3 && urduHighlightsScene3.includes(cleanWord)) {
+                      shouldHighlight = true;
+                    }
+                  }
 
-              if (language === "ur") {
-                if (currentSceneId === 1 && urduHighlightsScene1.includes(cleanWord)) {
-                  shouldHighlight = true;
-                }
-                if (currentSceneId === 3 && urduHighlightsScene3.includes(cleanWord)) {
-                  shouldHighlight = true;
-                }
-              }
+                  if (shouldHighlight) {
+                    return (
+                      <span key={`${lineIndex}-${wordIndex}`} className="highlight-word">
+                        {word + " "}
+                      </span>
+                    );
+                  }
 
-              if (shouldHighlight) {
-                return (
-                  <span key={index} className="highlight-word">
-                    {word + " "}
-                  </span>
-                );
-              }
-
-              return word + " ";
-            })}
+                  return <span key={`${lineIndex}-${wordIndex}`}>{word + " "}</span>;
+                })}
+              </span>
+            ))}
           </div>
 
           {currentScene.askEmotion && (
@@ -765,6 +815,18 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             }}
           />
         )}
+        {previousSceneId && (
+          <img
+            src="/assets/arrow.png"
+            alt="Back"
+            className="prev-button"
+            onClick={() => {
+              stopAudio();
+              setFeedback(null);
+              setCurrentSceneId(previousSceneId);
+            }}
+          />
+        )}
         {attemptsByScene[currentScene.id] >= 3 &&
           feedback !== "correct" && (
             <img
@@ -796,19 +858,27 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
           position: "fixed",
           bottom: 80,
           left: 20,
-          background: "rgba(0,0,0,0.6)",
-          color: "white",
-          padding: "8px 12px",
-          borderRadius: "8px",
+          background: emotionColors.bg,
+          border: `1px solid ${emotionColors.border}`,
+          color: emotionColors.text,
+          padding: "10px 14px",
+          borderRadius: "16px",
           fontSize: "14px",
+          backdropFilter: "blur(8px)",
           zIndex: 9999
         }}
       >
-        <div><strong>Emotion (Model)</strong></div>
-        <div>😊 Happy: {modelEmotionCounts.happy}</div>
-        <div>😐 Neutral: {modelEmotionCounts.neutral}</div>
-        <div>😢 Sad: {modelEmotionCounts.sad}</div>
-        <div>😠 Angry: {modelEmotionCounts.angry}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ fontSize: "26px", lineHeight: 1 }}>{emotionEmoji}</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: "14px", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+              {currentEmotion}
+            </div>
+            <div style={{ fontSize: "12px", opacity: 0.8, lineHeight: 1.1 }}>
+              {Math.round((emotionConfidence || 0) * 100)}%
+            </div>
+          </div>
+        </div>
       </div>
       {/* Hidden video element for eye-gaze camera input */}
       <video

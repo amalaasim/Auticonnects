@@ -7,7 +7,9 @@ export default defineConfig(({ mode }) => {
   const sheruEnv = loadEnv(mode, "./sheru-bot", "");
   const geminiApiKey =
     rootEnv.VITE_GEMINI_API_KEY ||
+    rootEnv.GEMINI_API_KEY ||
     sheruEnv.VITE_GEMINI_API_KEY ||
+    sheruEnv.GEMINI_API_KEY ||
     "";
 
   return {

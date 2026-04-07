@@ -31,25 +31,6 @@ export const TopBar: React.FC = () => {
         alt="Auti-Connects"
         className="h-16"
       />
-
-      {/* Icon Buttons */}
-      <div className="flex items-center gap-2">
-        <img 
-          src={assetUrl("/images/home-square.png")} 
-          alt="Home"
-          className="h-10 w-10 cursor-pointer hover:scale-105 transition-transform active:scale-95"
-        />
-        <img 
-          src={assetUrl("/images/settings-square.png")} 
-          alt="Settings"
-          className="h-10 w-10 cursor-pointer hover:scale-105 transition-transform active:scale-95"
-        />
-        <img 
-          src={assetUrl("/images/sound-on-square.png")} 
-          alt="Sound"
-          className="h-10 w-10 cursor-pointer hover:scale-105 transition-transform active:scale-95"
-        />
-      </div>
     </header>
   );
 };

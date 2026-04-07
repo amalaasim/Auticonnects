@@ -9,9 +9,10 @@ import half from '../assests/halfc.png';
 import three from '../assests/threec.png';
 import bg from '../assests/greenbg.png';
 import newgif from '../assests/talking.gif';
-import standinglion from '../assests/standinglion.gif';
+import standinglion from '../assests/standinglion-loop.gif';
 import stop from '../assests/stop.png';
 import pause from '../assests/pause.png';
+import play from '../assests/play.png';
 import retry from '../assests/retry.png';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import click from '../assests/click.png';
@@ -21,6 +22,8 @@ import back from '../assests/back.png';
 import repeatCookie from '../assests/repeatcookie.mpeg';
 import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagaincookie.mpeg';
+import noSound from '../assests/no.mpeg';
+import noUrduSound from '../assests/nourdu.mpeg';
 import repeatCookieurdu from '../assests/repeatcookieurdu.mp4';
 import amazbiscuiturdu from '../assests/finalurdu.mp4';
 import againcookie from '../assests/againbiscuiturdu.mp4';
@@ -523,6 +526,7 @@ const [audioFinished, setAudioFinished] = useState(false);
 const [speechVerified, setSpeechVerified] = useState(false);
 const [speechStatus, setSpeechStatus] = useState("");
 const [isLionSpeaking, setIsLionSpeaking] = useState(false);
+const [isPaused, setIsPaused] = useState(false);
 const speechVerifiedRef = useRef(false);
 const [speechStep, setSpeechStep] = useState(1);
 
@@ -566,6 +570,14 @@ const incrementVoiceTries = () => {
   localStorage.setItem("cookie_voice_tries", String(current + 1));
 };
 
+const playMistakeSound = () => {
+  const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
+  setIsLionSpeaking(true);
+  audio.onended = () => setIsLionSpeaking(false);
+  audio.onpause = () => setIsLionSpeaking(false);
+  audio.play().catch(() => {});
+};
+
 const listenForCookie = () => {
   return listenForWonderworldWord({
     moduleKey: "cookie",
@@ -579,6 +591,7 @@ const listenForCookie = () => {
     setSpeechVerified,
     setSpeechStatus,
     incrementVoiceTries,
+    onMistake: playMistakeSound,
   });
 };
 
@@ -606,6 +619,7 @@ const playSequence = async () => {
     setSpeechVerified(false);
     setSpeechStatus("");
     setIsLionSpeaking(false);
+    setIsPaused(false);
     setSpeechStep(1);
     autoAdvanceRef.current = false;
     audio1Ref.current.pause();
@@ -667,6 +681,7 @@ useEffect(() => {
 const handlePauseResume = () => {
   if (!isPausedRef.current) {
     isPausedRef.current = true;
+    setIsPaused(true);
     allowListeningRef.current = false;
     if (retryListenRef.current) {
       clearTimeout(retryListenRef.current);
@@ -680,11 +695,14 @@ const handlePauseResume = () => {
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
     }
+    setIsLionSpeaking(false);
     setSpeechStatus("Paused");
   } else {
     isPausedRef.current = false;
+    setIsPaused(false);
     allowListeningRef.current = true;
     if (currentAudioRef.current && currentAudioRef.current.paused) {
+      setIsLionSpeaking(true);
       currentAudioRef.current.play().catch(() => {});
     } else if (startListeningRef.current) {
       try {
@@ -698,6 +716,7 @@ const handlePauseResume = () => {
 const handleStop = () => {
   sequenceCancelRef.current = true;
   isPausedRef.current = false;
+  setIsPaused(false);
   allowListeningRef.current = false;
   cancelListenRef.current = true;
   if (retryListenRef.current) {
@@ -869,7 +888,7 @@ opacity:"0.9",
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-                          <Box sx={{ display: "flex", flexDirection: "column", }}>
+                          <Box sx={{ display: "flex", flexDirection: "column", position: "relative" }}>
           <Box component='img'
                sx={{
                  width: { lg: "280px",sm:"260px" },
@@ -881,13 +900,17 @@ opacity:"0.9",
                   <Typography
              sx={{
                fontSize: i18n.language === "ur" ? "53px" : "33px",
-               marginTop: {lg:i18n.language === "ur" ? "-7.3%" : "-8.0%",sm:i18n.language === "ur" ? "-14.5%" : "-15.5%"},
+               marginTop: {lg:i18n.language === "ur" ? "0" : "-8.0%",sm:i18n.language === "ur" ? "0" : "-15.5%"},
                width:{lg:"20%",sm:"35%"},
-               marginLeft: {lg:i18n.language === "ur" ? "calc(25.8% - 10px)" : "26%",sm:i18n.language === "ur" ? "calc(23% - 10px)" : "23%"},
+               marginLeft: {lg:i18n.language === "ur" ? "0" : "26%",sm:i18n.language === "ur" ? "0" : "23%"},
+               position: i18n.language === "ur" ? "absolute" : "relative",
+               top: {lg:i18n.language === "ur" ? "136px" : "auto",sm:i18n.language === "ur" ? "174px" : "auto"},
+               left: {lg:i18n.language === "ur" ? "358px" : "auto",sm:i18n.language === "ur" ? "116px" : "auto"},
                fontStyle:"normal",
                lineHeight:"38px",
                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" :'Chewy',
                letterSpacing:"1px",
+               transform: "none",
                color:"rgb(15, 21, 27,0.8)",
 opacity:"0.9",
              }}>
@@ -913,7 +936,7 @@ opacity:"0.9", }}>{t("learnToSay")}</Typography>
         <Box component='img' sx={{ width:{lg:"150px",sm:"70px"}, height: {lg:"150px",sm:"80px"}, marginLeft: {lg:"67%",sm:"67%"}, marginTop: {lg:"-32%",sm:"-38%"} }} src={full} />
         <Box component='img' sx={{ width:{lg:"200px",sm:"100px"}, height: {lg:"200px",sm:"100px"}, marginLeft: {lg:"75%",sm:"77%"}, marginTop: {lg:"-20%",sm:"-30%"} }} src={three} />
         <Box component='img' onClick={handleStop} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"940px",sm:"60%"}, marginTop: {lg:"-12.5%",sm:"-24%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
-        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={pause} />
+        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={isPaused ? play : pause} />
         <Box component='img' onClick={handleRestart} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"1087px",sm:"73%"}, marginTop: {lg:"-18.9%",sm:"-36%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
       </Box>
                   </Box>

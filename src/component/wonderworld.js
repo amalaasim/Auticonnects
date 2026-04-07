@@ -21,6 +21,8 @@ import star3 from '../assests/3star.png';
 import click from '../assests/click.png';
 import end from '../assests/endtatoo.png';
 import backbg from '../assests/backbg.png';
+import objlearn from '../assests/objlearn.mpeg';
+import objecturdu from '../assests/objecturdu.mp4';
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
@@ -28,6 +30,7 @@ import AppGreetingHeader from "../components/AppGreetingHeader";
 function Wonderworld() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const introAudioRef = React.useRef(null);
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },
     { src: reportNew, onClick: () => navigate("/reports") },
@@ -71,6 +74,38 @@ useEffect(() => {
     document.removeEventListener("visibilitychange", refreshStars);
   };
 }, [getRecentStars]);
+
+useEffect(() => {
+  const audioSrc = i18n.language === "ur" ? objecturdu : objlearn;
+  const audio = new Audio(audioSrc);
+  introAudioRef.current = audio;
+  audio.volume = 1;
+
+  audio.play().catch(() => {
+    const retryId = window.setTimeout(() => {
+      if (introAudioRef.current !== audio) return;
+      audio.play().catch(() => {});
+    }, 800);
+
+    audio.addEventListener(
+      "ended",
+      () => {
+        window.clearTimeout(retryId);
+      },
+      { once: true }
+    );
+  });
+
+  return () => {
+    if (introAudioRef.current === audio) {
+      introAudioRef.current = null;
+    }
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch (_) {}
+  };
+}, [i18n.language]);
 
 
   return (
@@ -258,7 +293,20 @@ useEffect(() => {
           </Box>
 
           {/* Bottom section */}
-          <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", paddingLeft: "1%", paddingRight: "5%" }}>
+          <Box
+            sx={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: { lg: "-8px", sm: "-4px" },
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              paddingLeft: "1%",
+              paddingRight: "5%",
+            }}
+          >
             <Box
               component="img"
               onClick={() => navigate("/English")}
@@ -266,14 +314,24 @@ useEffect(() => {
                 width: { lg: "260px", sm: "210px", xs: "180px" },
                 height: { lg: "300px", sm: "250px", xs: "210px" },
                 marginLeft: { lg: "60px", sm: "0px" },
-                marginTop: { lg: "calc(-8% + 22px)", sm: "calc(-8% + 22px)" },
+                marginTop: 0,
                 objectFit: "contain",
                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
                 "&:hover": { transform: "scale(1.08)", boxShadow: "0 10px 25px rgba(0,0,0,0)" },
               }}
               src={backNew}
             />
-            <Box component="img" sx={{ width: {lg:"305px",sm:"248px"}, height: "275px", marginLeft: {lg:"500px",sm:"330px"}, marginTop: {lg:"-28px",sm:"-7px"}, objectFit: "contain" }} src={end} />
+            <Box
+              component="img"
+              sx={{
+                width: { lg: "305px", sm: "248px" },
+                height: "275px",
+                marginLeft: { lg: "500px", sm: "330px" },
+                marginTop: 0,
+                objectFit: "contain",
+              }}
+              src={end}
+            />
           </Box>
         </Box>
       </Box>

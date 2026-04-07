@@ -2,8 +2,8 @@
 import * as React from 'react';
 import { Box,Typography } from '@mui/material';
 import learnbg from '../assests/learn_bg.png';
-import cartoon from '../assests/finalgif.gif';
-import standinglion from '../assests/standinglion.gif';
+import cartoon from '../assests/talking.gif';
+import standinglion from '../assests/standinglion-loop.gif';
 import board from '../assests/findbg.png';
 import car from '../assests/carr.png';
 import { useEffect, useRef } from "react";
@@ -51,24 +51,27 @@ const noAudioRef = useRef(null);
   const lookHereAudioRef = useRef(null);
   const notLookingTimeoutRef = useRef(null);
   const notLookingIntervalRef = useRef(null);
-  const { emotionCounts, sampleEmotion } = useEmotionModel({
+  const { emotionCounts, sampleEmotion, currentEmotion, emotionConfidence } = useEmotionModel({
     enabled: cameraPermissionResolved && cameraAllowed,
     videoRef,
     currentSceneId: "find-car",
   });
+  const emotionEmoji = {
+    happy: "😊",
+    sad: "😢",
+    angry: "😠",
+    neutral: "😐",
+  }[currentEmotion] || "😐";
+  const emotionColors = {
+    happy: { bg: "rgba(34, 197, 94, 0.2)", border: "rgba(34, 197, 94, 0.5)", text: "#dcfce7" },
+    sad: { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 0.5)", text: "#dbeafe" },
+    angry: { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 0.5)", text: "#fecaca" },
+    neutral: { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" },
+  }[currentEmotion] || { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" };
   const { getMetrics } = useAttentionMetrics({
     enabled: cameraPermissionResolved && cameraAllowed,
     isLooking,
   });
-
-  const dominantEmotion = React.useMemo(() => {
-    const entries = Object.entries(emotionCounts || {});
-    if (!entries.length) return "none";
-    return entries.reduce(
-      (max, curr) => (curr[1] > max[1] ? curr : max),
-      ["none", 0]
-    )[0];
-  }, [emotionCounts]);
 
   const playTrackedAudio = React.useCallback((audio, options = {}) => {
     const { onEnded, onError, resetTime = false } = options;
@@ -338,29 +341,42 @@ useEffect(() => {
 
     <Box
       sx={{
-        backgroundColor: "rgba(0, 0, 0, 0.65)",
-        padding: "6px 12px",
-        borderRadius: "12px",
+        backgroundColor: emotionColors.bg,
+        border: `1px solid ${emotionColors.border}`,
+        backdropFilter: "blur(8px)",
+        padding: "10px 14px",
+        borderRadius: "16px",
       }}
     >
-      <Typography
-        sx={{
-          fontSize: "13px",
-          fontFamily: "Chewy",
-          color: "#fff",
-        }}
-      >
-        Emotion: {dominantEmotion}
-      </Typography>
-      <Typography
-        sx={{
-          fontSize: "12px",
-          fontFamily: "Chewy",
-          color: "#FFE1B3",
-        }}
-      >
-        H {emotionCounts.happy} · N {emotionCounts.neutral} · S {emotionCounts.sad} · A {emotionCounts.angry}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <Typography sx={{ fontSize: "26px", lineHeight: 1 }}>
+          {emotionEmoji}
+        </Typography>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Typography
+            sx={{
+              fontSize: "14px",
+              fontFamily: "Chewy",
+              color: emotionColors.text,
+              textTransform: "capitalize",
+              lineHeight: 1.1,
+            }}
+          >
+            {currentEmotion}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "12px",
+              fontFamily: "Chewy",
+              color: emotionColors.text,
+              opacity: 0.8,
+              lineHeight: 1.1,
+            }}
+          >
+            {Math.round((emotionConfidence || 0) * 100)}%
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   </Box>
 )}
@@ -383,7 +399,7 @@ useEffect(() => {
               onClick={() => navigate("/car")}
               sx={{
                 fontSize: { lg: "35px", sm: "28px" },
-                marginTop: { lg: "3.05%", sm: "10%" },
+                marginTop: { lg: "3.3%", sm: "10.3%" },
                 marginLeft: { lg: "-8%", sm: "-16%" },
                 fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
                 color: "rgba(255, 203, 143, 1)",
@@ -415,8 +431,8 @@ useEffect(() => {
                   lg: i18n.language === "ur" ? "48px" : "34px",
                   sm: i18n.language === "ur" ? "38px" : "26px",
                 },
-                marginTop: { lg: "-8.5%", sm: "-13%" },
-                marginLeft: { lg: "28%", sm: "13%" },
+                marginTop: { lg: "-9%", sm: "-13.5%" },
+                marginLeft: { lg: "28.5%", sm: "13.5%" },
                 width: { lg: "15%", sm: "25%" },
                 fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
                 color: "rgba(15,21,27,0.8)",
@@ -438,6 +454,7 @@ useEffect(() => {
 
           {/* cartoon */}
           <Box
+            key={isLionSpeaking ? "talking" : "standing"}
             component="img"
             src={isLionSpeaking ? cartoon : standinglion}
             sx={{
@@ -446,6 +463,8 @@ useEffect(() => {
               marginLeft: { lg: "190px", sm: "-3%" },
               marginTop: { lg: "-40px", sm: "-28px" },
               borderRadius: "200px",
+              objectFit: "contain",
+              transform: isLionSpeaking ? "translateY(-14px)" : "none",
             }}
           />
 
@@ -557,12 +576,27 @@ opacity:"0.9",
               component="img"
               src={selectedImageSrc}
               sx={{
-                width: { lg: "120px", sm: "80px" },
-                height: { lg: "112px", sm: "70px" },
+                width: selectedImageSrc === ball
+                  ? { lg: "96px", sm: "64px" }
+                  : { lg: "120px", sm: "80px" },
+                height: selectedImageSrc === ball
+                  ? { lg: "90px", sm: "56px" }
+                  : { lg: "112px", sm: "70px" },
                 marginLeft: selectedImageSrc === car
                   ? { lg: "65.5%", sm: "69%" }
+                  : selectedImageSrc === ball
+                  ? { lg: "calc(64.6% + 25px)", sm: "calc(68.5% + 25px)" }
+                  : selectedImageSrc === shoe
+                  ? { lg: "calc(64.2% + 20px)", sm: "calc(67.8% + 20px)" }
                   : { lg: "62.8%", sm: "66%" },
-                marginTop: {lg:"-23.2%",sm:"-27.5%"}
+                marginTop: selectedImageSrc === ball
+                  ? { lg: "calc(-24.8% - 10px)", sm: "calc(-29% - 10px)" }
+                  : selectedImageSrc === shoe
+                  ? { lg: "calc(-24.3% - 10px)", sm: "calc(-28.4% - 10px)" }
+                  : selectedImageSrc === car
+                  ? { lg: "calc(-23.2% - 10px)", sm: "calc(-27.5% - 10px)" }
+                  : { lg: "-23.2%", sm: "-27.5%" },
+                objectFit: "contain",
               }}
             />
           )}

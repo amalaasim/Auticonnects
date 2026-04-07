@@ -12,21 +12,14 @@ html, body, #root {
 }
 
 body {
-  cursor: url('./assests/click.png') 122 122, auto;
+  cursor: url('./assests/click.png') 32 32, auto;
   background: #080f01;
   overflow: hidden;
 }
 
-/* Keep custom cursor on all interactive elements */
-button,
-a,
-label,
-select,
-[role="button"],
-input[type="submit"],
-input[type="button"],
-input[type="reset"] {
-  cursor: url('./assests/click.png') 122 122, auto;
+/* Force the custom cursor across app elements so clicks/hover states don't revert */
+body * {
+  cursor: inherit !important;
 }
 
 /* Disabled state still shows not-allowed */

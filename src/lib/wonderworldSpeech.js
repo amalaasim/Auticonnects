@@ -174,10 +174,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "gaind",
     },
     recognitionLang: "en-US",
-    attemptMode: "everyResult",
-    permissionMode: "noPermissionCheck",
-    resultMode: "allResults",
-    controlMode: "simpleRetry",
+    attemptMode: "finalResultOnly",
+    permissionMode: "requireMicPermission",
+    resultMode: "currentResultOnly",
+    controlMode: "allowCancel",
     matches: buildTranscriptMatcher(ballVariants, (word) => {
       if (word.length > 7) return false;
       if (/^ba/.test(word)) return true;
@@ -195,10 +195,10 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "jootay",
     },
     recognitionLang: "en-US",
-    attemptMode: "everyResult",
-    permissionMode: "noPermissionCheck",
-    resultMode: "allResults",
-    controlMode: "simpleRetry",
+    attemptMode: "finalResultOnly",
+    permissionMode: "requireMicPermission",
+    resultMode: "currentResultOnly",
+    controlMode: "allowCancel",
     matches: buildTranscriptMatcher(shoeVariants, (word) => {
       if (word.length > 8) return false;
       if (/^sho/.test(word)) return true;
@@ -263,11 +263,13 @@ export function listenForWonderworldWord({
   setSpeechVerified,
   setSpeechStatus,
   incrementVoiceTries,
+  onMistake,
   retryDelay = 800,
 }) {
   return new Promise((resolve, reject) => {
     let resolved = false;
     let attemptCounted = false;
+    let mistakePlayedForCurrentAttempt = false;
     const {
       attemptMode,
       controlMode,
@@ -307,6 +309,7 @@ export function listenForWonderworldWord({
 
     const startListening = async () => {
       clearRetry();
+      mistakePlayedForCurrentAttempt = false;
 
       if (
         controlMode === "allowCancel" &&
@@ -344,6 +347,7 @@ export function listenForWonderworldWord({
           ? extractCurrentResultTranscripts(event)
           : extractTranscripts(event);
       const transcript = transcripts[0] || "";
+      const isFinalResult = Boolean(result?.isFinal);
 
       if (attemptMode === "everyResult") {
         incrementVoiceTries();
@@ -371,6 +375,15 @@ export function listenForWonderworldWord({
 
       setSpeechVerified(false);
       speechVerifiedRef.current = false;
+      if (!isFinalResult) {
+        setSpeechStatus(transcript ? `Heard: ${transcript}` : `Listening… say “${targetWord}”`);
+        return;
+      }
+
+      if (transcript && !mistakePlayedForCurrentAttempt) {
+        mistakePlayedForCurrentAttempt = true;
+        onMistake?.();
+      }
       setSpeechStatus(`Try again: say “${targetWord}”.`);
     };
 

@@ -37,30 +37,18 @@ function Final() {
   const [starImg, setStarImg] = React.useState(star1);
   const [finalGifVersion, setFinalGifVersion] = React.useState(0);
   const handleBack = () => navigate("/wonderworld");
-  const starLayout =
-    starImg === star1
-      ? {
-          width: { lg: "300px", sm: "200px" },
-          marginLeft: { lg: "857px", sm: "54%" },
-          marginTop: { lg: "-53.5%", sm: "-67%" },
-        }
+  const starLayout = {
+    width: { lg: "300px", sm: "200px" },
+    height: { lg: "220px", sm: "150px" },
+    marginLeft: starImg === star2
+      ? { lg: "876px", sm: "56.5%" }
+      : { lg: "870px", sm: "56%" },
+    marginTop: starImg === star1
+      ? { lg: "-52.8%", sm: "-68.5%" }
       : starImg === star2
-      ? {
-          width: { lg: "290px", sm: "195px" },
-          marginLeft: {
-            lg: i18n.language === "ur" ? "856px" : "846px",
-            sm: i18n.language === "ur" ? "calc(55% + 10px)" : "55%",
-          },
-          marginTop: {
-            lg: i18n.language === "ur" ? "calc(-47.8% - 60px)" : "-47.8%",
-            sm: i18n.language === "ur" ? "calc(-63% - 60px)" : "-63%",
-          },
-        }
-      : {
-          width: { lg: "300px", sm: "200px" },
-          marginLeft: { lg: "852px", sm: "55.5%" },
-          marginTop: { lg: "-49.5%", sm: "-65%" },
-        };
+      ? { lg: "-53.5%", sm: "-69%" }
+      : { lg: "-49.5%", sm: "-65%" },
+  };
 
   useEffect(() => {
     if (finalizedRef.current) return;
@@ -256,9 +244,13 @@ useEffect(() => {
                   lg: i18n.language === "ur" ? "60px" : "35px",
                   sm: i18n.language === "ur" ? "52px" : "30px",
                 },
-                marginTop: { lg: i18n.language==="ur"?"-8%":"-6%", sm:18n.language === "ur" ?  "-15%":"-10%" },
-                marginLeft: { lg: "28.25%", sm: 18n.language === "ur" ? "24%":"17.5%" },
-                                marginRight: { lg: i18n.language==="ur"?"62%":"0%", sm:  i18n.language==="ur"?"65%":"0%" },
+                marginTop: { lg: i18n.language==="ur"?"-8.5%":"-6.5%", sm:18n.language === "ur" ?  "-15.5%":"-10.5%" },
+                marginLeft: { lg: i18n.language === "ur" ? "29%" : "29%", sm: i18n.language === "ur" ? "24.5%" : "18%" },
+                marginRight: { lg: i18n.language==="ur"?"62%":"0%", sm:  i18n.language==="ur"?"65%":"0%" },
+                transform: {
+                  lg: i18n.language === "ur" ? "translate(44px, 8px)" : "none",
+                  sm: i18n.language === "ur" ? "translate(32px, 6px)" : "none",
+                },
                 fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
                 fontWeight: i18n.language === "ur" ? "600" : "400",
                 color: "rgba(15,21,27,0.8)",
@@ -309,7 +301,7 @@ useEffect(() => {
             className="star-animate"
             sx={{
               width: starLayout.width,
-              height: "auto",
+              height: starLayout.height,
               objectFit: "contain",
               marginLeft: starLayout.marginLeft,
               marginTop: starLayout.marginTop,
@@ -324,7 +316,7 @@ useEffect(() => {
               width: { lg: "180px", sm: "150px" },
               height: { lg: "92px", sm: "72px" },
               marginTop: { lg: "calc(-36.5% + 230px)", sm: "calc(-48% + 230px)" },
-              marginLeft: { lg: "calc(64.3% - 10px)", sm: "calc(64.5% - 10px)" },
+              marginLeft: { lg: "calc(65.5% - 10px)", sm: "calc(66.2% - 10px)" },
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

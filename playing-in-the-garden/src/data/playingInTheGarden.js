@@ -71,7 +71,7 @@ export const playingInTheGarden = [
   {
     id: 6,
     text: {
-      en: "Ali and Fatima start playing again. How is Fatima feeling now?",
+      en: "Ali and Fatima start playing again.\nHow is Fatima feeling now?",
       ur: "علی اور فاطمہ دوبارہ کھیلنے لگے۔ اب فاطمہ کو کیسا لگ رہا ہے؟"
     },
     askEmotion: true,

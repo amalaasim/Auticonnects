@@ -5,13 +5,14 @@ import board from '../assests/board.png';
 import { useEffect,useRef,useState } from 'react';
 import bg from '../assests/greenbg.png';
 import newgif from '../assests/talking.gif';
-import standinglion from '../assests/standinglion.gif';
+import standinglion from '../assests/standinglion-loop.gif';
 import brown from '../assests/brown_board.png';
 import full from '../assests/carr.png';
 import half from '../assests/bluecar.png';
 import three from '../assests/carg.png';
 import stop from '../assests/stop.png';
 import pause from '../assests/pause.png';
+import play from '../assests/play.png';
 import retry from '../assests/retry.png';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import click from '../assests/click.png';
@@ -24,6 +25,8 @@ import i18n from "../i18n";
 import repeatCookie from '../assests/repeatcar.mpeg';
 import amazing from '../assests/amazing.mpeg';
 import sayagain from '../assests/sayagaincar.mpeg';
+import noSound from '../assests/no.mpeg';
+import noUrduSound from '../assests/nourdu.mpeg';
 import repeatcarurdu from '../assests/repeatcarurdu.mp4';
 import amazcarurdu from '../assests/finalurdu.mp4';
 import sayagainurdu from '../assests/againcarurdu.mp4';
@@ -520,6 +523,7 @@ const playAndWait = (audio) => {
   const [speechVerified, setSpeechVerified] = useState(false);
   const [speechStatus, setSpeechStatus] = useState("");
   const [isLionSpeaking, setIsLionSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const speechVerifiedRef = useRef(false);
   const [speechStep, setSpeechStep] = useState(1);
 
@@ -564,6 +568,14 @@ const playAndWait = (audio) => {
   };
 
   const listenForCar = () => {
+    const playMistakeSound = () => {
+      const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
+      setIsLionSpeaking(true);
+      audio.onended = () => setIsLionSpeaking(false);
+      audio.onpause = () => setIsLionSpeaking(false);
+      audio.play().catch(() => {});
+    };
+
     return listenForWonderworldWord({
       moduleKey: "car",
       language: i18n.language,
@@ -576,6 +588,7 @@ const playAndWait = (audio) => {
       setSpeechVerified,
       setSpeechStatus,
       incrementVoiceTries,
+      onMistake: playMistakeSound,
     });
   };
 
@@ -602,6 +615,7 @@ const playAndWait = (audio) => {
       setSpeechVerified(false);
       setSpeechStatus("");
       setIsLionSpeaking(false);
+      setIsPaused(false);
       setSpeechStep(1);
       autoAdvanceRef.current = false;
       audio1Ref.current.pause();
@@ -660,6 +674,7 @@ const playAndWait = (audio) => {
 const handlePauseResume = () => {
   if (!isPausedRef.current) {
     isPausedRef.current = true;
+    setIsPaused(true);
     allowListeningRef.current = false;
     if (retryListenRef.current) {
       clearTimeout(retryListenRef.current);
@@ -673,11 +688,14 @@ const handlePauseResume = () => {
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
     }
+    setIsLionSpeaking(false);
     setSpeechStatus("Paused");
   } else {
     isPausedRef.current = false;
+    setIsPaused(false);
     allowListeningRef.current = true;
     if (currentAudioRef.current && currentAudioRef.current.paused) {
+      setIsLionSpeaking(true);
       currentAudioRef.current.play().catch(() => {});
     } else if (startListeningRef.current) {
       try {
@@ -691,6 +709,7 @@ const handlePauseResume = () => {
 const handleStop = () => {
   sequenceCancelRef.current = true;
   isPausedRef.current = false;
+  setIsPaused(false);
   allowListeningRef.current = false;
   cancelListenRef.current = true;
   if (retryListenRef.current) {
@@ -873,7 +892,7 @@ opacity:"0.9",
                fontSize: i18n.language === "ur" ? "53px" : "33px",
                marginTop: {lg:i18n.language === "ur" ? "calc(-6.8% - 5px)" : "calc(-7.5% - 5px)",sm:i18n.language === "ur" ? "calc(-14% - 5px)" : "calc(-15% - 5px)"},
                width:{lg:i18n.language === "ur" ? "22%":"15%",sm:i18n.language === "ur" ? "42%" : "35%"},
-               marginLeft: {lg:i18n.language === "ur" ? "calc(24.8% + 10px)" : "calc(25% + 10px)",sm:i18n.language === "ur" ? "calc(22% + 10px)" : "calc(22% + 10px)"},
+               marginLeft: {lg:i18n.language === "ur" ? "calc(24.8% + 2px)" : "calc(25% + 10px)",sm:i18n.language === "ur" ? "calc(22% + 2px)" : "calc(22% + 10px)"},
                whiteSpace: i18n.language === "ur" ? "nowrap" : "normal",
                fontStyle:"normal",
                lineHeight:"38px",
@@ -904,7 +923,7 @@ opacity:"0.9", }}>{t("saycar")}</Typography>
         <Box component='img' sx={{ width:{lg:"200px",sm:"100px"}, height: {lg:"180px",sm:"100px"}, marginLeft: {lg:"66%",sm:"66%"}, marginTop: {lg:"-32%",sm:"-38%"} }} src={full} />
         <Box component='img' sx={{ width:{lg:"200px",sm:"130px"}, height: {lg:"220px",sm:"130px"}, marginLeft: {lg:"74%",sm:"74%"}, marginTop: {lg:"-20%",sm:"-30%"} }} src={three} />
         <Box component='img' onClick={handleStop} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"940px",sm:"60%"}, marginTop: {lg:"-12.5%",sm:"-24%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
-        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={pause} />
+        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg:"65px",sm:"40px"}, height: {lg:"65px",sm:"40px"}, marginLeft: {lg:"1007px",sm:"66%"}, marginTop: {lg:"-16%",sm:"-30%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={isPaused ? play : pause} />
         <Box component='img' onClick={handleRestart} sx={{ width: {lg:"50px",sm:"30px"}, height: {lg:"50px",sm:"30px"}, marginLeft: {lg:"1087px",sm:"73%"}, marginTop: {lg:"-18.9%",sm:"-36%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
       </Box>
                   </Box>

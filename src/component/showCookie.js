@@ -5,10 +5,11 @@ import board from '../assests/board.png';
 import brown from '../assests/brown_board.png';
 import bg from '../assests/greenbg.png';
 import { useEffect, useRef } from "react";
-import newgif from '../assests/finalgif.gif';
-import standinglion from '../assests/standinglion.gif';
+import newgif from '../assests/talking.gif';
+import standinglion from '../assests/standinglion-loop.gif';
 import stop from '../assests/stop.png';
 import pause from '../assests/pause.png';
+import play from '../assests/play.png';
 import retry from '../assests/retry.png';
 import click from '../assests/click.png';
 import backbg from '../assests/backbg.png';
@@ -20,6 +21,8 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import your from '../assests/yourcookie.mpeg';
 import yoururdu from '../assests/yourbiscuiturdu.mp4';
+import noSound from '../assests/no.mpeg';
+import noUrduSound from '../assests/nourdu.mpeg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 
@@ -32,9 +35,14 @@ const recognitionRef = useRef(null);
 const retryListenRef = useRef(null);
 const cancelListenRef = useRef(false);
 const allowListeningRef = useRef(true);
+const startListeningRef = useRef(null);
+const currentAudioRef = useRef(null);
+const isPausedRef = useRef(false);
+const sequenceCancelRef = useRef(false);
 const [speechVerified, setSpeechVerified] = React.useState(false);
 const [speechStatus, setSpeechStatus] = React.useState("");
 const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
+const [isPaused, setIsPaused] = React.useState(false);
 const speechVerifiedRef = useRef(false);
 const [uploadedImage, setUploadedImage] = React.useState(
   () => location.state?.uploadedImage || getCachedGameImage("cookie")
@@ -55,11 +63,33 @@ const playAndWait = (audio) => {
     audio.play().catch(() => {
       setIsLionSpeaking(false);
       setTimeout(() => {
+        setIsLionSpeaking(true);
         audio.play().catch(() => console.log("Autoplay blocked"));
       }, 1000);
     });
   });
 };
+
+useEffect(() => {
+  const audio = audioRef.current;
+  if (!audio) return;
+
+  const handlePlay = () => setIsLionSpeaking(true);
+  const handlePause = () => setIsLionSpeaking(false);
+  const handleEnded = () => setIsLionSpeaking(false);
+
+  audio.addEventListener("play", handlePlay);
+  audio.addEventListener("playing", handlePlay);
+  audio.addEventListener("pause", handlePause);
+  audio.addEventListener("ended", handleEnded);
+
+  return () => {
+    audio.removeEventListener("play", handlePlay);
+    audio.removeEventListener("playing", handlePlay);
+    audio.removeEventListener("pause", handlePause);
+    audio.removeEventListener("ended", handleEnded);
+  };
+}, [i18n.language]);
 
 useEffect(() => {
   speechVerifiedRef.current = speechVerified;
@@ -79,6 +109,14 @@ const incrementVoiceTries = () => {
   localStorage.setItem("cookie_voice_tries", String(current + 1));
 };
 
+const playMistakeSound = () => {
+  const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
+  setIsLionSpeaking(true);
+  audio.onended = () => setIsLionSpeaking(false);
+  audio.onpause = () => setIsLionSpeaking(false);
+  audio.play().catch(() => {});
+};
+
 const listenForCookie = () =>
   listenForWonderworldWord({
     moduleKey: "cookie",
@@ -88,9 +126,11 @@ const listenForCookie = () =>
     speechVerifiedRef,
     cancelListenRef,
     allowListeningRef,
+    startListeningRef,
     setSpeechVerified,
     setSpeechStatus,
     incrementVoiceTries,
+    onMistake: playMistakeSound,
   });
 
 useEffect(() => {
@@ -98,16 +138,21 @@ useEffect(() => {
   const runSequence = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+    sequenceCancelRef.current = false;
+    isPausedRef.current = false;
     allowListeningRef.current = true;
     cancelListenRef.current = false;
     setSpeechVerified(false);
     setSpeechStatus("");
     setIsLionSpeaking(false);
+    setIsPaused(false);
     audio.pause();
     audio.currentTime = 0;
     audio.volume = 1;
+    currentAudioRef.current = audio;
     await playAndWait(audio);
-    if (!cancelListenRef.current) {
+    currentAudioRef.current = null;
+    if (!cancelListenRef.current && !sequenceCancelRef.current) {
       await listenForCookie();
     }
   };
@@ -152,6 +197,91 @@ useEffect(() => {
     ignore = true;
   };
 }, []);
+
+const handlePauseResume = () => {
+  if (!isPausedRef.current) {
+    isPausedRef.current = true;
+    setIsPaused(true);
+    allowListeningRef.current = false;
+    if (retryListenRef.current) {
+      clearTimeout(retryListenRef.current);
+      retryListenRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+    }
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+    }
+    setIsLionSpeaking(false);
+    setSpeechStatus("Paused");
+  } else {
+    isPausedRef.current = false;
+    setIsPaused(false);
+    allowListeningRef.current = true;
+    if (currentAudioRef.current && currentAudioRef.current.paused) {
+      setIsLionSpeaking(true);
+      currentAudioRef.current.play().catch(() => {});
+    } else if (startListeningRef.current) {
+      try {
+        startListeningRef.current();
+      } catch (_) {}
+    }
+    setSpeechStatus("");
+  }
+};
+
+const handleStop = () => {
+  sequenceCancelRef.current = true;
+  isPausedRef.current = false;
+  setIsPaused(false);
+  allowListeningRef.current = false;
+  cancelListenRef.current = true;
+  stopWonderworldListening({
+    recognitionRef,
+    retryListenRef,
+    cancelListenRef,
+    allowListeningRef,
+  });
+  if (audioRef.current) {
+    try {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    } catch (_) {}
+  }
+  currentAudioRef.current = null;
+  setSpeechVerified(false);
+  setSpeechStatus("Stopped");
+  setIsLionSpeaking(false);
+};
+
+const handleRestart = () => {
+  handleStop();
+  setTimeout(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    sequenceCancelRef.current = false;
+    isPausedRef.current = false;
+    setIsPaused(false);
+    allowListeningRef.current = true;
+    cancelListenRef.current = false;
+    setSpeechVerified(false);
+    setSpeechStatus("");
+    setIsLionSpeaking(false);
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = 1;
+    currentAudioRef.current = audio;
+    playAndWait(audio).then(() => {
+      currentAudioRef.current = null;
+      if (!cancelListenRef.current && !sequenceCancelRef.current) {
+        listenForCookie();
+      }
+    });
+  }, 0);
+};
 
 
   return (
@@ -275,7 +405,7 @@ useEffect(() => {
                   lg: i18n.language === "ur" ? "40px" : "33px",
                   sm: i18n.language === "ur" ? "34px" : "30px",
                 },
-                marginTop: {lg: i18n.language === "ur" ? "-8.3%" :"-9%",sm: i18n.language === "ur" ? "-14.8%" :"-15.5%"},
+                marginTop: {lg: i18n.language === "ur" ? "-7.8%" :"-9.9%",sm: i18n.language === "ur" ? "-14.3%" :"-16.4%"},
                 marginLeft:{lg: i18n.language === "ur" ? "calc(25.1% + 5px)" :"26%",sm: i18n.language === "ur" ? "calc(19% + 5px)" :"18%"},
                 width:{lg:i18n.language==="ur"?"20%":"15%",sm:i18n.language==="ur"?"35%":"25%"},
                 whiteSpace: i18n.language === "ur" ? "nowrap" : "normal",
@@ -289,7 +419,7 @@ useEffect(() => {
               {t("yourcook")}
             </Typography>
 
-            <Box component="img" src={isLionSpeaking ? newgif : standinglion} sx={{ width:{lg:"370px",sm:"40%"}, ml: {lg:"150px",sm:"-5%"} }} />
+            <Box key={isLionSpeaking ? "talking" : "standing"} component="img" src={isLionSpeaking ? newgif : standinglion} sx={{ width:{lg:"370px",sm:"40%"}, ml: {lg:"150px",sm:"-5%"} }} />
           </Box>
 
           <Box component="img" src={board} sx={{ width: {lg:"659px",sm:"52%"}, ml: {lg:"723px",sm:"45%"}, mt: {lg:"-43%",sm:"-57%"} }} />
@@ -363,9 +493,9 @@ useEffect(() => {
               </Typography>
             )}
           </Box>
-        <Box component='img' sx={{ width: {lg:"50px",sm:"27px"}, height: {lg:"50px",sm:"27px"}, marginLeft: {lg: i18n.language === "ur" ? "62.5%" :"940px",sm:"64%"}, marginTop: {lg: i18n.language === "ur" ? "-6%" :"-5.5%",sm:"-11%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
-        <Box component='img' sx={{ width: {lg: i18n.language === "ur" ? "60px" :"65px",sm:"35px"}, height: {lg: i18n.language === "ur" ? "60px" :"65px",sm:"35px"}, marginLeft: {lg: i18n.language === "ur" ? "67%" :"1000px",sm:"69%"}, marginTop: {lg: i18n.language === "ur" ? "-9%" :"-8.5%",sm:"-17.5%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={pause} />
-        <Box component='img' sx={{ width: {lg:"50px",sm:"27px"}, height: {lg:"50px",sm:"27px"}, marginLeft: {lg: i18n.language === "ur" ? "72%" :"1075px",sm:"74.5%"}, marginTop: {lg: i18n.language === "ur" ? "-12.3%" :"-11.5%",sm:"-23.5%"}, "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
+        <Box component='img' onClick={handleStop} sx={{ width: {lg:"50px",sm:"27px"}, height: {lg:"50px",sm:"27px"}, marginLeft: {lg: i18n.language === "ur" ? "65.5%" :"980px",sm:"68%"}, marginTop: {lg: i18n.language === "ur" ? "-6%" :"-5.5%",sm:"-11%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={stop} />
+        <Box component='img' onClick={handlePauseResume} sx={{ width: {lg: i18n.language === "ur" ? "60px" :"65px",sm:"35px"}, height: {lg: i18n.language === "ur" ? "60px" :"65px",sm:"35px"}, marginLeft: {lg: i18n.language === "ur" ? "70%" :"1040px",sm:"73%"}, marginTop: {lg: i18n.language === "ur" ? "-9%" :"-8.5%",sm:"-17.5%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={isPaused ? play : pause} />
+        <Box component='img' onClick={handleRestart} sx={{ width: {lg:"50px",sm:"27px"}, height: {lg:"50px",sm:"27px"}, marginLeft: {lg: i18n.language === "ur" ? "75%" :"1115px",sm:"78.5%"}, marginTop: {lg: i18n.language === "ur" ? "-12.3%" :"-11.5%",sm:"-23.5%"}, cursor: "pointer", position: "relative", zIndex: 10, pointerEvents: "auto", "&:hover": { transform: "scale(1.28)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={retry} />
 <audio
   ref={audioRef}
   src={i18n.language === "ur" ? yoururdu : your}
