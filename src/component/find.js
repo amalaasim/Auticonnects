@@ -29,6 +29,7 @@ import lookHere from '../assests/look_here.mp4';
 import { useEmotionModel } from "../hooks/useEmotionModel";
 import { useAttentionMetrics } from "@/hooks/useAttentionMetrics";
 import { startSession } from "@/lib/analytics/client";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 import {
   ensureWonderworldSessionState,
   updateWonderworldEmotionCounts,
@@ -72,6 +73,11 @@ function Find() {
     enabled: cameraPermissionResolved && cameraAllowed,
     isLooking,
   });
+
+  useEffect(() => {
+    preloadImageAsset(cartoon);
+    preloadImageAsset(standinglion);
+  }, []);
 
   const playTrackedAudio = React.useCallback((audio, options = {}) => {
     const { onEnded, onError, resetTime = false } = options;
@@ -479,9 +485,10 @@ useEffect(() => {
 
           {/* cartoon */}
           <Box
-            key={isLionSpeaking ? "talking" : "standing"}
             component="img"
             src={isLionSpeaking ? cartoon : standinglion}
+            loading="eager"
+            decoding="async"
             sx={{
               width: { lg: "402px", sm: "270px" },
               height: { lg: "405px", sm: "290px" },

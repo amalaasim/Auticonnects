@@ -25,6 +25,7 @@ import noSound from '../assests/nocar.mpeg';
 import noUrduSound from '../assests/nourdu.mpeg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 export default function Car() {
   const navigate = useNavigate();
   const {t}=useTranslation();
@@ -46,6 +47,12 @@ const speechVerifiedRef = useRef(false);
 const [uploadedImage, setUploadedImage] = React.useState(
   () => location.state?.uploadedImage || getCachedGameImage("car")
 );
+
+useEffect(() => {
+  preloadImageAsset(newgif);
+  preloadImageAsset(standinglion);
+}, []);
+
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
     if (!audio) {
@@ -425,7 +432,7 @@ useEffect(() => {
               {t("yourcar")}
             </Typography>
 
-            <Box key={isLionSpeaking ? "talking" : "standing"} component="img" src={isLionSpeaking ? newgif : standinglion} sx={{ width:{lg:"350px",sm:"56%"}, ml: {lg:"150px",sm:"-10%"} }} />
+            <Box component="img" src={isLionSpeaking ? newgif : standinglion} loading="eager" decoding="async" sx={{ width:{lg:"350px",sm:"56%"}, ml: {lg:"150px",sm:"-10%"} }} />
           </Box>
 
           <Box component="img" src={board} sx={{ width: {lg:"659px",sm:"52%"}, ml: {lg:"723px",sm:"45%"}, mt: {lg:"-38%",sm:"-57%"} }} />

@@ -25,6 +25,7 @@ import noSound from '../assests/noshoe.mpeg';
 import noUrduSound from '../assests/nourdu.mpeg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 import { cleanupWonderworldListening, listenForWonderworldWord } from "@/lib/wonderworldSpeech";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 
 export default function Show() {
   const navigate = useNavigate();
@@ -39,9 +40,15 @@ export default function Show() {
   const currentAudioRef = useRef(null);
   const isPausedRef = useRef(false);
   const sequenceCancelRef = useRef(false);
-  const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
-  const [isPaused, setIsPaused] = React.useState(false);
-  const playAndWait = (audio) => {
+const [isLionSpeaking, setIsLionSpeaking] = React.useState(false);
+const [isPaused, setIsPaused] = React.useState(false);
+
+useEffect(() => {
+  preloadImageAsset(newgif);
+  preloadImageAsset(standinglion);
+}, []);
+
+const playAndWait = (audio) => {
     return new Promise((resolve) => {
       if (!audio) {
         setIsLionSpeaking(false);
@@ -434,7 +441,7 @@ useEffect(() => {
               {t("your")}
             </Typography>
 
-            <Box key={isLionSpeaking ? "talking" : "standing"} component="img" src={isLionSpeaking ? newgif : standinglion} sx={{ width:{lg:"390px",sm:"56%"}, ml: {lg:"150px",sm:"-10%"} }} />
+            <Box component="img" src={isLionSpeaking ? newgif : standinglion} loading="eager" decoding="async" sx={{ width:{lg:"390px",sm:"56%"}, ml: {lg:"150px",sm:"-10%"} }} />
           </Box>
 
           <Box component="img" src={board} sx={{ width: {lg:"659px",sm:"52%"}, ml: {lg:"723px",sm:"45%"}, mt: {lg:"-43%",sm:"-57%"} }} />

@@ -36,6 +36,7 @@ import { startSession } from "@/lib/analytics/client";
 import { ensureWonderworldSessionState } from "@/lib/analytics/sessionState";
 import { GAME_IMAGE_CONFIG, getCachedGameImage, loadSavedGameImage, saveGameImage } from "@/lib/gameImageStore";
 import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 //popup
 import { TextField,} from '@mui/material';
 import pegion from '../assests/pegion.png';
@@ -524,6 +525,11 @@ const playAndWait = (audio) => {
   const [speechStatus, setSpeechStatus] = useState("");
   const [isLionSpeaking, setIsLionSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    preloadImageAsset(newgif);
+    preloadImageAsset(standinglion);
+  }, []);
   const speechVerifiedRef = useRef(false);
   const [speechStep, setSpeechStep] = useState(1);
 
@@ -904,7 +910,7 @@ opacity:"0.9",
              {t("repeatAfterMeCar")}
               </Typography> 
               </Box>
-          <Box component='img' sx={{ width: { lg: "450.59px",sm:"50%" }, height: {lg:"390.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px", objectFit: "contain", transform: isLionSpeaking ? "none" : "translateY(18px) scale(1.05, 1.02)", transformOrigin: "center" }} src={isLionSpeaking ? newgif : standinglion} />
+          <Box component='img' loading="eager" decoding="async" sx={{ width: { lg: "450.59px",sm:"50%" }, height: {lg:"390.96px",sm:"52vh"}, marginTop: "-8px", marginLeft: {lg:"150px",sm:"-3%"}, borderRadius: "200.58px", objectFit: "contain", transform: isLionSpeaking ? "none" : "translateY(18px) scale(1.05, 1.02)", transformOrigin: "center" }} src={isLionSpeaking ? newgif : standinglion} />
         </Box>
 
         <Box component='img' sx={{ width: {lg:"658.94px",sm:"60%"}, height: {lg:"481px",sm:"40%"}, borderRadius: "44.5px", marginLeft: {lg:"723px",sm:"40%"}, marginTop: {lg:"-40.5%",sm:"-69%"} }} src={board} />

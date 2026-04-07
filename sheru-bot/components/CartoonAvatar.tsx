@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { assetUrl } from "../utils/assetUrls";
 
@@ -19,6 +19,19 @@ export const CartoonAvatar: React.FC<CartoonAvatarProps> = ({
   currentText = "",
   isConnected
 }) => {
+  useEffect(() => {
+    const preload = (src: string) => {
+      const image = new Image();
+      image.src = src;
+      if (typeof image.decode === "function") {
+        image.decode().catch(() => {});
+      }
+    };
+
+    preload(assetUrl("/images/talking.gif"));
+    preload(assetUrl("/images/standinglion-loop.gif"));
+  }, []);
+
   // Determine which image to show based on connection and talking state
   const getCatImage = () => {
     if (!isConnected) {
@@ -76,9 +89,10 @@ export const CartoonAvatar: React.FC<CartoonAvatarProps> = ({
           src={catImage}
           alt="Sheru"
           draggable={false}
+          loading="eager"
+          decoding="async"
           className="absolute inset-0 w-full h-full z-10"
           style={catImageStyle}
-          key={catImage} // Force re-render when image changes (restarts GIF)
         />
 
         {/* Listening Indicator (Green Ring) */}

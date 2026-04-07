@@ -25,6 +25,7 @@ import noSound from '../assests/no.mpeg';
 import noUrduSound from '../assests/nourdu.mpeg';
 import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/gameImageStore";
 import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 
 export default function Cookie() {
   const navigate = useNavigate();
@@ -47,6 +48,11 @@ const speechVerifiedRef = useRef(false);
 const [uploadedImage, setUploadedImage] = React.useState(
   () => location.state?.uploadedImage || getCachedGameImage("cookie")
 );
+
+useEffect(() => {
+  preloadImageAsset(newgif);
+  preloadImageAsset(standinglion);
+}, []);
 
 const playAndWait = (audio) => {
   return new Promise((resolve) => {
@@ -419,7 +425,7 @@ const handleRestart = () => {
               {t("yourcook")}
             </Typography>
 
-            <Box key={isLionSpeaking ? "talking" : "standing"} component="img" src={isLionSpeaking ? newgif : standinglion} sx={{ width:{lg:"370px",sm:"40%"}, ml: {lg:"150px",sm:"-5%"} }} />
+            <Box component="img" src={isLionSpeaking ? newgif : standinglion} loading="eager" decoding="async" sx={{ width:{lg:"370px",sm:"40%"}, ml: {lg:"150px",sm:"-5%"} }} />
           </Box>
 
           <Box component="img" src={board} sx={{ width: {lg:"659px",sm:"52%"}, ml: {lg:"723px",sm:"45%"}, mt: {lg:"-43%",sm:"-57%"} }} />
