@@ -70,12 +70,20 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const correctFeedbackAudios = [
     "/audio/en/correct1.mp3"
   ];
+  const correctFeedbackAudioByLanguage = {
+    en: correctFeedbackAudios,
+    ur: ["/audio/ur/finalurdu.mp4"],
+  };
 
   const incorrectFeedbackAudios = [
     "/audio/en/incorrect1.mp3",
     "/audio/en/incorrect2.mp3",
     "/audio/en/incorrect3.mp3"
   ];
+  const incorrectFeedbackAudioByLanguage = {
+    en: incorrectFeedbackAudios,
+    ur: ["/audio/ur/nourdu.mpeg"],
+  };
   const finalSceneAudio = {
     en: "/audio/en/scene7.mp3",
     ur: "/audio/ur/scene7.m4a"
@@ -154,8 +162,8 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const playRandomFeedbackAudio = (type, options) => {
     const list =
       type === "correct"
-        ? correctFeedbackAudios
-        : incorrectFeedbackAudios;
+        ? (correctFeedbackAudioByLanguage[language] || correctFeedbackAudios)
+        : (incorrectFeedbackAudioByLanguage[language] || incorrectFeedbackAudios);
 
     const randomIndex = Math.floor(Math.random() * list.length);
     playAudioSafely(list[randomIndex], options);
@@ -296,7 +304,11 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     const schedulePrompt = (delay) => {
       attentionTimerRef.current = setTimeout(() => {
         if (!isLooking && !audioRef.current) {
-          playAudioSafely("/audio/en/lion-guide.mp3");
+          playAudioSafely(
+            language === "ur"
+              ? "/audio/ur/lookhereurdu.mp3"
+              : "/audio/en/lion-guide.mp3"
+          );
         }
         if (!isLooking) {
           schedulePrompt(20000);
