@@ -107,7 +107,10 @@ const ChildNameSetup: React.FC = () => {
         />
         
         <form onSubmit={handleSubmit} className="absolute inset-0 flex flex-col items-center justify-start px-8 pt-8">
-          <h2 className="text-white text-4xl md:text-5xl font-bold mb-8 text-center absolute left-12 -top-8 rotate-3">
+          <h2
+            className="absolute left-20 -top-8 mb-8 text-center text-4xl font-bold text-white md:text-5xl rotate-3"
+            style={{ fontFamily: "'Chewy', cursive" }}
+          >
             What is your kid's name?
           </h2>
           

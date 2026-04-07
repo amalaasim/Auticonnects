@@ -74,21 +74,22 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <AuthBackground>
+    <AuthBackground className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0">
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 
-        className="absolute top-4 left-4 w-64 h-auto"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
       />
 
       <BackSignpost to="/login" label="Back to Login" />
       
       {!emailSent && (
-        <WoodenBoard>
-          <h2 className="text-4xl font-bold mt-16 ml-6 mb-4 text-yellow-800">Sign Up</h2>
+        <WoodenBoard className="mt-10 lg:mt-24">
+          <div className="pt-[2%]">
+          <h2 className="mx-auto mb-2 w-[94%] font-['Chewy'] text-[clamp(1.25rem,1.9vw,2.15rem)] font-bold text-[#824D1F]">Sign Up</h2>
           
           {step === 1 ? (
-            <form onSubmit={handleContinue} className="w-full space-y-1 px-4">
+            <form onSubmit={handleContinue} className="mx-auto flex w-[94%] flex-col gap-2">
               <AuthInput
                 type="email"
                 label="Enter your email address"
@@ -112,7 +113,7 @@ const Signup: React.FC = () => {
               </AuthButton>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="w-full -mt-4 space-y-1 px-4">
+            <form onSubmit={handleSubmit} className="mx-auto -mt-1 flex w-[94%] flex-col gap-2">
               <AuthInput
                 type="password"
                 label="Enter your password"
@@ -134,34 +135,27 @@ const Signup: React.FC = () => {
               <AuthButton type="submit" loading={loading}>
                 Create Account
               </AuthButton>
-              
-              <button 
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-full -mt-1 text-md underline hover:opacity-80 text-yellow-700"
-              >
-                ← Back
-              </button>
             </form>
           )}
           
-          <div className="flex gap-2 mt-3">
-            <div className={`w-2 h-2 rounded-full ${step === 1 ? 'bg-yellow-700' : 'bg-yellow-200'}`} />
-            <div className={`w-2 h-2 rounded-full ${step === 2 ? 'bg-yellow-700' : 'bg-yellow-200'}`} />
+          <div className="mt-2 flex gap-2">
+            <div className={`h-2 w-2 rounded-full ${step === 1 ? 'bg-[#824D1F]' : 'bg-[#E6C99A]'}`} />
+            <div className={`h-2 w-2 rounded-full ${step === 2 ? 'bg-[#824D1F]' : 'bg-[#E6C99A]'}`} />
           </div>
           
-          <p className="w-full -mt-2 text-md text-center text-yellow-800">
+          <p className="w-full -mt-1 font-['Chewy'] text-center text-[clamp(0.8rem,1vw,1rem)] text-[#824D1F]">
             Already have an account?{' '}
-            <Link to="/login" className="font-bold underline hover:opacity-80 text-yellow-800">
+            <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
               Login
             </Link>
           </p>
+          </div>
         </WoodenBoard>
       )}
       {emailSent && (
         <HangingBoard
           message="A verification email has been sent to your email address. Please check your inbox."
-          messageClassName="translate-x-[10px]"
+          messageClassName="translate-x-[4px] translate-y-10 text-[#B9793E] md:translate-y-16 lg:translate-y-24"
         />
       )}
 

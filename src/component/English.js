@@ -65,20 +65,22 @@ export default function English() {
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
-              alignItems: "flex-start",
+              alignItems: "center",
               paddingLeft: "5%",
               paddingRight: "5%",
-              marginTop:{lg:"-0.5%",sm:"-11.5%"},
+              paddingTop: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
+              paddingBottom: "8px",
+              marginTop: 0,
               border: "none",
-              background:
-                "linear-gradient(180deg, rgba(0, 0, 0.82, 0.3) 0%, rgba(0,0,0,0.1) 100%)",
+              background: "transparent",
+              boxShadow: "none",
             }}
           >
             <Box
               component={AppGreetingHeader}
               sx={{
                 width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" },
-                marginTop: { lg: "1.5%", md: "2%", sm: "14%", xs: "43%" },
+                marginTop: 0,
                 textAlign: "left",
               }}
             />
@@ -94,7 +96,7 @@ export default function English() {
                       height: {lg:"45.23px",sm:"45.23px"},
                       objectFit: "contain",
                       paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
-                      marginTop: { lg: "16px", md: "19px", sm: "94px", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                     }}
@@ -109,7 +111,7 @@ export default function English() {
                       height: {lg:"45.23px",sm:"45.23px"},
                       objectFit: "contain",
                       paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
-                      marginTop: { lg: "16px", md: "19px", sm: "94px", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                     }}
@@ -124,7 +126,7 @@ export default function English() {
                       height: {lg:"45.23px",sm:"45.23px"},
                       objectFit: "contain",
                       paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
-                      marginTop: { lg: "16px", md: "19px", sm: "94px", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                       cursor: item.onClick ? "pointer" : "default",
@@ -139,14 +141,17 @@ export default function English() {
           {/* Cards */}
           <Box sx={{ display: "flex", flexDirection: {lg:"row",md:"row",sm:"column"},marginLeft:{ lg: "0", md: "0", sm: "5%", xs: "0"},
 justifyContent: "space-around", padding: "4%",marginTop:"-2%",
-gap:{sm:"1rem"} }}>
+gap:{ lg:"2.75rem", md:"2rem", sm:"1rem" } }}>
 
             {/* WonderWorld */}
-            <Box sx={{ display: "flex", flexDirection: "column", opacity: "0.9","&:hover": {
+            <Box
+              onClick={() => navigate("/wonderworld")}
+              sx={{ display: "flex", flexDirection: "column", opacity: "0.9", cursor: "pointer","&:hover": {
                   transform: "scale(1.08)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
-                }, }}>
-              <Box onClick={() => navigate("/wonderworld")}
+                }, }}
+            >
+              <Box
                 component="img"
                 sx={{ borderRadius: "20px", height: { lg: "45vh", md: "40vh", sm: "30vh", xs: "30vh" },
               width: { lg: "100%", md: "100%", sm: "95%", xs: "30%"},}}
@@ -194,11 +199,14 @@ paddingTop:"2.3%",paddingLeft:"5%",height:"auto",borderRadius:"20px"}}>
           </Box>
 
           {/* Rocco */}
-          <Box sx={{borderRadius:"20px","&:hover": {
+          <Box
+            onClick={openSheruBot}
+            sx={{width:{ lg:"calc(100% - 8%)", md:"calc(100% - 8%)", sm:"98%", xs:"96%" }, mx:"auto", borderRadius:"20px", cursor: "pointer","&:hover": {
                   transform: "scale(1.08)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
 
-                },}}>
+                },}}
+          >
           <Box sx={{ display: "flex", flexDirection: "column",marginTop:"-2%",borderRadius:"20px" }}>
             <Box component="img" src={back} sx={{ width: {lg:"100%",sm:"98%"},
                   height: { lg: "22vh", md: "22vh", sm: "17vh", xs: "15vh" },
@@ -227,7 +235,6 @@ paddingTop:"2.3%",paddingLeft:"5%",height:"auto",borderRadius:"20px"}}>
        <Box
         component="img"
         src={play}
-        onClick={openSheruBot}
         sx={{width:{lg:"190px",sm:"120px"},height:"90px",marginLeft:{lg:"60%",sm:"55%"},paddingLeft:"6%",marginRight:{lg:i18n.language === "ur" ? "65%" : "0%",sm:i18n.language === "ur" ? "55%" : "0%"},
        marginTop:{lg: i18n.language === "ur" ?"-11%":"-8%",sm: i18n.language === "ur" ?"-18%":"-35%"}, cursor: "pointer", position: "relative", zIndex: 3, pointerEvents: "auto"}}
       />

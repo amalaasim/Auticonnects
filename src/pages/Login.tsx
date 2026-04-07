@@ -42,17 +42,17 @@ const Login: React.FC = () => {
   };
 
   return (
-    <AuthBackground>
+    <AuthBackground className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0">
       <img 
         src={logo} 
         alt="Auti-Connects Logo" 
-        className="absolute top-4 left-4 w-64 h-auto"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
       />
       
-      <WoodenBoard>
-        <h2 className="text-4xl font-bold mt-6 ml-6 mb-4 text-yellow-800">Log In</h2>
+      <WoodenBoard className="mt-8 lg:mt-24">
+        <h2 className="mx-auto mb-2 w-[94%] font-['Chewy'] text-[clamp(1.25rem,1.9vw,2.15rem)] font-bold text-[#824D1F]">Log In</h2>
         
-        <form onSubmit={handleSubmit} className="w-full space-y-1 px-4">
+        <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-1.5 md:gap-2">
           <AuthInput
             type="email"
             label="Enter your email address"
@@ -75,7 +75,7 @@ const Login: React.FC = () => {
           <div className="text-right">
             <Link 
               to="/forgot-password" 
-              className="text-md hover:opacity-80 text-yellow-700"
+              className="font-['Chewy'] text-[clamp(0.75rem,0.9vw,0.9rem)] text-[#824D1F] hover:opacity-80"
             >
               Forgot Password?
             </Link>
@@ -86,9 +86,9 @@ const Login: React.FC = () => {
           </AuthButton>
         </form>
         
-        <p className="w-full mt-3 text-md text-center text-yellow-800">
+        <p className="mt-1.5 w-full font-['Chewy'] text-center text-[clamp(0.75rem,0.9vw,0.9rem)] text-[#824D1F]">
           Don't have an account?{' '}
-          <Link to="/signup" className="font-bold underline hover:opacity-80 text-yellow-800">
+          <Link to="/signup" className="font-bold underline hover:opacity-80 text-[#824D1F]">
             Register
           </Link>
         </p>

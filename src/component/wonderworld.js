@@ -100,14 +100,18 @@ useEffect(() => {
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "center",
               paddingLeft: "5%",
               paddingRight: "5%",
-              borderRadius: "10px",
+              paddingTop: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
+              paddingBottom: "8px",
+              borderRadius: 0,
               border: "none",
-              background: "linear-gradient(10deg, rgba(5, 8, 7, 0.6) 0%, rgba(11,61,46,0.4) 100%)",
+              background: "transparent",
+              boxShadow: "none",
             }}
           >
-            <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, marginTop: { lg: "1.5%", md: "2%", sm: "3%", xs: "43%" } }} />
+            <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, marginTop: 0 }} />
             <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
@@ -118,7 +122,7 @@ useEffect(() => {
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
                       objectFit: "contain",
-                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                     }}
@@ -131,7 +135,7 @@ useEffect(() => {
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
                       objectFit: "contain",
-                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                     }}
@@ -145,7 +149,7 @@ useEffect(() => {
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
                       objectFit: "contain",
-                      marginTop: { lg: "16px", md: "19px", sm: "3%", xs: "194px" },
+                      marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                       cursor: item.onClick ? "pointer" : "default",

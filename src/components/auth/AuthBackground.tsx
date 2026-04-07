@@ -13,7 +13,7 @@ const AuthBackground: React.FC<AuthBackgroundProps> = ({
 }) => {
   return (
     <div 
-      className={`min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center ${className}`}
+      className={`relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden bg-cover bg-center bg-no-repeat px-4 pb-8 pt-20 sm:px-6 sm:pt-24 lg:justify-center lg:px-8 lg:pb-10 ${className}`}
       style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       {children}

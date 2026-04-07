@@ -32,7 +32,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   return (
     <Button
       className={cn(
-        "w-full text-white font-bold rounded-md bg-yellow-700 py-2 px-6 shadow-lg",
+        "h-9 w-full rounded-md bg-[#824D1F] px-6 py-2 font-['Chewy'] text-xs font-bold text-white shadow-lg sm:h-10 sm:text-sm",
         "transform hover:scale-105 transition-all duration-200",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
         className

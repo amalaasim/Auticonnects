@@ -10,14 +10,14 @@ interface WoodenBoardProps {
 const WoodenBoard: React.FC<WoodenBoardProps> = ({ children, className = '', animated = true }) => {
   return (
     <div 
-      className={`relative ${animated ? 'animate-bounce-in' : ''} ${className}`}
+      className={`relative mx-auto aspect-[817/968] w-[min(92vw,32rem)] md:w-[min(76vw,38rem)] lg:w-[min(48vw,44rem)] xl:w-[min(42vw,46rem)] ${animated ? 'animate-bounce-in' : ''} ${className}`}
     >
       <img 
         src={signinBoard} 
         alt="Wooden sign board" 
-        className="h-screen"
+        className="absolute inset-0 h-full w-full object-contain"
       />
-      <div className="absolute inset-0 -top-32 left-20 w-[calc(100%-12rem)] flex flex-col items-start justify-center p-6">
+      <div className="absolute bottom-[20%] left-[13.2%] right-[14.8%] top-[23%] flex min-h-0 flex-col justify-start px-[1%] pt-[2%]">
         {children}
       </div>
     </div>

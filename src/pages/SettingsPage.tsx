@@ -126,12 +126,15 @@ export default function SettingsPage() {
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           px: "5%",
-          py: 1.25,
-          background: "linear-gradient(10deg, rgba(5, 8, 7, 0.6) 0%, rgba(11,61,46,0.4) 100%)",
+          pt: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
+          pb: "8px",
+          background: "transparent",
+          boxShadow: "none",
         }}
       >
-        <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "34%" }, mt: { lg: "0.5%", xs: "2%" } }} />
+        <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "34%" }, mt: 0 }} />
         <Box sx={{ display: "flex", gap: "0.5rem" }}>
           {topBarIcons.map((item, index) =>
             item.volumeToggle ? (
@@ -142,7 +145,7 @@ export default function SettingsPage() {
                   width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   objectFit: "contain",
-                  mt: { lg: "16px", md: "19px", sm: "18px", xs: "18px" },
+                  mt: 0,
                   filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                 }}
               />
@@ -155,7 +158,7 @@ export default function SettingsPage() {
                   width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   objectFit: "contain",
-                  mt: { lg: "16px", md: "19px", sm: "18px", xs: "18px" },
+                  mt: 0,
                   filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                 }}
               />
@@ -170,7 +173,7 @@ export default function SettingsPage() {
                   width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
                   objectFit: "contain",
-                  mt: { lg: "16px", md: "19px", sm: "18px", xs: "18px" },
+                  mt: 0,
                   cursor: item.onClick ? "pointer" : "default",
                   filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                 }}

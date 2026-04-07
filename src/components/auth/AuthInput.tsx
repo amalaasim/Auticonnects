@@ -15,7 +15,7 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium mb-1 text-yellow-700">
+        <label className="mb-0.5 block font-['Chewy'] text-[0.72rem] font-medium text-[#824D1F] sm:text-[0.82rem]">
           {label}
         </label>
       )}
@@ -23,33 +23,31 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
         <Input
           type={isPassword && showPassword ? 'text' : type}
           className={cn(
-            "w-full bg-yellow-800 border-amber-700/50 text-[rgba(255,158,89,0.74)] pr-10",
-            "focus:border-amber-600 focus:ring-amber-500",
-            "rounded-md h-10",
-            "[&::placeholder]:text-[rgba(255,158,89,0.74)] [&::placeholder]:text-xl",
+            "h-9 w-full rounded-md border-[#824D1F]/60 bg-[#824D1F] pr-10 font-['Chewy'] text-xs text-[rgba(255,214,178,0.92)] sm:h-10 sm:text-sm",
+            "focus:border-[#824D1F] focus:ring-[#824D1F]",
+            "[&::placeholder]:text-[rgba(255,214,178,0.88)] [&::placeholder]:text-xs sm:[&::placeholder]:text-sm",
             className
           )}
-          style={{ fontSize: '1.5rem' }}
           {...props}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 appearance-none border-0 bg-transparent p-0 text-[rgba(255,158,89,0.74)] transition-colors hover:text-white focus:outline-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 appearance-none border-0 bg-transparent p-0 text-[rgba(255,214,178,0.88)] transition-colors hover:text-white focus:outline-none"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {toggleIconSrc ? (
               <img
                 src={toggleIconSrc}
                 alt=""
-                className={cn("block w-5 h-5 object-contain", showPassword && "opacity-70")}
+                className={cn("block h-4 w-4 object-contain sm:h-5 sm:w-5", showPassword && "opacity-70")}
                 aria-hidden="true"
               />
             ) : showPassword ? (
-              <EyeOff className="w-5 h-5" />
+              <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
             ) : (
-              <Eye className="w-5 h-5" />
+              <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
             )}
           </button>
         )}

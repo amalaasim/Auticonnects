@@ -12,6 +12,7 @@ const ChildCharacterSetup: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<string>('');
+  const [hoveredCharacter, setHoveredCharacter] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -28,9 +29,33 @@ const ChildCharacterSetup: React.FC = () => {
   };
 
   const characters = [
-    { name: 'Bubbles', value: 'bubbles', image: '/assets/bubbles.png' },
-    { name: 'Rocco', value: 'rocco', image: '/assets/rocco.png' },
-    { name: 'Mimmi', value: 'mimi', image: '/assets/mimmi.png' },
+    {
+      name: 'Bubbles',
+      value: 'bubbles',
+      image: '/assets/bubbles.png',
+      description: 'Always ready to play!',
+      nameClassName: 'md:translate-x-6',
+      descriptionClassName: 'md:translate-x-6',
+      hoverColor: '#B78FD7',
+    },
+    {
+      name: 'Rocco',
+      value: 'rocco',
+      image: '/assets/rocco.png',
+      description: 'Confident, and super kind!',
+      nameClassName: '',
+      descriptionClassName: '',
+      hoverColor: '#F2A156',
+    },
+    {
+      name: 'Mimmi',
+      value: 'mimi',
+      image: '/assets/mimmi.png',
+      description: 'Sweet, and full of energy!',
+      nameClassName: 'md:-translate-x-6',
+      descriptionClassName: 'md:-translate-x-6',
+      hoverColor: '#80E2F4',
+    },
   ];
 
   useEffect(() => {
@@ -117,6 +142,9 @@ const ChildCharacterSetup: React.FC = () => {
     playClickSound();
     setSelectedCharacter(value);
   };
+
+  const isCharacterActive = (value: string) =>
+    hoveredCharacter === value || selectedCharacter === value;
 
   if (authLoading) {
     return (
@@ -205,13 +233,15 @@ const ChildCharacterSetup: React.FC = () => {
           
           {/* Character Names on Rectangle */}
           <div className="absolute inset-0 flex items-center justify-center px-8 -top-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-              {characters.map((character, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+              {characters.map((character) => (
                 <div key={character.value} className="flex justify-center">
                   <button
                     type="button"
                     onClick={() => handleCharacterSelect(character.value)}
-                    className={`relative transition-all duration-200 ${
+                    onMouseEnter={() => setHoveredCharacter(character.value)}
+                    onMouseLeave={() => setHoveredCharacter('')}
+                    className={`relative appearance-none border-0 bg-transparent p-0 transition-all duration-200 ${
                       selectedCharacter === character.value
                         ? 'scale-105'
                         : 'hover:scale-102'
@@ -227,16 +257,26 @@ const ChildCharacterSetup: React.FC = () => {
                     }
                   >
                     <p
-                      className="text-white font-bold text-5xl"
-                      style={
-                        character.value === 'bubbles' || character.value === 'rocco'
-                          ? { fontFamily: "'Chewy', cursive", transform: 'translateY(6px)' }
-                          : character.value === 'mimi'
-                            ? { fontFamily: "'Chewy', cursive", transform: 'translateY(8px)' }
-                          : { fontFamily: "'Chewy', cursive" }
-                      }
+                      className={`text-5xl font-bold ${character.nameClassName}`}
+                      style={{
+                        fontFamily: "'Chewy', cursive",
+                        color: isCharacterActive(character.value) ? character.hoverColor : '#FFFFFF',
+                        opacity: isCharacterActive(character.value) ? 1 : 0.72,
+                        transition: 'color 180ms ease, opacity 180ms ease',
+                      }}
                     >
                       {character.name}
+                    </p>
+                    <p
+                      className={`mt-2 text-center text-2xl ${character.descriptionClassName}`}
+                      style={{
+                        fontFamily: "'Chewy', cursive",
+                        color: isCharacterActive(character.value) ? character.hoverColor : '#FFFFFF',
+                        opacity: isCharacterActive(character.value) ? 1 : 0.72,
+                        transition: 'color 180ms ease, opacity 180ms ease',
+                      }}
+                    >
+                      {character.description}
                     </p>
                     {selectedCharacter === character.value && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
@@ -252,15 +292,15 @@ const ChildCharacterSetup: React.FC = () => {
       </div>
 
       {/* Character Images Below Rectangle */}
-      <div className="absolute left-0 right-0 z-10" style={{ top: 'calc(33.08% + 18.62%)' }}>
+      <div className="absolute left-0 right-0 z-10" style={{ top: 'calc(33.08% + 14%)' }}>
         <div className="flex justify-center px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20 w-full max-w-5xl">
             {characters.map((character) => (
               <button
                 key={character.value}
                 type="button"
                 onClick={() => handleCharacterSelect(character.value)}
-                className={`relative transition-all duration-200 flex justify-center ${
+                className={`relative flex justify-center appearance-none border-0 bg-transparent p-0 transition-all duration-200 ${
                   selectedCharacter === character.value
                     ? 'scale-105'
                     : 'hover:scale-102'
@@ -269,14 +309,14 @@ const ChildCharacterSetup: React.FC = () => {
                 <img
                   src={character.image}
                   alt={character.name}
-                  className="w-72 h-72 object-contain"
+                  className="w-96 h-96 md:w-[28rem] md:h-[28rem] object-contain"
+                  style={{
+                    opacity: isCharacterActive(character.value) ? 1 : 0.72,
+                    transition: 'opacity 180ms ease',
+                  }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    const fallback = document.createElement('div');
-                    fallback.className = 'w-48 h-48 bg-white/20 rounded flex items-center justify-center text-white font-bold text-xl';
-                    fallback.textContent = character.name.charAt(0);
-                    target.parentNode?.appendChild(fallback);
                   }}
                 />
               </button>
@@ -299,11 +339,6 @@ const ChildCharacterSetup: React.FC = () => {
             className="w-20 h-20 object-contain"
           />
         </button>
-      </div>
-
-      {/* Footer - Logo */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 z-10">
-        <img src="/assets/logo.png" alt="Auti-Connects Logo" className="w-64 h-auto" />
       </div>
     </div>
   );

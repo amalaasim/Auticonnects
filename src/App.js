@@ -50,7 +50,7 @@ import Car from "./component/car";
 import splashVideo from "./Hicatvideo.MP4";
 import splashAudio from "./assests/splashaudio.mp3";
 import playCircle from "./assests/play-circle.svg";
-import splashLogo from "./assests/logo.png";
+import splashLogo from "./assests/vidlogo.png";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
 const SPLASH_SEEN_STORAGE_KEY = "app_splash_seen";
@@ -296,10 +296,11 @@ function App() {
               alt="Video logo"
               style={{
                 position: "absolute",
-                top: "6%",
+                top: "max(40px, calc(env(safe-area-inset-top, 0px) + 40px))",
                 left: "50%",
                 transform: "translateX(-50%)",
-                width: "min(28vw, 360px)",
+                width: "clamp(220px, 52vw, 440px)",
+                maxWidth: "calc(100vw - 32px)",
                 height: "auto",
                 zIndex: 10000,
                 opacity: showSplashLogo ? 1 : 0,
@@ -316,7 +317,7 @@ function App() {
                 style={{
                   position: "absolute",
                   left: "50%",
-                  bottom: "10%",
+                  bottom: "max(72px, calc(env(safe-area-inset-bottom, 0px) + 72px))",
                   transform: "translate(-50%, 40px)",
                   zIndex: 10000,
                   border: "none",
@@ -330,8 +331,8 @@ function App() {
                   src={playCircle}
                   alt="Play"
                   style={{
-                    width: "88px",
-                    height: "88px",
+                    width: "clamp(92px, 20vw, 120px)",
+                    height: "clamp(92px, 20vw, 120px)",
                     display: "block",
                   }}
                 />

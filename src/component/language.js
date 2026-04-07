@@ -55,17 +55,20 @@ export default function Language() {
           sx={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
             px: { lg: "5%", md: "5%", sm: "4%", xs: "3%" },
-            borderRadius: "10px",
-            background:
-              "linear-gradient(10deg, rgba(69,73,72,0.4) 0%, rgba(89,96,94,0.2) 100%)",
+            pt: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
+            pb: { lg: "8px", md: "8px", sm: "8px", xs: "8px" },
+            borderRadius: 0,
+            background: "transparent",
+            boxShadow: "none",
           }}
         >
           <Box
             component={AppGreetingHeader}
             sx={{
               width: { lg: "17%", md: "22%", sm: "30%", xs: "38%" },
-              mt: { lg: "1.5%", md: "2%", sm: "6%", xs: "10%" },
+              mt: 0,
             }}
           />
 
@@ -79,7 +82,7 @@ export default function Language() {
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     objectFit: "contain",
-                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    mt: 0,
                     opacity: 1,
                     filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                   }}
@@ -92,7 +95,7 @@ export default function Language() {
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     objectFit: "contain",
-                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    mt: 0,
                     opacity: 1,
                     filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                   }}
@@ -107,7 +110,7 @@ export default function Language() {
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     objectFit: "contain",
-                    mt: { lg: "16px", md: "19px", sm: "39px", xs: "59px" },
+                    mt: 0,
                     opacity: 1,
                     filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                     cursor: item.onClick ? "pointer" : "default",
@@ -126,7 +129,7 @@ export default function Language() {
           src={text}
           sx={{
             width: { lg: "80%", md: "85%", sm: "91%", xs: "95%" },
-            mt: { lg: "-12%", md: "-20%", sm: "-26%", xs: "-36%" },
+            mt: { lg: "-11%", md: "-18%", sm: "-23.5%", xs: "-33%" },
             ml: { lg: "9.3%", md: "7%", sm: "5%", xs: "2.5%" },
           }}
         />
@@ -137,7 +140,7 @@ export default function Language() {
           sx={{
             width: { lg: "35.6%", md: "57%", sm: "61.8%", xs: "83.7%" },
             ml: { lg: "33.3%", md: "25%", sm: "19%", xs: "12.5%" },
-            mt:{ lg: "0%", md: "-0.5%", sm: "7%", xs: "12%" },
+            mt:{ lg: "4%", md: "4.5%", sm: "12.5%", xs: "20%" },
             height: "auto",
           }}
         />

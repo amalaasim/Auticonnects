@@ -139,7 +139,10 @@ const ChildAgeSetup: React.FC = () => {
             />
           </button>
           
-          <h2 className="text-white text-4xl md:text-5xl font-bold mb-8 text-center absolute left-12 -top-8 rotate-3">
+          <h2
+            className="absolute left-20 -top-8 mb-8 text-center text-4xl font-bold text-white md:text-5xl rotate-3"
+            style={{ fontFamily: "'Chewy', cursive" }}
+          >
             How old is your kid?
           </h2>
           
@@ -152,7 +155,12 @@ const ChildAgeSetup: React.FC = () => {
                 placeholder=""
                 min="1"
                 max="18"
-                className="flex-1 -translate-y-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
+                className="flex-1 translate-x-6 -translate-y-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
+                style={{
+                  fontFamily: "'Chewy', cursive",
+                  MozAppearance: 'textfield',
+                  appearance: 'textfield',
+                }}
                 required
                 autoFocus
               />
