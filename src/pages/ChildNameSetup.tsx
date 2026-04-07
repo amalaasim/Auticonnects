@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { hasParentalConsent } from '@/utils/onboarding';
 import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import LoadingWheel from '@/components/LoadingWheel';
 import signoutNew from '../assests/signout-new.png';
 
 const ChildNameSetup: React.FC = () => {
@@ -59,7 +60,7 @@ const ChildNameSetup: React.FC = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex items-center justify-center" style={{ backgroundImage: 'url(/assets/child-profile-bg-1.png)' }}>
-        <div className="text-2xl animate-pulse text-white">Loading...</div>
+        <LoadingWheel size={92} />
       </div>
     );
   }

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
-  CircularProgress,
   Paper,
   Typography,
 } from "@mui/material";
@@ -38,6 +37,7 @@ import type { AnalyticsSessionRecord } from "@/lib/analytics/types";
 import homeButton from "../assests/homebutton.png";
 import signoutNew from "../assests/signout-new.png";
 import settingsIcon from "../assests/settings.png";
+import LoadingWheel from "@/components/LoadingWheel";
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
@@ -451,7 +451,7 @@ export default function ReportsPage() {
           background: "linear-gradient(180deg, #08151b 0%, #6dc5f4 100%)",
         }}
       >
-        <CircularProgress sx={{ color: "#ffffff" }} />
+        <LoadingWheel size={92} />
       </Box>
     );
   }

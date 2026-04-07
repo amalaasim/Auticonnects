@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { hasParentalConsent } from "@/utils/onboarding";
+import LoadingWheel from "@/components/LoadingWheel";
 
 /**
  * Wraps routes that require authentication.
@@ -60,17 +61,7 @@ function ProtectedRoute({ children }) {
           background: "#080f01",
         }}
       >
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            border: "4px solid rgba(255,255,255,0.2)",
-            borderTopColor: "#fff",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <LoadingWheel size={88} />
       </div>
     );
   }

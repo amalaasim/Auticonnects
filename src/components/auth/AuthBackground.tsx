@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import LoadingWheel from '@/components/LoadingWheel';
 
 interface AuthBackgroundProps {
   children: React.ReactNode;
@@ -71,9 +72,11 @@ const AuthBackground: React.FC<AuthBackgroundProps> = ({
         children
       ) : (
         <div className="relative z-10 flex min-h-[40vh] w-full items-center justify-center">
-          <div className="rounded-2xl bg-[rgba(255,255,255,0.18)] px-6 py-4 font-['Chewy'] text-[clamp(1rem,1.8vw,1.5rem)] text-[#6b3f16] shadow-lg backdrop-blur-sm">
-            Loading...
-          </div>
+          <LoadingWheel
+            size={96}
+            text="Loading..."
+            textClassName="rounded-2xl bg-[rgba(255,255,255,0.18)] px-6 py-3 font-['Chewy'] text-[clamp(1rem,1.8vw,1.5rem)] text-[#6b3f16] shadow-lg backdrop-blur-sm"
+          />
         </div>
       )}
     </div>

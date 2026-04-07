@@ -59,6 +59,7 @@ import greenBgImage from "./assests/greenbg.png";
 import backImage from "./assests/back.png";
 import standingLionLoop from "./assests/standinglion-loop.gif";
 import talkingLion from "./assests/talking.gif";
+import LoadingWheel from "./components/LoadingWheel";
 import { preloadImageAsset } from "./lib/preloadImageAsset";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
@@ -150,6 +151,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(() => !shouldSkipSplash());
   const [hasStartedSplash, setHasStartedSplash] = useState(false);
   const [showSplashLogo, setShowSplashLogo] = useState(true);
+  const [isSplashVideoReady, setIsSplashVideoReady] = useState(false);
   const SPLASH_AUDIO_DURATION_SECONDS = 3.5;
 
   useEffect(() => {
@@ -193,7 +195,7 @@ function App() {
   const startSplashPlayback = () => {
     const video = splashVideoRef.current;
     const audio = splashAudioRef.current;
-    if (!video || !audio) return;
+    if (!video || !audio || !isSplashVideoReady) return;
 
     video.muted = true;
     audio.muted = false;
@@ -202,6 +204,34 @@ function App() {
     video.play().catch(() => {});
     audio.play().catch(() => {});
   };
+
+  useEffect(() => {
+    if (!showSplash) {
+      setIsSplashVideoReady(false);
+      return;
+    }
+
+    const video = splashVideoRef.current;
+    if (!video) return;
+
+    const markReady = () => {
+      setIsSplashVideoReady(true);
+    };
+
+    if (video.readyState >= 2) {
+      markReady();
+      return;
+    }
+
+    setIsSplashVideoReady(false);
+    video.addEventListener("loadeddata", markReady);
+    video.addEventListener("canplay", markReady);
+
+    return () => {
+      video.removeEventListener("loadeddata", markReady);
+      video.removeEventListener("canplay", markReady);
+    };
+  }, [showSplash]);
 
   useEffect(() => {
     if (!showSplash || !hasStartedSplash) return;
@@ -264,7 +294,7 @@ function App() {
       setShowSplashLogo(true);
       return;
     }
-    if (!hasStartedSplash) {
+    if (!hasStartedSplash || !isSplashVideoReady) {
       setShowSplashLogo(true);
       return;
     }
@@ -276,10 +306,13 @@ function App() {
     return () => {
       window.clearTimeout(logoTimeoutId);
     };
-  }, [hasStartedSplash, showSplash]);
+  }, [hasStartedSplash, isSplashVideoReady, showSplash]);
 
   const handleUserInteraction = () => {
     if (showSplash) {
+      if (!isSplashVideoReady) {
+        return;
+      }
       if (!hasStartedSplash) {
         setHasStartedSplash(true);
       }
@@ -325,6 +358,24 @@ function App() {
               background: "#000",
             }}
           >
+            {!isSplashVideoReady && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 10001,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "radial-gradient(circle at center, rgba(52, 96, 171, 0.24) 0%, rgba(0, 0, 0, 0.94) 58%, #000 100%)",
+                }}
+              >
+                <LoadingWheel
+                  size={84}
+                />
+              </div>
+            )}
             <video
               ref={splashVideoRef}
               src={splashVideo}
@@ -336,27 +387,31 @@ function App() {
                 height: "100%",
                 objectFit: "cover",
                 objectPosition: "center center",
+                opacity: isSplashVideoReady ? 1 : 0,
+                transition: "opacity 180ms ease",
               }}
             />
-            <img
-              src={splashLogo}
-              alt="Video logo"
-              style={{
-                position: "absolute",
-                top: "max(40px, calc(env(safe-area-inset-top, 0px) + 40px))",
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "clamp(220px, 52vw, 440px)",
-                maxWidth: "calc(100vw - 32px)",
-                height: "auto",
-                zIndex: 10000,
-                opacity: showSplashLogo ? 1 : 0,
-                transition: "opacity 500ms ease",
-                pointerEvents: "none",
-              }}
-            />
+            {isSplashVideoReady && (
+              <img
+                src={splashLogo}
+                alt="Video logo"
+                style={{
+                  position: "absolute",
+                  top: "max(40px, calc(env(safe-area-inset-top, 0px) + 40px))",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "clamp(220px, 52vw, 440px)",
+                  maxWidth: "calc(100vw - 32px)",
+                  height: "auto",
+                  zIndex: 10000,
+                  opacity: showSplashLogo ? 1 : 0,
+                  transition: "opacity 500ms ease",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
             <audio ref={splashAudioRef} src={splashAudio} preload="auto" />
-            {!hasStartedSplash && (
+            {isSplashVideoReady && !hasStartedSplash && (
               <button
                 type="button"
                 onClick={handleUserInteraction}

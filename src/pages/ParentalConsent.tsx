@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { hasParentalConsent, setParentalConsent } from "@/utils/onboarding";
+import LoadingWheel from "@/components/LoadingWheel";
 import logo from "../assests/logo.png";
 import englishBackground from "../assests/english_bg.png";
 import settingsBoard from "../assests/settingsboard.png";
@@ -58,9 +59,7 @@ export default function ParentalConsent() {
           backgroundPosition: "center",
         }}
       >
-        <Typography sx={{ fontFamily: "Chewy", fontSize: "2rem", color: "#fff" }}>
-          Loading...
-        </Typography>
+        <LoadingWheel size={92} />
       </Box>
     );
   }

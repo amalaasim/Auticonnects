@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import LoadingWheel from '@/components/LoadingWheel';
 import signoutNew from '../assests/signout-new.png';
 
 const ChildAgeSetup: React.FC = () => {
@@ -64,7 +65,7 @@ const ChildAgeSetup: React.FC = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex items-center justify-center" style={{ backgroundImage: 'url(/assets/child-profile-bg-2.png)' }}>
-        <div className="text-2xl animate-pulse text-white">Loading...</div>
+        <LoadingWheel size={92} />
       </div>
     );
   }

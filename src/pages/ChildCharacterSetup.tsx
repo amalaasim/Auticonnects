@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Check } from 'lucide-react';
 import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import LoadingWheel from '@/components/LoadingWheel';
 import signoutNew from '../assests/signout-new.png';
 
 const ChildCharacterSetup: React.FC = () => {
@@ -149,7 +150,7 @@ const ChildCharacterSetup: React.FC = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex items-center justify-center" style={{ backgroundImage: 'url(/assets/child-profile-bg-3.png)' }}>
-        <div className="text-2xl animate-pulse text-white">Loading...</div>
+        <LoadingWheel size={92} />
       </div>
     );
   }
