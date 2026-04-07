@@ -5,9 +5,11 @@ import { arrayBufferToBase64, decodeAudioData, float32ToInt16, calculateVolume }
 interface UseGeminiLiveReturn {
   isConnected: boolean;
   isConnecting: boolean;
+  isReady: boolean;
   aiVolume: number;
   userVolume: number;
   connect: () => Promise<void>;
+  startConversation: () => Promise<void>;
   disconnect: () => void;
   sendPrompt: (text: string) => void;
   error: string | null;
@@ -16,6 +18,7 @@ interface UseGeminiLiveReturn {
 export const useGeminiLive = (): UseGeminiLiveReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Volume state for visualization
@@ -33,6 +36,14 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
   const sessionRef = useRef<any>(null);
   const liveSessionRef = useRef<any>(null);
   const sessionOpenRef = useRef(false);
+  const allowUserInputRef = useRef(false);
+  const introAudioStartedRef = useRef(false);
+  const introAudioFinishedRef = useRef(false);
+  const silenceHangoverUntilRef = useRef(0);
+  const introRetryTimeoutRef = useRef<number | null>(null);
+  const introInputFallbackTimeoutRef = useRef<number | null>(null);
+  const sessionReadyPromiseRef = useRef<Promise<void> | null>(null);
+  const resolveSessionReadyRef = useRef<(() => void) | null>(null);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const inputStreamRef = useRef<MediaStream | null>(null);
@@ -69,8 +80,39 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     return topics[nextIndex];
   };
 
+  const getNextIntroVariation = () => {
+    const intros = [
+      "Hello, my name is Sheru.",
+      "Hello beta, I am Sheru.",
+      "Hello, mera naam Sheru hai.",
+      "Assalamualaikum beta, my name is Sheru.",
+      "Hello jaan, I am Sheru.",
+    ];
+
+    if (typeof window === "undefined") {
+      return intros[0];
+    }
+
+    const storageKey = "sheru-bot:intro-variation-index";
+    const rawIndex = window.sessionStorage.getItem(storageKey);
+    const currentIndex = Number.parseInt(rawIndex || "-1", 10);
+    const nextIndex = Number.isNaN(currentIndex)
+      ? Math.floor(Math.random() * intros.length)
+      : (currentIndex + 1) % intros.length;
+
+    window.sessionStorage.setItem(storageKey, String(nextIndex));
+    return intros[nextIndex];
+  };
+
   const getApiKey = () => {
     return import.meta.env.VITE_GEMINI_API_KEY || null;
+  };
+
+  const createSessionReadyPromise = () => {
+    sessionReadyPromiseRef.current = new Promise<void>((resolve) => {
+      resolveSessionReadyRef.current = resolve;
+    });
+    return sessionReadyPromiseRef.current;
   };
 
   const cleanup = useCallback(() => {
@@ -95,6 +137,20 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     }
     liveSessionRef.current = null;
     sessionOpenRef.current = false;
+    sessionReadyPromiseRef.current = null;
+    resolveSessionReadyRef.current = null;
+    allowUserInputRef.current = false;
+    introAudioStartedRef.current = false;
+    introAudioFinishedRef.current = false;
+    silenceHangoverUntilRef.current = 0;
+    if (introRetryTimeoutRef.current) {
+      window.clearTimeout(introRetryTimeoutRef.current);
+      introRetryTimeoutRef.current = null;
+    }
+    if (introInputFallbackTimeoutRef.current) {
+      window.clearTimeout(introInputFallbackTimeoutRef.current);
+      introInputFallbackTimeoutRef.current = null;
+    }
     
     // Stop all playing sources
     sourcesRef.current.forEach(source => {
@@ -109,16 +165,24 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
 
     setIsConnected(false);
     setIsConnecting(false);
+    setIsReady(false);
     setAiVolume(0);
     setUserVolume(0);
     nextStartTimeRef.current = 0;
   }, []);
 
   const connect = useCallback(async () => {
-    if (isConnected || isConnecting) return;
+    if (sessionOpenRef.current) return;
+    if (isConnecting) {
+      if (sessionReadyPromiseRef.current) {
+        await sessionReadyPromiseRef.current;
+      }
+      return;
+    }
     
     setIsConnecting(true);
     setError(null);
+    createSessionReadyPromise();
 
     try {
       const apiKey = getApiKey();
@@ -195,18 +259,9 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
             sessionOpenRef.current = true;
             setIsConnected(true);
             setIsConnecting(false);
-            
-            // Send initial greeting prompt to make AI speak first
-            if (liveSessionRef.current) {
-              try {
-                const starterTopic = getNextStarterTopic();
-                liveSessionRef.current.sendRealtimeInput({
-                  text: `Greet the child warmly as Sheru and ask one short opening question about ${starterTopic}. Keep it fresh, gentle, natural, and age-appropriate. Session token: ${Date.now()}.`
-                });
-              } catch (err) {
-                console.error('Error sending initial greeting:', err);
-              }
-            }
+            setIsReady(true);
+            resolveSessionReadyRef.current?.();
+            resolveSessionReadyRef.current = null;
           },
           onmessage: async (message) => {
             // Handle Audio Output
@@ -227,6 +282,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
               // Prepare Source
               const source = ctx.createBufferSource();
               source.buffer = audioBuffer;
+              introAudioStartedRef.current = true;
               
               // Connect source to the Master AI Analyzer
               if (aiAnalyzerRef.current) {
@@ -241,6 +297,23 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
               sourcesRef.current.add(source);
               source.onended = () => {
                 sourcesRef.current.delete(source);
+                if (
+                  introAudioStartedRef.current &&
+                  !introAudioFinishedRef.current &&
+                  sourcesRef.current.size === 0
+                ) {
+                  introAudioFinishedRef.current = true;
+                  allowUserInputRef.current = true;
+                  if (introRetryTimeoutRef.current) {
+                    window.clearTimeout(introRetryTimeoutRef.current);
+                    introRetryTimeoutRef.current = null;
+                  }
+                  if (introInputFallbackTimeoutRef.current) {
+                    window.clearTimeout(introInputFallbackTimeoutRef.current);
+                    introInputFallbackTimeoutRef.current = null;
+                  }
+                  console.log('Sheru intro finished. Mic input enabled.');
+                }
               };
             }
 
@@ -274,11 +347,15 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
           systemInstruction: `
 You are Sheru, a warm bilingual robot companion for autistic children.
 Speak softly, gently, and briefly.
-Mix Urdu and English naturally.
+Mainly respond in a natural mix of English and Urdu.
+Automatically detect the language the child is speaking.
+If the child speaks in Sindhi, Pashto, or another language, first understand and follow that language naturally instead of forcing Urdu.
+Do not guess based on a few familiar words only; listen for the overall language and respond in the detected language, while still keeping Sheru's warm style.
 Use short simple sentences, one idea at a time.
 Ask only one small gentle question at the end.
 Be encouraging, calm, and playful.
 Never scold or overwhelm.
+Sheru should always start the conversation first with a short self-introduction before expecting the child to speak.
 If the child seems sad, angry, scared, lonely, or hurt:
 first validate, then reassure, then offer one tiny coping step, then ask one gentle follow-up.
 Do not ignore emotional disclosures and do not switch topics too fast after a hurt feeling.
@@ -300,8 +377,19 @@ Always sound natural, caring, and child-friendly.
 
       // Handle Input Streaming
       processor.onaudioprocess = (e) => {
-        if (!sessionOpenRef.current || !liveSessionRef.current) return;
+        if (!sessionOpenRef.current || !liveSessionRef.current || !allowUserInputRef.current) return;
         const inputData = e.inputBuffer.getChannelData(0);
+        const volume = calculateVolume(inputData);
+        const now = performance.now();
+
+        if (volume > 0.03) {
+          silenceHangoverUntilRef.current = now + 900;
+        }
+
+        if (volume <= 0.03 && now > silenceHangoverUntilRef.current) {
+          return;
+        }
+
         // Convert Float32 to Int16 PCM
         const pcmData = float32ToInt16(inputData);
         // Create Base64
@@ -322,7 +410,65 @@ Always sound natural, caring, and child-friendly.
       setIsConnecting(false);
       cleanup();
     }
-  }, [isConnected, isConnecting, cleanup]);
+    if (sessionReadyPromiseRef.current) {
+      await sessionReadyPromiseRef.current;
+    }
+  }, [isConnecting, cleanup]);
+
+  const startConversation = useCallback(async () => {
+    await connect();
+
+    allowUserInputRef.current = false;
+    introAudioStartedRef.current = false;
+    introAudioFinishedRef.current = false;
+    silenceHangoverUntilRef.current = 0;
+
+    if (introRetryTimeoutRef.current) {
+      window.clearTimeout(introRetryTimeoutRef.current);
+      introRetryTimeoutRef.current = null;
+    }
+    if (introInputFallbackTimeoutRef.current) {
+      window.clearTimeout(introInputFallbackTimeoutRef.current);
+      introInputFallbackTimeoutRef.current = null;
+    }
+
+    const sendIntroPrompt = (session: any) => {
+      const starterTopic = getNextStarterTopic();
+      const introLine = getNextIntroVariation();
+      session.sendRealtimeInput({
+        text: `Start the conversation yourself. Begin with this exact self-introduction line: "${introLine}" Then ask one short warm opening question about ${starterTopic}. Keep it gentle, natural, age-appropriate, and brief. Session token: ${Date.now()}.`
+      });
+    };
+
+    if (sessionRef.current) {
+      sessionRef.current.then((session: any) => {
+        if (!introAudioStartedRef.current) {
+          sendIntroPrompt(session);
+        }
+      }).catch((err: any) => {
+        console.error('Error sending initial greeting:', err);
+      });
+    }
+
+    introRetryTimeoutRef.current = window.setTimeout(() => {
+      if (sessionRef.current && !introAudioStartedRef.current) {
+        sessionRef.current.then((session: any) => {
+          if (!introAudioStartedRef.current) {
+            sendIntroPrompt(session);
+          }
+        }).catch((err: any) => {
+          console.error('Error retrying initial greeting:', err);
+        });
+      }
+    }, 2200);
+
+    introInputFallbackTimeoutRef.current = window.setTimeout(() => {
+      if (!introAudioFinishedRef.current) {
+        allowUserInputRef.current = true;
+        console.log('Intro fallback timeout reached. Mic input enabled.');
+      }
+    }, 4200);
+  }, [connect]);
 
   // Function to send a text prompt to the AI
   const sendPrompt = useCallback((text: string) => {
@@ -341,9 +487,11 @@ Always sound natural, caring, and child-friendly.
   return {
     isConnected,
     isConnecting,
+    isReady,
     aiVolume,
     userVolume,
     connect,
+    startConversation,
     disconnect: cleanup,
     sendPrompt,
     error

@@ -11,13 +11,14 @@ import { finishSession, startSession } from '../src/lib/analytics/client';
 import { normalizeFocusMetrics } from '../src/lib/analytics/mappers';
 
 const App: React.FC = () => {
-  const { connect, disconnect, isConnected, isConnecting, aiVolume, userVolume, error, sendPrompt } = useGeminiLive();
+  const { connect, startConversation, disconnect, isConnected, isConnecting, isReady, aiVolume, userVolume, error, sendPrompt } = useGeminiLive();
   const { isLooking, videoRef } = useWebEyeGaze();
+  const [hasStartedConversation, setHasStartedConversation] = useState(false);
   
   // Emotion detection using the same video ref as gaze detection
   const { currentEmotion, emotionConfidence, emotionCounts, sessionData } = useEmotionDetection(
     videoRef,
-    isConnected
+    hasStartedConversation
   );
 
   const [currentAiText, setCurrentAiText] = useState("");
@@ -36,7 +37,14 @@ const App: React.FC = () => {
   const lastAttentionChangeRef = useRef<number | null>(null);
   const previousIsLookingRef = useRef<boolean | null>(null);
 
+  useEffect(() => {
+    void connect().catch((connectError) => {
+      console.error('Failed to preconnect Sheru Bot:', connectError);
+    });
+  }, [connect]);
+
   const handleStart = async () => {
+    setHasStartedConversation(true);
     sessionStartTimeRef.current = Date.now();
     focusTimeRef.current = 0;
     distractedTimeRef.current = 0;
@@ -57,7 +65,7 @@ const App: React.FC = () => {
         console.error('Failed to start Sheru Bot analytics session:', analyticsError);
       });
 
-    await connect();
+    await startConversation();
   };
 
   const handleStop = () => {
@@ -100,6 +108,7 @@ const App: React.FC = () => {
     }
     
     disconnect();
+    setHasStartedConversation(false);
     setCurrentAiText("");
     gazeReminderSentRef.current = false;
     gazeReminderCountRef.current = 0;
@@ -120,7 +129,7 @@ const App: React.FC = () => {
 
   // Eye-gaze monitoring logic
   useEffect(() => {
-    if (!isConnected) {
+    if (!hasStartedConversation) {
       console.log('👁️ Gaze monitor: Not connected, skipping');
       return;
     }
@@ -164,11 +173,11 @@ const App: React.FC = () => {
     // Track AI talking state
     setWasAiTalking(isAiTalking);
 
-  }, [isAiTalking, wasAiTalking, isLooking, isConnected, sendPrompt]);
+  }, [isAiTalking, wasAiTalking, isLooking, hasStartedConversation, sendPrompt]);
 
   // Emotion-based interaction logic
   useEffect(() => {
-    if (!isConnected) {
+    if (!hasStartedConversation) {
       lastAttentionChangeRef.current = null;
       previousIsLookingRef.current = null;
       return;
@@ -197,10 +206,10 @@ const App: React.FC = () => {
 
     previousIsLookingRef.current = isLooking;
     lastAttentionChangeRef.current = now;
-  }, [isConnected, isLooking]);
+  }, [hasStartedConversation, isLooking]);
 
   useEffect(() => {
-    if (!isConnected || !currentEmotion) return;
+    if (!hasStartedConversation || !currentEmotion) return;
 
     // If emotion changes significantly and AI is not talking
     if (currentEmotion !== lastEmotionRef.current && !isAiTalking) {
@@ -213,7 +222,7 @@ const App: React.FC = () => {
       
       // Wait a bit to see if emotion is stable, then react
       emotionChangeTimeoutRef.current = setTimeout(() => {
-        if (!isAiTalking && isConnected) {
+        if (!isAiTalking && hasStartedConversation) {
           console.log(`😊 Emotion changed to: ${currentEmotion}. Informing Sheru...`);
           
           let emotionPrompt = "";
@@ -253,7 +262,7 @@ const App: React.FC = () => {
         clearTimeout(emotionChangeTimeoutRef.current);
       }
     };
-  }, [currentEmotion, isAiTalking, isConnected, sendPrompt]);
+  }, [currentEmotion, isAiTalking, hasStartedConversation, sendPrompt]);
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-between p-6 overflow-hidden relative">
@@ -268,7 +277,7 @@ const App: React.FC = () => {
 
       {/* Emotion Display - Bottom Left */}
       <div className="absolute bottom-6 left-6 z-50">
-        {isConnected && (
+        {hasStartedConversation && (
           <EmotionDisplay emotion={currentEmotion} confidence={emotionConfidence} />
         )}
       </div>
@@ -298,7 +307,7 @@ const App: React.FC = () => {
           isListening={isUserTalking}
           userVolume={userVolume}
           currentText={currentAiText}
-          isConnected={isConnected}
+          isConnected={hasStartedConversation}
         />
       </main>
 
@@ -307,15 +316,16 @@ const App: React.FC = () => {
         style={{ transform: 'translateY(50px)' }}
       >
         <BottomControls
-          isConnected={isConnected}
+          isConnected={hasStartedConversation}
           isConnecting={isConnecting}
+          isReady={isReady}
           onStart={handleStart}
           onStop={handleStop}
         />
 
         <div className="min-h-[68px] flex flex-col items-center gap-3">
           {/* Gaze Status Indicator */}
-          {isConnected && (
+          {hasStartedConversation && (
             <div className={`px-3 py-1 border rounded text-xs ${
               isLooking 
                 ? 'bg-green-500/10 border-green-500/30 text-green-200' 
