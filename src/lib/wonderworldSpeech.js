@@ -174,9 +174,9 @@ export const WONDERWORLD_SPEECH_CONFIG = {
       ur: "gaind",
     },
     recognitionLang: "en-US",
-    attemptMode: "finalResultOnly",
+    attemptMode: "firstResultOnce",
     permissionMode: "requireMicPermission",
-    resultMode: "currentResultOnly",
+    resultMode: "allResults",
     controlMode: "allowCancel",
     matches: buildTranscriptMatcher(ballVariants, (word) => {
       if (word.length > 7) return false;
@@ -191,13 +191,13 @@ export const WONDERWORLD_SPEECH_CONFIG = {
   },
   shoe: {
     targetWordByLanguage: {
-      en: "shoes",
-      ur: "jootay",
+      en: "shoe",
+      ur: "joota",
     },
     recognitionLang: "en-US",
-    attemptMode: "finalResultOnly",
+    attemptMode: "firstResultOnce",
     permissionMode: "requireMicPermission",
-    resultMode: "currentResultOnly",
+    resultMode: "allResults",
     controlMode: "allowCancel",
     matches: buildTranscriptMatcher(shoeVariants, (word) => {
       if (word.length > 8) return false;
