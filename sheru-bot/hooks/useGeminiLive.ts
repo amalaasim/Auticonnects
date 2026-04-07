@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { useState, useRef, useCallback } from 'react';
+import { GoogleGenAI, MediaResolution, Modality } from '@google/genai';
 import { arrayBufferToBase64, decodeAudioData, float32ToInt16, calculateVolume } from '../utils/audio';
 
 interface UseGeminiLiveReturn {
@@ -39,17 +39,22 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
   const allowUserInputRef = useRef(false);
   const introAudioStartedRef = useRef(false);
   const introAudioFinishedRef = useRef(false);
-  const silenceHangoverUntilRef = useRef(0);
-  const introRetryTimeoutRef = useRef<number | null>(null);
   const introInputFallbackTimeoutRef = useRef<number | null>(null);
   const sessionReadyPromiseRef = useRef<Promise<void> | null>(null);
   const resolveSessionReadyRef = useRef<(() => void) | null>(null);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const inputStreamRef = useRef<MediaStream | null>(null);
+  const userSpeechActiveRef = useRef(false);
+  const speechFramesRef = useRef(0);
+  const silenceFramesRef = useRef(0);
   
   // Animation frames
   const rafIdRef = useRef<number | null>(null);
+
+  const MIN_SPEECH_VOLUME = 0.04;
+  const SPEECH_START_FRAMES = 2;
+  const SPEECH_END_FRAMES = 8;
 
   const getNextStarterTopic = () => {
     const topics = [
@@ -115,6 +120,12 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     return sessionReadyPromiseRef.current;
   };
 
+  const resetUserSpeechGate = () => {
+    userSpeechActiveRef.current = false;
+    speechFramesRef.current = 0;
+    silenceFramesRef.current = 0;
+  };
+
   const cleanup = useCallback(() => {
     if (processorRef.current) {
       processorRef.current.disconnect();
@@ -142,11 +153,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     allowUserInputRef.current = false;
     introAudioStartedRef.current = false;
     introAudioFinishedRef.current = false;
-    silenceHangoverUntilRef.current = 0;
-    if (introRetryTimeoutRef.current) {
-      window.clearTimeout(introRetryTimeoutRef.current);
-      introRetryTimeoutRef.current = null;
-    }
+    resetUserSpeechGate();
     if (introInputFallbackTimeoutRef.current) {
       window.clearTimeout(introInputFallbackTimeoutRef.current);
       introInputFallbackTimeoutRef.current = null;
@@ -252,7 +259,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
 
       // --- Connect to Gemini Live ---
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model: 'gemini-3.1-flash-live-preview',
         callbacks: {
           onopen: () => {
             console.log('Gemini Live Session Opened');
@@ -264,57 +271,56 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
             resolveSessionReadyRef.current = null;
           },
           onmessage: async (message) => {
-            // Handle Audio Output
-            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (base64Audio && audioContextRef.current) {
-              const ctx = audioContextRef.current;
-              
-              // Ensure we schedule after current time
-              nextStartTimeRef.current = Math.max(
-                nextStartTimeRef.current,
-                ctx.currentTime
-              );
-
-              // Decode
-              const dataBytes = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
-              const audioBuffer = await decodeAudioData(dataBytes, ctx, 24000, 1);
-              
-              // Prepare Source
-              const source = ctx.createBufferSource();
-              source.buffer = audioBuffer;
-              introAudioStartedRef.current = true;
-              
-              // Connect source to the Master AI Analyzer
-              if (aiAnalyzerRef.current) {
-                  source.connect(aiAnalyzerRef.current);
-              } else {
-                  source.connect(ctx.destination);
-              }
-              
-              source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += audioBuffer.duration;
-              
-              sourcesRef.current.add(source);
-              source.onended = () => {
-                sourcesRef.current.delete(source);
-                if (
-                  introAudioStartedRef.current &&
-                  !introAudioFinishedRef.current &&
-                  sourcesRef.current.size === 0
-                ) {
-                  introAudioFinishedRef.current = true;
-                  allowUserInputRef.current = true;
-                  if (introRetryTimeoutRef.current) {
-                    window.clearTimeout(introRetryTimeoutRef.current);
-                    introRetryTimeoutRef.current = null;
-                  }
-                  if (introInputFallbackTimeoutRef.current) {
-                    window.clearTimeout(introInputFallbackTimeoutRef.current);
-                    introInputFallbackTimeoutRef.current = null;
-                  }
-                  console.log('Sheru intro finished. Mic input enabled.');
+            const modelTurn = message.serverContent?.modelTurn;
+            if (modelTurn?.parts && audioContextRef.current) {
+              for (const part of modelTurn.parts) {
+                if (part.text) {
+                  console.log('Sheru says (text):', part.text);
                 }
-              };
+
+                if (!part.inlineData?.data) continue;
+
+                const ctx = audioContextRef.current;
+
+                nextStartTimeRef.current = Math.max(
+                  nextStartTimeRef.current,
+                  ctx.currentTime
+                );
+
+                const dataBytes = Uint8Array.from(atob(part.inlineData.data), c => c.charCodeAt(0));
+                const audioBuffer = await decodeAudioData(dataBytes, ctx, 24000, 1);
+
+                const source = ctx.createBufferSource();
+                source.buffer = audioBuffer;
+                introAudioStartedRef.current = true;
+
+                if (aiAnalyzerRef.current) {
+                  source.connect(aiAnalyzerRef.current);
+                } else {
+                  source.connect(ctx.destination);
+                }
+
+                source.start(nextStartTimeRef.current);
+                nextStartTimeRef.current += audioBuffer.duration;
+
+                sourcesRef.current.add(source);
+                source.onended = () => {
+                  sourcesRef.current.delete(source);
+                  if (
+                    introAudioStartedRef.current &&
+                    !introAudioFinishedRef.current &&
+                    sourcesRef.current.size === 0
+                  ) {
+                    introAudioFinishedRef.current = true;
+                    allowUserInputRef.current = true;
+                    if (introInputFallbackTimeoutRef.current) {
+                      window.clearTimeout(introInputFallbackTimeoutRef.current);
+                      introInputFallbackTimeoutRef.current = null;
+                    }
+                    console.log('Sheru intro finished. Mic input enabled.');
+                  }
+                };
+              }
             }
 
             // Handle Interruption
@@ -323,6 +329,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
               sourcesRef.current.forEach(s => s.stop());
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
+              resetUserSpeechGate();
               // Note: Volume will naturally drop as analyzer empties
             }
           },
@@ -338,6 +345,11 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
         },
         config: {
           responseModalities: [Modality.AUDIO],
+          thinkingConfig: {
+            thinkingLevel: 'minimal',
+            includeThoughts: false,
+          },
+          mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
           speechConfig: {
             // "Aoede" is the 'Expressive' voice, often female/child-like. 
             // Fallback: "Kore" or "Zephyr".
@@ -378,17 +390,35 @@ Always sound natural, caring, and child-friendly.
       // Handle Input Streaming
       processor.onaudioprocess = (e) => {
         if (!sessionOpenRef.current || !liveSessionRef.current || !allowUserInputRef.current) return;
-        const inputData = e.inputBuffer.getChannelData(0);
-        const volume = calculateVolume(inputData);
-        const now = performance.now();
 
-        if (volume > 0.03) {
-          silenceHangoverUntilRef.current = now + 900;
-        }
-
-        if (volume <= 0.03 && now > silenceHangoverUntilRef.current) {
+        if (sourcesRef.current.size > 0) {
+          resetUserSpeechGate();
           return;
         }
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        const volume = calculateVolume(inputData);
+
+        if (volume >= MIN_SPEECH_VOLUME) {
+          silenceFramesRef.current = 0;
+          if (!userSpeechActiveRef.current) {
+            speechFramesRef.current += 1;
+            if (speechFramesRef.current >= SPEECH_START_FRAMES) {
+              userSpeechActiveRef.current = true;
+            }
+          }
+        } else if (userSpeechActiveRef.current) {
+          silenceFramesRef.current += 1;
+          if (silenceFramesRef.current >= SPEECH_END_FRAMES) {
+            resetUserSpeechGate();
+            return;
+          }
+        } else {
+          speechFramesRef.current = 0;
+          return;
+        }
+
+        if (!userSpeechActiveRef.current) return;
 
         // Convert Float32 to Int16 PCM
         const pcmData = float32ToInt16(inputData);
@@ -397,7 +427,7 @@ Always sound natural, caring, and child-friendly.
         const base64Data = arrayBufferToBase64(uint8Data.buffer as ArrayBuffer);
 
         liveSessionRef.current.sendRealtimeInput({
-          media: {
+          audio: {
             mimeType: 'audio/pcm;rate=16000',
             data: base64Data
           }
@@ -418,15 +448,25 @@ Always sound natural, caring, and child-friendly.
   const startConversation = useCallback(async () => {
     await connect();
 
+    if (audioContextRef.current?.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
+    if (inputAudioContextRef.current?.state === 'suspended') {
+      await inputAudioContextRef.current.resume();
+    }
+
+    sourcesRef.current.forEach((source) => {
+      try {
+        source.stop();
+      } catch (_) {}
+    });
+    sourcesRef.current.clear();
+    nextStartTimeRef.current = 0;
+
     allowUserInputRef.current = false;
     introAudioStartedRef.current = false;
     introAudioFinishedRef.current = false;
-    silenceHangoverUntilRef.current = 0;
-
-    if (introRetryTimeoutRef.current) {
-      window.clearTimeout(introRetryTimeoutRef.current);
-      introRetryTimeoutRef.current = null;
-    }
+    resetUserSpeechGate();
     if (introInputFallbackTimeoutRef.current) {
       window.clearTimeout(introInputFallbackTimeoutRef.current);
       introInputFallbackTimeoutRef.current = null;
@@ -450,24 +490,12 @@ Always sound natural, caring, and child-friendly.
       });
     }
 
-    introRetryTimeoutRef.current = window.setTimeout(() => {
-      if (sessionRef.current && !introAudioStartedRef.current) {
-        sessionRef.current.then((session: any) => {
-          if (!introAudioStartedRef.current) {
-            sendIntroPrompt(session);
-          }
-        }).catch((err: any) => {
-          console.error('Error retrying initial greeting:', err);
-        });
-      }
-    }, 2200);
-
     introInputFallbackTimeoutRef.current = window.setTimeout(() => {
       if (!introAudioFinishedRef.current) {
         allowUserInputRef.current = true;
         console.log('Intro fallback timeout reached. Mic input enabled.');
       }
-    }, 4200);
+    }, 3000);
   }, [connect]);
 
   // Function to send a text prompt to the AI

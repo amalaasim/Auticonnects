@@ -38,10 +38,12 @@ const App: React.FC = () => {
   const previousIsLookingRef = useRef<boolean | null>(null);
 
   useEffect(() => {
+    if (hasStartedConversation || isReady || isConnecting) return;
+
     void connect().catch((connectError) => {
       console.error('Failed to preconnect Sheru Bot:', connectError);
     });
-  }, [connect]);
+  }, [connect, hasStartedConversation, isReady, isConnecting]);
 
   const handleStart = async () => {
     setHasStartedConversation(true);
