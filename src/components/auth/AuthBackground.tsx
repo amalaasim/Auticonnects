@@ -66,7 +66,7 @@ const AuthBackground: React.FC<AuthBackgroundProps> = ({
         aria-hidden="true"
         loading="eager"
         decoding="async"
-        className={`pointer-events-none absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${backgroundLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-none absolute inset-0 h-full w-full object-fill object-center transition-opacity duration-300 ${backgroundLoaded ? 'opacity-100' : 'opacity-0'}`}
       />
       {assetsReady ? (
         children

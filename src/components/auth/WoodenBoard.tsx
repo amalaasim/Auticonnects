@@ -4,10 +4,18 @@ const signinBoard = '/assets/board.png';
 interface WoodenBoardProps {
   children: React.ReactNode;
   className?: string;
+  contentClassName?: string;
   animated?: boolean;
+  scrollable?: boolean;
 }
 
-const WoodenBoard: React.FC<WoodenBoardProps> = ({ children, className = '', animated = true }) => {
+const WoodenBoard: React.FC<WoodenBoardProps> = ({
+  children,
+  className = '',
+  contentClassName = '',
+  animated = true,
+  scrollable = false,
+}) => {
   const [boardLoaded, setBoardLoaded] = useState(false);
 
   useEffect(() => {
@@ -23,7 +31,7 @@ const WoodenBoard: React.FC<WoodenBoardProps> = ({ children, className = '', ani
 
   return (
     <div 
-      className={`relative mx-auto aspect-[817/968] w-[min(92vw,32rem)] md:w-[min(76vw,38rem)] lg:w-[min(48vw,44rem)] xl:w-[min(42vw,46rem)] ${animated ? 'animate-bounce-in' : ''} ${className}`}
+      className={`fixed bottom-[2.9vh] left-1/2 -translate-x-1/2 aspect-[817/968] h-[92vh] w-auto max-w-[85vw] object-contain ${animated ? 'animate-bounce-in' : ''} ${className}`}
     >
       <img 
         src={signinBoard} 
@@ -32,7 +40,9 @@ const WoodenBoard: React.FC<WoodenBoardProps> = ({ children, className = '', ani
         decoding="async"
         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-200 ${boardLoaded ? 'opacity-100' : 'opacity-0'}`}
       />
-      <div className={`absolute bottom-[20%] left-[13.2%] right-[14.8%] top-[23%] flex min-h-0 flex-col justify-start px-[1%] pt-[2%] transition-opacity duration-150 ${boardLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div
+        className={`absolute left-[12%] right-[12%] top-[21%] bottom-[35%] flex min-h-0 flex-col @container justify-start px-[3%] py-[2%] transition-opacity duration-150 ${scrollable ? 'overflow-y-auto' : 'overflow-y-hidden'} ${boardLoaded ? 'opacity-100' : 'opacity-0'} ${contentClassName}`}
+      >
         {children}
       </div>
     </div>
