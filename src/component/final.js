@@ -298,7 +298,7 @@ useEffect(() => {
                   fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
                   fontWeight: i18n.language === "ur" ? 600 : 400,
                   letterSpacing: "1px",
-                  color: "rgb(15, 21, 27,0.8)",
+                  color: "#fff",
                   opacity: "0.9",
                 }}
               >
