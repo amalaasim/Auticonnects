@@ -467,21 +467,21 @@ const App: React.FC = () => {
         }}
       />
 
-      {!isPageReady ? (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#080f01]">
-          <LoadingWheel size={84} />
-        </div>
-      ) : (
-        <>
-
-      
       {/* Hidden video element for eye-gaze tracking and emotion detection */}
       <video 
         ref={videoRef}
         style={{ display: 'none' }}
         playsInline
         autoPlay
+        muted
       />
+
+      {!isPageReady ? (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#080f01]">
+          <LoadingWheel size={84} />
+        </div>
+      ) : (
+        <>
 
       <div
         style={{
