@@ -92,55 +92,66 @@ function shouldSkipSplash() {
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const skipPageReadyGate = new Set([
+    "/learnobject",
+  ]).has(location.pathname);
+
+  const routes = (
+    <Routes location={location}>
+      {/* ── Public auth routes ── */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/email-verified" element={<EmailVerified />} />
+
+      {/* ── Onboarding routes (auth required, profile check skipped) ── */}
+      <Route path="/child-profile/consent" element={<ParentalConsent />} />
+      <Route path="/child-profile/name" element={<ChildNameSetup />} />
+      <Route path="/child-profile/age" element={<ChildAgeSetup />} />
+      <Route path="/child-profile/character" element={<ChildCharacterSetup />} />
+
+      {/* ── Protected game routes ── */}
+      <Route path="/" element={<ProtectedRoute><Lanuguage /></ProtectedRoute>} />
+      <Route path="/english" element={<ProtectedRoute><English /></ProtectedRoute>} />
+      <Route path="/garden" element={<ProtectedRoute><GardenStory /></ProtectedRoute>} />
+      <Route path="/wonderworld" element={<ProtectedRoute><Wonderworld /></ProtectedRoute>} />
+      <Route path="/learnobject" element={<ProtectedRoute><Learnobj /></ProtectedRoute>} />
+      <Route path="/learnobjectcar" element={<ProtectedRoute><Learnobjcar /></ProtectedRoute>} />
+      <Route path="/learnobjshoe" element={<ProtectedRoute><Learnobjshoe /></ProtectedRoute>} />
+      <Route path="/learnobjball" element={<ProtectedRoute><Learnobjball /></ProtectedRoute>} />
+      <Route path="/find" element={<ProtectedRoute><Find /></ProtectedRoute>} />
+      <Route path="/findcar" element={<ProtectedRoute><Findcar /></ProtectedRoute>} />
+      <Route path="/findshoe" element={<ProtectedRoute><Findshoe /></ProtectedRoute>} />
+      <Route path="/findball" element={<ProtectedRoute><Findball /></ProtectedRoute>} />
+      <Route path="/final" element={<ProtectedRoute><Final /></ProtectedRoute>} />
+      <Route path="/shoeverify" element={<ProtectedRoute><Verifyshoe /></ProtectedRoute>} />
+      <Route path="/uploadshoe" element={<ProtectedRoute><UploadShoe /></ProtectedRoute>} />
+      <Route path="/showShoe" element={<ProtectedRoute><Show /></ProtectedRoute>} />
+      <Route path="/yourShoe" element={<ProtectedRoute><YourShoe /></ProtectedRoute>} />
+      <Route path="/showCookie" element={<ProtectedRoute><Cookie /></ProtectedRoute>} />
+      <Route path="/showball" element={<ProtectedRoute><Ball /></ProtectedRoute>} />
+      <Route path="/car" element={<ProtectedRoute><Car /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+      <Route path="/new-password" element={<ProtectedRoute><NewPasswordPage /></ProtectedRoute>} />
+      <Route path="/final/learnobject" element={<ProtectedRoute><Final /></ProtectedRoute>} />
+      <Route path="/final/learnobjectcar" element={<ProtectedRoute><Final /></ProtectedRoute>} />
+      <Route path="/final/learnobjball" element={<ProtectedRoute><Final /></ProtectedRoute>} />
+      <Route path="/final/learnobjshoe" element={<ProtectedRoute><Final /></ProtectedRoute>} />
+    </Routes>
+  );
 
   return (
     <AnimatePresence mode="wait">
-      <PageReadyGate routeKey={location.pathname} key={location.pathname}>
-        <Routes location={location}>
-          {/* ── Public auth routes ── */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/email-verified" element={<EmailVerified />} />
-
-          {/* ── Onboarding routes (auth required, profile check skipped) ── */}
-          <Route path="/child-profile/consent" element={<ParentalConsent />} />
-          <Route path="/child-profile/name" element={<ChildNameSetup />} />
-          <Route path="/child-profile/age" element={<ChildAgeSetup />} />
-          <Route path="/child-profile/character" element={<ChildCharacterSetup />} />
-
-          {/* ── Protected game routes ── */}
-          <Route path="/" element={<ProtectedRoute><Lanuguage /></ProtectedRoute>} />
-          <Route path="/english" element={<ProtectedRoute><English /></ProtectedRoute>} />
-          <Route path="/garden" element={<ProtectedRoute><GardenStory /></ProtectedRoute>} />
-          <Route path="/wonderworld" element={<ProtectedRoute><Wonderworld /></ProtectedRoute>} />
-          <Route path="/learnobject" element={<ProtectedRoute><Learnobj /></ProtectedRoute>} />
-          <Route path="/learnobjectcar" element={<ProtectedRoute><Learnobjcar /></ProtectedRoute>} />
-          <Route path="/learnobjshoe" element={<ProtectedRoute><Learnobjshoe /></ProtectedRoute>} />
-          <Route path="/learnobjball" element={<ProtectedRoute><Learnobjball /></ProtectedRoute>} />
-          <Route path="/find" element={<ProtectedRoute><Find /></ProtectedRoute>} />
-          <Route path="/findcar" element={<ProtectedRoute><Findcar /></ProtectedRoute>} />
-          <Route path="/findshoe" element={<ProtectedRoute><Findshoe /></ProtectedRoute>} />
-          <Route path="/findball" element={<ProtectedRoute><Findball /></ProtectedRoute>} />
-          <Route path="/final" element={<ProtectedRoute><Final /></ProtectedRoute>} />
-          <Route path="/shoeverify" element={<ProtectedRoute><Verifyshoe /></ProtectedRoute>} />
-          <Route path="/uploadshoe" element={<ProtectedRoute><UploadShoe /></ProtectedRoute>} />
-          <Route path="/showShoe" element={<ProtectedRoute><Show /></ProtectedRoute>} />
-          <Route path="/yourShoe" element={<ProtectedRoute><YourShoe /></ProtectedRoute>} />
-          <Route path="/showCookie" element={<ProtectedRoute><Cookie /></ProtectedRoute>} />
-          <Route path="/showball" element={<ProtectedRoute><Ball /></ProtectedRoute>} />
-          <Route path="/car" element={<ProtectedRoute><Car /></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
-          <Route path="/new-password" element={<ProtectedRoute><NewPasswordPage /></ProtectedRoute>} />
-          <Route path="/final/learnobject" element={<ProtectedRoute><Final /></ProtectedRoute>} />
-          <Route path="/final/learnobjectcar" element={<ProtectedRoute><Final /></ProtectedRoute>} />
-          <Route path="/final/learnobjball" element={<ProtectedRoute><Final /></ProtectedRoute>} />
-          <Route path="/final/learnobjshoe" element={<ProtectedRoute><Final /></ProtectedRoute>} />
-        </Routes>
-      </PageReadyGate>
+      {skipPageReadyGate ? (
+        routes
+      ) : (
+        <PageReadyGate routeKey={location.pathname} key={location.pathname}>
+          {routes}
+        </PageReadyGate>
+      )}
     </AnimatePresence>
   );
 }

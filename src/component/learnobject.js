@@ -714,39 +714,40 @@ const handleRestart = () => {
         transition: "filter 0.3s ease",
       }}
     >
-    <Box
-      sx={{
-        cursor: `url(${click}) 122 122, auto`,
-        width: "100vw",
-        height: "100dvh",
-        overflow: "hidden",
-        position: "relative",
-        backgroundColor: "#0B3D2E",
-      }}
-    >
+    <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
       <Box
         sx={{
-          position: "absolute",
-          inset: 0,
           backgroundColor: "#0B3D2E",
+          width: "100vw",
+          height: "100dvh",
           opacity: "0.9",
-          pointerEvents: "none",
+          position: "absolute",
+          backgroundAttachment: "fixed",
+          pointerEvents: "none"
         }}
       />
       <Box
         sx={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: "max(100vw, calc(100dvh * 1552 / 959))",
-          aspectRatio: stageAspectRatio,
-          transform: "translate(-50%, -50%)",
+          backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
+          width: "100vw",
+          height: "100dvh",
+          minHeight: "100dvh",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          position: "relative",
+          backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 10cqh)" : "bottom center",
           overflow: "hidden",
           containerType: "size",
-          backgroundImage: `url(${isBubblesCharacter ? bubblesLearnBg : isMimmiCharacter ? mimmiLearnBg : learnbg})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "100% 100%",
-          backgroundPosition: "center",
+          "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)": {
+            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 12cqh)" : "bottom center",
+          },
+          "@media (min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)": {
+            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 9cqh)" : "bottom center",
+          },
+          "@media (min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)": {
+            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 9cqh)" : "bottom center",
+          }
         }}
       >
         {/* Back Button */}
@@ -754,11 +755,8 @@ const handleRestart = () => {
           onClick={() => navigate("/wonderworld")}
           sx={{ 
             position: "absolute", 
-            top: "5%", 
-            left: "5%", 
-            "@media (max-aspect-ratio: 1552/959)": {
-              left: "10%",
-            },
+            top: "5cqh", 
+            left: "5cqw", 
             zIndex: 10, 
             display: "flex", 
             alignItems: "center", 
@@ -791,11 +789,8 @@ const handleRestart = () => {
           onClick={() => setShowPopup(true)}
           sx={{ 
             position: "absolute", 
-            top: "5%", 
-            right: "5%", 
-            "@media (max-aspect-ratio: 1552/959)": {
-              right: "10%",
-            },
+            top: "5cqh", 
+            right: "5cqw", 
             zIndex: 10, 
             display: "flex", 
             alignItems: "center", 
@@ -829,22 +824,32 @@ const handleRestart = () => {
         <Box 
           sx={{ 
             position: "absolute",
-            bottom: characterGroundBottom,
-            left: characterLeft,
-            width: characterWidth,
-            "@media (max-aspect-ratio: 1552/959)": {
-              left: isCustomCharacter ? "9.5%" : "9%",
-            },
+            bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "9cqh" : "16cqh",
+            left: "3cqw",
+            width: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "max(32cqw, 48cqh)" : "max(26cqw, 39cqh)",
             zIndex: 5,
+            "@media (max-aspect-ratio: 1.55)": {
+              left: "-1cqw",
+            },
+            "@media (min-aspect-ratio: 1.55)": {
+              bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "11cqh" : "16cqh",
+            },
+            "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
+              bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "10cqh" : "16cqh",
+            }
           }}
         >
           <Box sx={{ 
             position: "absolute", 
-            width: "78%",
+            width: "max(20cqw, 30cqh)",
             height: "auto",
             bottom: "88%",
             left: "50%",
             zIndex: 6,
+            "@media (max-aspect-ratio: 4/3)": {
+              width: "22cqw",
+              left: "40%",
+            }
           }}>
           <Box component='img'
                sx={{
@@ -872,7 +877,7 @@ const handleRestart = () => {
                lineHeight:"1.6",
                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" :'Chewy',
                letterSpacing:"1px",
-               color:"rgb(15, 21, 27,0.8)",
+               color:"#fff",
                opacity:"0.9",
              }}>
              {i18n.language === "ur" ? t("repeatAfterMe") : 'Repeat after me "cookie"'}
@@ -918,14 +923,29 @@ const handleRestart = () => {
         <Box 
           sx={{
             position: "absolute",
-            right: boardRight,
-            bottom: boardBottom,
-            width: boardWidth,
-            "@media (max-aspect-ratio: 1552/959)": {
-              right: "9%",
-              width: "50%",
-            },
+            right: "2cqw",
+            bottom: "16cqh",
+            width: "max(55cqw, 82cqh)",
             aspectRatio: "658 / 481",
+            "@media (min-aspect-ratio: 1.5)": {
+              aspectRatio: "658 / 440",
+            },
+            "@media (max-aspect-ratio: 1.55)": {
+              width: "max(65cqw, 92cqh)",
+              right: "-2cqw",
+              bottom: "14cqh",
+            },
+            "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": {
+              bottom: "12cqh",
+            },
+            "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
+              bottom: "14cqh",
+            },
+            "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": {
+              width: "max(55cqw, 82cqh)",
+              right: "-1cqw",
+              bottom: "12cqh",
+            },
             zIndex: 4,
           }}
         >
