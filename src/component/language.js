@@ -7,15 +7,24 @@ import bg from '../assests/language_bg.png';
 import reportNew from '../assests/report-new.png';
 import signoutNew from '../assests/signout-new.png';
 import settings from '../assests/settings.png';
+import volumeOnNew from '../assests/volumeon-new.png';
+import volumeOffNew from '../assests/volumeoff-new.png';
 import languageBanner from '../assests/language-banner.svg';
 import click from '../assests/click.png';
 import English from '../assests/English.png';
 import Urdu from '../assests/urdu.png';
+import englishBackground from '../assests/english_bg.png';
+import wonderworldGame from '../assests/wonderworld_game.png';
+import storyland from '../assests/storyland.png';
+import chatBackground from '../assests/chat_bg.png';
+import standingLionLoop from '../assests/standinglion-loop.gif';
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import LoadingWheel from "../components/LoadingWheel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { preloadImageAsset } from "@/lib/preloadImageAsset";
 
 export default function Language() {
   const navigate = useNavigate();
@@ -30,6 +39,11 @@ export default function Language() {
     if (typeof window === "undefined") return "";
     return window.sessionStorage.getItem("favoriteCharacter") || "";
   });
+  const [hasResolvedFavoriteCharacter, setHasResolvedFavoriteCharacter] = React.useState(() => {
+    if (typeof window === "undefined") return true;
+    return Boolean(window.sessionStorage.getItem("favoriteCharacter"));
+  });
+  const [isPageReady, setIsPageReady] = React.useState(false);
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },
     { src: reportNew, onClick: () => navigate("/reports") },
@@ -38,22 +52,33 @@ export default function Language() {
   ];
 
   React.useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setHasResolvedFavoriteCharacter(true);
+      return;
+    }
 
     let ignore = false;
 
     const loadFavoriteCharacter = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("favorite_character")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("favorite_character")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (ignore || !data?.favorite_character) return;
+        if (ignore) return;
 
-      setFavoriteCharacter(data.favorite_character);
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+        if (data?.favorite_character) {
+          setFavoriteCharacter(data.favorite_character);
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setHasResolvedFavoriteCharacter(true);
+        }
       }
     };
 
@@ -88,6 +113,64 @@ export default function Language() {
       : defaultLanguageBoard;
   const languageBackgroundPosition = isBubbles ? "center calc(100% + 4cqh)" : "bottom center";
   const languageBackgroundPositionLaptop = isBubbles ? "center calc(100% + 7cqh)" : "bottom center";
+
+  React.useEffect(() => {
+    if (!hasResolvedFavoriteCharacter) return undefined;
+
+    let cancelled = false;
+    setIsPageReady(false);
+
+    const assets = [
+      languageBackground,
+      languageBoard,
+      languageBanner,
+      English,
+      Urdu,
+      reportNew,
+      settings,
+      signoutNew,
+      volumeOnNew,
+      volumeOffNew,
+      click,
+      englishBackground,
+      isBubbles ? "/assets/Bubbles/Bubbles_bg_english.png" : isMimmi ? "/assets/Mimmi/mimmi_bg_unified_extended.png" : englishBackground,
+      isBubbles ? "/assets/Bubbles/bubbles_bot_bg.png" : isMimmi ? "/assets/Mimmi/mimmi_bot_bg.png" : chatBackground,
+      isBubbles ? "/assets/Bubbles/standing-loop.gif" : isMimmi ? "/assets/Mimmi/hi_mimmi.gif" : standingLionLoop,
+      wonderworldGame,
+      storyland,
+    ];
+
+    Promise.all([
+      ...assets.map((asset) => preloadImageAsset(asset)),
+      document.fonts?.ready?.catch?.(() => {}) || Promise.resolve(),
+    ]).then(() => {
+      if (!cancelled) {
+        setIsPageReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [click, englishBackground, hasResolvedFavoriteCharacter, isBubbles, isMimmi, languageBackground, languageBanner, languageBoard, reportNew, settings, signoutNew, storyland, volumeOffNew, volumeOnNew, wonderworldGame]);
+
+  if (!isPageReady) {
+    return (
+      <Box
+        sx={{
+          width: "100vw",
+          height: "100dvh",
+          minHeight: "100dvh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#080f01",
+        }}
+      >
+        <LoadingWheel size={84} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ cursor: `url(${click}) 32 32, auto` }}>

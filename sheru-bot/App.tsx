@@ -6,8 +6,38 @@ import { CartoonAvatar } from './components/CartoonAvatar';
 import { TopBar } from './components/TopBar';
 import { BottomControls } from './components/BottomControls';
 import { assetUrl } from './utils/assetUrls';
+import LoadingWheel from '../src/components/LoadingWheel';
 import { finishSession, startSession } from '../src/lib/analytics/client';
 import { normalizeFocusMetrics } from '../src/lib/analytics/mappers';
+
+const imagePreloadCache = new Map<string, Promise<void>>();
+
+function preloadImage(src: string) {
+  if (!src) return Promise.resolve();
+  if (imagePreloadCache.has(src)) return imagePreloadCache.get(src)!;
+
+  const promise = new Promise<void>((resolve) => {
+    const image = new Image();
+    const done = () => resolve();
+
+    image.onload = done;
+    image.onerror = done;
+    image.src = src;
+
+    if (image.complete) {
+      done();
+    }
+  }).then(() => {
+    const image = new Image();
+    image.src = src;
+    return typeof image.decode === "function"
+      ? image.decode().catch(() => {})
+      : undefined;
+  });
+
+  imagePreloadCache.set(src, promise);
+  return promise;
+}
 
 const App: React.FC = () => {
   const { connect, startConversation, disconnect, isConnected, isConnecting, isReady, aiVolume, userVolume, error, sendPrompt } = useGeminiLive();
@@ -41,6 +71,12 @@ const App: React.FC = () => {
   const isBubbles = favoriteCharacter === "bubbles";
   const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
   const [mimmiBackgroundPosition, setMimmiBackgroundPosition] = useState("center calc(100% + 8cqh)");
+  const [isPageReady, setIsPageReady] = useState(false);
+  const pageBackgroundSrc = isBubbles
+    ? "/assets/Bubbles/Bubbles_BotPg_BG.png"
+    : isMimmi
+      ? "/assets/Mimmi/mimmi_bg_unified_extended.png"
+      : assetUrl("/images/background.png");
   const emotionEmoji = {
     happy: "😊",
     sad: "😢",
@@ -95,6 +131,53 @@ const App: React.FC = () => {
       window.removeEventListener("orientationchange", updateSceneRect);
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsPageReady(false);
+
+    const avatarAssets = isBubbles
+      ? [
+          "/assets/Bubbles/Bubbles_Sleeping.png",
+          "/assets/Bubbles/standing-loop.gif",
+          "/assets/Bubbles/talking-loop.gif",
+        ]
+      : isMimmi
+        ? [
+            "/assets/Bubbles/mimmi_sleeping.png",
+            "/assets/Mimmi/standing_mimmi.gif",
+            "/assets/Mimmi/talking_mimmi.gif",
+          ]
+        : [
+            assetUrl("/images/cat_static.png"),
+            assetUrl("/images/standinglion-loop.gif"),
+            assetUrl("/images/talking.gif"),
+            assetUrl("/images/circles.png"),
+          ];
+
+    const pageAssets = [
+      pageBackgroundSrc,
+      assetUrl("/images/status-rectangle-blend.png"),
+      assetUrl("/images/logo.png"),
+      assetUrl("/images/play-circle.png"),
+      assetUrl("/images/pause-circle.png"),
+      assetUrl("/images/stop-circle.png"),
+      ...avatarAssets,
+    ];
+
+    Promise.all([
+      ...pageAssets.map(preloadImage),
+      document.fonts?.ready?.catch?.(() => {}) || Promise.resolve(),
+    ]).then(() => {
+      if (!cancelled) {
+        setIsPageReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isBubbles, isMimmi, pageBackgroundSrc]);
 
   useEffect(() => {
     const updateMimmiBackgroundObjectPosition = () => {
@@ -376,13 +459,20 @@ const App: React.FC = () => {
         aria-hidden="true"
         className="absolute inset-0 h-full w-full pointer-events-none select-none"
         style={{
-          backgroundImage: `url(${isBubbles ? "/assets/Bubbles/Bubbles_BotPg_BG.png" : isMimmi ? "/assets/Mimmi/mimmi_bg_unified_extended.png" : assetUrl("/images/background.png")})`,
+          backgroundImage: `url(${pageBackgroundSrc})`,
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
           backgroundPosition: isMimmi ? mimmiBackgroundPosition : "bottom center",
           backgroundAttachment: "fixed",
         }}
       />
+
+      {!isPageReady ? (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#080f01]">
+          <LoadingWheel size={84} />
+        </div>
+      ) : (
+        <>
 
       
       {/* Hidden video element for eye-gaze tracking and emotion detection */}
@@ -499,6 +589,8 @@ const App: React.FC = () => {
           </div>
         </footer>
       </div>
+        </>
+      )}
     </div>
   );
 };

@@ -32,6 +32,32 @@ const dostiGif = new URL(
   import.meta.url
 ).href;
 const sceneOneStaticImage = "/characters/AliAndFatima.png";
+const imagePreloadCache = new Map();
+
+function preloadImage(src) {
+  if (!src) return Promise.resolve();
+  if (imagePreloadCache.has(src)) return imagePreloadCache.get(src);
+
+  const promise = new Promise((resolve) => {
+    const image = new Image();
+    const done = () => resolve();
+
+    image.onload = done;
+    image.onerror = done;
+    image.src = src;
+
+    if (image.complete) {
+      done();
+    }
+  }).then(() => {
+    const image = new Image();
+    image.src = src;
+    return typeof image.decode === "function" ? image.decode().catch(() => {}) : undefined;
+  });
+
+  imagePreloadCache.set(src, promise);
+  return promise;
+}
 
 const StoryScreen = ({
   initialLanguage = "en",
@@ -53,7 +79,9 @@ const StoryScreen = ({
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
   const [sceneCharacterGifVersion, setSceneCharacterGifVersion] = useState(0);
   const [finalAssetsReady, setFinalAssetsReady] = useState(false);
+  const [sceneAssetsReady, setSceneAssetsReady] = useState(false);
   const audioRef = useRef(null);
+  const audioStartRafRef = useRef(null);
 
   const [hoveredEmotion, setHoveredEmotion] = useState(null);
   const [selectedEmotion, setSelectedEmotion] = useState(null);
@@ -121,9 +149,35 @@ const StoryScreen = ({
   };
 
   const setAudioStopped = () => {
+    if (audioStartRafRef.current) {
+      cancelAnimationFrame(audioStartRafRef.current);
+      audioStartRafRef.current = null;
+    }
     audioRef.current = null;
     setIsLionTalking(false);
     setIsPaused(false);
+  };
+
+  const syncTalkingWhenAudioAdvances = (audio) => {
+    if (audioStartRafRef.current) {
+      cancelAnimationFrame(audioStartRafRef.current);
+      audioStartRafRef.current = null;
+    }
+
+    const waitForAudiblePlayback = () => {
+      if (audioRef.current !== audio || audio.paused || audio.ended) return;
+
+      if (audio.currentTime > 0.03) {
+        setIsLionTalking(true);
+        setIsPaused(false);
+        audioStartRafRef.current = null;
+        return;
+      }
+
+      audioStartRafRef.current = requestAnimationFrame(waitForAudiblePlayback);
+    };
+
+    audioStartRafRef.current = requestAnimationFrame(waitForAudiblePlayback);
   };
 
   const playAudioSafely = (src, { onEnded } = {}) => {
@@ -139,11 +193,7 @@ const StoryScreen = ({
     setIsLionTalking(false);
     setIsPaused(false);
 
-    audio.onplaying = () => {
-      if (audioRef.current !== audio) return;
-      setIsLionTalking(true);
-      setIsPaused(false);
-    };
+    audio.onplaying = () => syncTalkingWhenAudioAdvances(audio);
 
     audio.play().catch(() => {
       if (audioRef.current === audio) {
@@ -165,8 +215,10 @@ const StoryScreen = ({
     if (!audioRef.current) return;
 
     if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsLionTalking(true);
+      const audio = audioRef.current;
+      audio.play().then(() => {
+        syncTalkingWhenAudioAdvances(audio);
+      }).catch(() => {});
       setIsPaused(false);
     } else {
       audioRef.current.pause();
@@ -179,14 +231,13 @@ const StoryScreen = ({
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current = null;
-      setIsLionTalking(false);
+      setAudioStopped();
     }
     setIsPaused(false);
   };
 
   const replayAudio = () => {
-    if (!currentScene?.audio) return;
+    if (!currentScene?.audio || !sceneAssetsReady) return;
 
     setSceneCharacterGifVersion((current) => current + 1);
 
@@ -308,19 +359,69 @@ const StoryScreen = ({
       ? sceneOneStaticImage
       : currentCharacterImageSrc;
   const versionedCharacterImageSrc =
-    displayedCharacterImageSrc && displayedCharacterImageSrc.endsWith(".gif")
-      ? `${displayedCharacterImageSrc}${displayedCharacterImageSrc.includes("?") ? "&" : "?"}v=${sceneCharacterGifVersion}`
-      : displayedCharacterImageSrc;
+    displayedCharacterImageSrc;
+  const nextSceneId = currentScene?.nextScene || null;
+  const nextSceneCharacterImageSrc = nextSceneId
+    ? getCharacterImageForScene(nextSceneId)
+    : null;
+  const sceneAssetUrls = [
+    effectiveGardenBackgroundSrc,
+    displayedCharacterImageSrc,
+    currentCharacterImageSrc,
+    idleNarratorSrc,
+    talkingNarratorSrc,
+    bannerSvg,
+    "/ui/home.png",
+    isMuted ? "/ui/volume-off.png" : "/ui/volume-on.png",
+    "/ui/audio-stop.png",
+    "/ui/audio-pause.png",
+    playIcon,
+    "/ui/audio-replay.png",
+    currentScene?.nextScene ? "/ui/next-button.png" : null,
+    previousSceneId ? "/assets/arrow.png" : null,
+    nextSceneCharacterImageSrc,
+    ...(currentScene?.askEmotion
+      ? currentScene.emotionOptions.flatMap((emotion) => {
+          const key = emotion.toLowerCase();
+          return [`/emotions/${key}-color.png`, `/emotions/${key}-grey.png`];
+        })
+      : []),
+  ].filter(Boolean);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     [idleNarratorSrc, talkingNarratorSrc].forEach((src) => {
       if (!src) return;
-      const image = new Image();
-      image.src = src;
+      void preloadImage(src);
     });
   }, [idleNarratorSrc, talkingNarratorSrc]);
+
+  useEffect(() => {
+    if (!currentScene) return undefined;
+
+    let cancelled = false;
+    setSceneAssetsReady(false);
+
+    Promise.all(sceneAssetUrls.map(preloadImage)).then(() => {
+      if (!cancelled) {
+        setSceneAssetsReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    currentScene,
+    displayedCharacterImageSrc,
+    effectiveGardenBackgroundSrc,
+    idleNarratorSrc,
+    isMuted,
+    nextSceneCharacterImageSrc,
+    previousSceneId,
+    talkingNarratorSrc,
+  ]);
 
   useEffect(() => {
     setSceneCharacterGifVersion((current) => current + 1);
@@ -366,7 +467,7 @@ const StoryScreen = ({
   };
 
   useEffect(() => {
-    if (!hasInteracted) return;
+    if (!hasInteracted || !sceneAssetsReady) return;
 
     let audioSrc = null;
 
@@ -403,10 +504,10 @@ const StoryScreen = ({
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        audioRef.current = null;
+        setAudioStopped();
       }
     };
-  }, [currentSceneId, language, hasInteracted]);
+  }, [currentSceneId, language, hasInteracted, sceneAssetsReady]);
 
   // Eye-gaze attention monitoring effect (self-rescheduling chained setTimeout)
   useEffect(() => {
@@ -879,6 +980,15 @@ const StoryScreen = ({
             useBubblesNarrator ? "lion-bubbles" : ""
           } ${useMimmiNarrator ? "lion-mimmi" : ""}`}
         />
+        {!sceneAssetsReady && (
+          <div
+            className="scene-loading-overlay"
+            aria-label="Loading scene"
+            aria-live="polite"
+          >
+            <LoadingWheel size={88} />
+          </div>
+        )}
         <div
           className={`narrator-controls-anchor ${
             useBubblesNarrator ? "narrator-controls-anchor-bubbles" : ""

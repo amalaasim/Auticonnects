@@ -4,6 +4,8 @@ import bg from '../assests/english_bg.png';
 import reportNew from '../assests/report-new.png';
 import signoutNew from '../assests/signout-new.png';
 import settings from '../assests/settings.png';
+import volumeOnNew from '../assests/volumeon-new.png';
+import volumeOffNew from '../assests/volumeoff-new.png';
 import game from '../assests/wonderworld_game.png';
 import storyland from '../assests/storyland.png';
 import back from '../assests/chat_bg.png';
@@ -15,6 +17,7 @@ import i18n from "../i18n";
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import LoadingWheel from "../components/LoadingWheel";
 import { preloadImageAsset } from "@/lib/preloadImageAsset";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,6 +39,11 @@ export default function English() {
     if (typeof window === "undefined") return "";
     return window.sessionStorage.getItem("favoriteCharacter") || "";
   });
+  const [hasResolvedFavoriteCharacter, setHasResolvedFavoriteCharacter] = React.useState(() => {
+    if (typeof window === "undefined") return true;
+    return Boolean(window.sessionStorage.getItem("favoriteCharacter"));
+  });
+  const [isPageReady, setIsPageReady] = React.useState(false);
   const isUrdu = i18n.language === "ur";
   const stackedLayout = "@media (max-aspect-ratio: 4/3)";
   const tabletLandscapeLayout = "@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 3/2)";
@@ -53,6 +61,9 @@ export default function English() {
       bubblesEnglishBg,
       bubblesStandingGif,
       bubblesBotBg,
+      mimmiUnifiedBg,
+      mimmiHiGif,
+      mimmiBotBg,
       game,
       storyland,
       back,
@@ -81,22 +92,33 @@ export default function English() {
   }, []);
 
   React.useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setHasResolvedFavoriteCharacter(true);
+      return;
+    }
 
     let ignore = false;
 
     const loadFavoriteCharacter = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("favorite_character")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("favorite_character")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (ignore || !data?.favorite_character) return;
+        if (ignore) return;
 
-      setFavoriteCharacter(data.favorite_character);
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+        if (data?.favorite_character) {
+          setFavoriteCharacter(data.favorite_character);
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setHasResolvedFavoriteCharacter(true);
+        }
       }
     };
 
@@ -117,6 +139,79 @@ export default function English() {
   const openSheruBot = () => {
     window.location.href = "/sheru-bot/";
   };
+
+  React.useEffect(() => {
+    if (!hasResolvedFavoriteCharacter) return undefined;
+
+    let cancelled = false;
+    setIsPageReady(false);
+
+    const pageAssets = [
+      isBubbles ? bubblesEnglishBg : isMimmi ? mimmiUnifiedBg : bg,
+      isBubbles ? bubblesBotBg : isMimmi ? mimmiBotBg : back,
+      isBubbles ? bubblesStandingGif : isMimmi ? mimmiHiGif : cartoon,
+      game,
+      storyland,
+      reportNew,
+      settings,
+      signoutNew,
+      volumeOnNew,
+      volumeOffNew,
+      click,
+    ];
+
+    Promise.all([
+      ...pageAssets.map((asset) => preloadImageAsset(asset)),
+      document.fonts?.ready?.catch?.(() => {}) || Promise.resolve(),
+    ]).then(() => {
+      if (!cancelled) {
+        setIsPageReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    back,
+    bg,
+    bubblesBotBg,
+    bubblesEnglishBg,
+    bubblesStandingGif,
+    cartoon,
+    click,
+    game,
+    hasResolvedFavoriteCharacter,
+    isBubbles,
+    isMimmi,
+    mimmiBotBg,
+    mimmiHiGif,
+    mimmiUnifiedBg,
+    reportNew,
+    settings,
+    signoutNew,
+    storyland,
+    volumeOffNew,
+    volumeOnNew,
+  ]);
+
+  if (!isPageReady) {
+    return (
+      <Box
+        sx={{
+          width: "100vw",
+          height: "100dvh",
+          minHeight: "100dvh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#080f01",
+        }}
+      >
+        <LoadingWheel size={84} />
+      </Box>
+    );
+  }
 
   return (
  <motion.div

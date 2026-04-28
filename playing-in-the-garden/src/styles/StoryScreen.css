@@ -31,6 +31,16 @@
   background: linear-gradient(180deg, #79c857 0%, #95dd76 100%);
 }
 
+.scene-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 15, 1, 0.92);
+}
+
 .scene-background {
   position: absolute;
   inset: 0;
