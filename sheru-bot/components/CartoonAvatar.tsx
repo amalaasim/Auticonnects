@@ -314,7 +314,7 @@ export const CartoonAvatar: React.FC<CartoonAvatarProps> = ({
         )}
        
         {/* Cat Image - Single image that changes based on state */}
-        {isStanding && !isBubbles && (
+        {isStanding && !isBubbles && !isMimmi && (
           <div
             className="absolute pointer-events-none z-0"
             style={{

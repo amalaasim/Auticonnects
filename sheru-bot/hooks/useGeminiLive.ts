@@ -91,9 +91,17 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
       return "Sheru";
     }
 
-    return window.sessionStorage.getItem("favoriteCharacter") === "bubbles"
-      ? "Bubbles"
-      : "Sheru";
+    const favoriteCharacter = window.sessionStorage.getItem("favoriteCharacter");
+
+    if (favoriteCharacter === "bubbles") {
+      return "Bubbles";
+    }
+
+    if (favoriteCharacter === "mimmi" || favoriteCharacter === "mimi") {
+      return "Mimmi";
+    }
+
+    return "Sheru";
   };
 
   const getNextIntroVariation = () => {
@@ -283,7 +291,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
       const connectionId = activeConnectionIdRef.current + 1;
       activeConnectionIdRef.current = connectionId;
       const companionName = getCompanionName();
-      const companionPossessive = companionName === "Bubbles" ? "Bubbles'" : "Sheru's";
+      const companionPossessive = companionName.endsWith("s") ? `${companionName}'` : `${companionName}'s`;
       const voiceName = companionName === "Bubbles" ? "Zephyr" : "Aoede";
 
       const sessionPromise = ai.live.connect({
