@@ -143,6 +143,7 @@ export default function SettingsPage() {
       ? "center calc(100% + 15cqh)"
       : "bottom center";
   const laptopWideLayout = "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)";
+  const macbook14Media = "@media (min-width: 1400px) and (max-width: 1536px) and (min-height: 760px) and (max-height: 930px) and (min-aspect-ratio: 3/2)";
   // iPad 11" (1180x820) and iPad 13" (1366x1024) media queries
   const ipad11Media = "@media (min-width: 1170px) and (max-width: 1190px) and (min-height: 810px) and (max-height: 830px)";
   const ipad13Media = "@media (min-width: 1350px) and (max-width: 1380px) and (min-height: 1000px) and (max-height: 1050px)";
@@ -253,6 +254,9 @@ export default function SettingsPage() {
           aspectRatio: "986 / 821",
           containerType: "size",
           zIndex: 1,
+          [macbook14Media]: isBubbles || isMimmi ? {
+            bottom: "3cqh",
+          } : {},
         }}
       >
         <Box

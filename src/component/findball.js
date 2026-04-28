@@ -101,7 +101,8 @@ const noAudioRef = useRef(null);
       setIsLionSpeaking(false);
       if (onEnded) onEnded();
     };
-    setIsLionSpeaking(true);
+    setIsLionSpeaking(false);
+    audio.onplaying = () => setIsLionSpeaking(true);
     audio.play().catch(() => {
       setIsLionSpeaking(false);
       if (onError) onError();

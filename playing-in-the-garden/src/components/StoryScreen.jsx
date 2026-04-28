@@ -51,7 +51,6 @@ const StoryScreen = ({
   const [isLionTalking, setIsLionTalking] = useState(false);
   const [sceneNarrationCompleted, setSceneNarrationCompleted] = useState(false);
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
-  const [narratorGifVersion, setNarratorGifVersion] = useState(0);
   const [sceneCharacterGifVersion, setSceneCharacterGifVersion] = useState(0);
   const [finalAssetsReady, setFinalAssetsReady] = useState(false);
   const audioRef = useRef(null);
@@ -121,31 +120,42 @@ const StoryScreen = ({
     ur: "/audio/ur/scene7.m4a"
   };
 
+  const setAudioStopped = () => {
+    audioRef.current = null;
+    setIsLionTalking(false);
+    setIsPaused(false);
+  };
+
   const playAudioSafely = (src, { onEnded } = {}) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current = null;
-      setIsLionTalking(false);
-      setIsPaused(false);
+      setAudioStopped();
     }
 
     const audio = new Audio(src);
     audio.volume = isMuted ? 0 : 1;
     audioRef.current = audio;
-    setIsLionTalking(true);
+    setIsLionTalking(false);
+    setIsPaused(false);
+
+    audio.onplaying = () => {
+      if (audioRef.current !== audio) return;
+      setIsLionTalking(true);
+      setIsPaused(false);
+    };
 
     audio.play().catch(() => {
-      audioRef.current = null;
-      setIsLionTalking(false);
-      setIsPaused(false);
+      if (audioRef.current === audio) {
+        setAudioStopped();
+      }
       if (onEnded) onEnded();
     });
 
     audio.onended = () => {
-      audioRef.current = null;
-      setIsLionTalking(false);
-      setIsPaused(false);
+      if (audioRef.current === audio) {
+        setAudioStopped();
+      }
       if (onEnded) onEnded();
     };
   };
@@ -178,7 +188,6 @@ const StoryScreen = ({
   const replayAudio = () => {
     if (!currentScene?.audio) return;
 
-    setNarratorGifVersion((current) => current + 1);
     setSceneCharacterGifVersion((current) => current + 1);
 
     let audioSrc = null;
@@ -292,9 +301,7 @@ const StoryScreen = ({
       ? "/assets/Mimmi/clapping_mimmi.gif"
       : `${finalGif}?v=${finalLionGifVersion}`;
   const lionImageSrc = isLionTalking ? talkingNarratorSrc : idleNarratorSrc;
-  const versionedNarratorSrc = lionImageSrc.endsWith(".gif")
-    ? `${lionImageSrc}${lionImageSrc.includes("?") ? "&" : "?"}v=${narratorGifVersion}`
-    : lionImageSrc;
+  const versionedNarratorSrc = lionImageSrc;
   const currentCharacterImageSrc = getCharacterImageForScene(currentSceneId);
   const displayedCharacterImageSrc =
     currentSceneId === 1 && !hasInteracted
@@ -306,20 +313,14 @@ const StoryScreen = ({
       : displayedCharacterImageSrc;
 
   useEffect(() => {
-    setNarratorGifVersion((current) => current + 1);
-  }, [currentSceneId]);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
 
     [idleNarratorSrc, talkingNarratorSrc].forEach((src) => {
       if (!src) return;
       const image = new Image();
-      image.src = src.endsWith(".gif")
-        ? `${src}${src.includes("?") ? "&" : "?"}v=${narratorGifVersion}`
-        : src;
+      image.src = src;
     });
-  }, [idleNarratorSrc, narratorGifVersion, talkingNarratorSrc]);
+  }, [idleNarratorSrc, talkingNarratorSrc]);
 
   useEffect(() => {
     setSceneCharacterGifVersion((current) => current + 1);

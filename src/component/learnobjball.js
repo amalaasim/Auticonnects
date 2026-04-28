@@ -544,12 +544,21 @@ function Learnobjball() {
         resolve();
         return;
       }
-      setIsLionSpeaking(true);
+      setIsLionSpeaking(false);
+      audio.onplaying = () => {
+        if (currentAudioRef.current === audio) {
+          setIsLionSpeaking(true);
+        }
+      };
       audio.onended = () => {
         setIsLionSpeaking(false);
         resolve();
       };
-      audio.play().catch(() => console.log("Autoplay blocked"));
+      audio.play().catch(() => {
+        setIsLionSpeaking(false);
+        resolve();
+        console.log("Autoplay blocked");
+      });
     });
   };
   const [audioFinished, setAudioFinished] = useState(false);
@@ -616,7 +625,8 @@ function Learnobjball() {
   const listenForBall = () => {
     const playMistakeSound = () => {
       const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
-      setIsLionSpeaking(true);
+      setIsLionSpeaking(false);
+      audio.onplaying = () => setIsLionSpeaking(true);
       audio.onended = () => setIsLionSpeaking(false);
       audio.onpause = () => setIsLionSpeaking(false);
       audio.play().catch(() => {});
@@ -744,7 +754,6 @@ useEffect(() => {
       setIsPaused(false);
       allowListeningRef.current = true;
       if (currentAudioRef.current && currentAudioRef.current.paused) {
-        setIsLionSpeaking(true);
         currentAudioRef.current.play().catch(() => {});
       } else if (startListeningRef.current) {
         try {

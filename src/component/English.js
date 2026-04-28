@@ -479,7 +479,9 @@ paddingTop:"1.5cqh",paddingLeft:"2.1cqh",minHeight:contentCardOverlayHeight,bord
                         {isBubbles
                           ? t("roccoTitle").replace("Sheru", "Bubbles").replace("شیرو", "ببلز")
                           : isMimmi
-                            ? "Say hi to your friend Mimmi"
+                            ? isUrdu
+                              ? "اپنی دوست ممی کو ہیلو کہیں! اسے باتیں کرنا پسند ہے۔"
+                              : "Say hi to your friend Mimmi"
                             : t("roccoTitle")}
                     </span>
             {t("roccoDesc.line1")}

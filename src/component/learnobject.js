@@ -416,12 +416,21 @@ const playAndWait = (audio) => {
       resolve();
       return;
     }
-    setIsLionSpeaking(true);
+    setIsLionSpeaking(false);
+    audio.onplaying = () => {
+      if (currentAudioRef.current === audio) {
+        setIsLionSpeaking(true);
+      }
+    };
     audio.onended = () => {
       setIsLionSpeaking(false);
       resolve();
     };
-    audio.play().catch(() => console.log("Autoplay blocked"));
+    audio.play().catch(() => {
+      setIsLionSpeaking(false);
+      resolve();
+      console.log("Autoplay blocked");
+    });
   });
 };
 
@@ -487,7 +496,8 @@ const incrementVoiceTries = () => {
 
 const playMistakeSound = () => {
   const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
-  setIsLionSpeaking(true);
+  setIsLionSpeaking(false);
+  audio.onplaying = () => setIsLionSpeaking(true);
   audio.onended = () => setIsLionSpeaking(false);
   audio.onpause = () => setIsLionSpeaking(false);
   audio.play().catch(() => {});
@@ -617,7 +627,6 @@ const handlePauseResume = () => {
     setIsPaused(false);
     allowListeningRef.current = true;
     if (currentAudioRef.current && currentAudioRef.current.paused) {
-      setIsLionSpeaking(true);
       currentAudioRef.current.play().catch(() => {});
     } else if (startListeningRef.current) {
       try {
@@ -705,39 +714,39 @@ const handleRestart = () => {
         transition: "filter 0.3s ease",
       }}
     >
-    <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
+    <Box
+      sx={{
+        cursor: `url(${click}) 122 122, auto`,
+        width: "100vw",
+        height: "100dvh",
+        overflow: "hidden",
+        position: "relative",
+        backgroundColor: "#0B3D2E",
+      }}
+    >
       <Box
         sx={{
-          backgroundColor: "#0B3D2E",
-          width: "100vw",
-          height: "100dvh",
-          opacity: "0.9",
           position: "absolute",
-          backgroundAttachment: "fixed",
-          pointerEvents: "none"
+          inset: 0,
+          backgroundColor: "#0B3D2E",
+          opacity: "0.9",
+          pointerEvents: "none",
         }}
       />
       <Box
         sx={{
-          backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
-          width: "100vw",
-          minHeight: "100dvh",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundAttachment: "fixed",
-          position: "relative",
-          backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 10cqh)" : "bottom center",
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: "max(100vw, calc(100dvh * 1552 / 959))",
+          aspectRatio: stageAspectRatio,
+          transform: "translate(-50%, -50%)",
           overflow: "hidden",
           containerType: "size",
-          "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)": {
-            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 12cqh)" : "bottom center",
-          },
-          "@media (min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)": {
-            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center",
-          },
-          "@media (min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)": {
-            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center",
-          }
+          backgroundImage: `url(${isBubblesCharacter ? bubblesLearnBg : isMimmiCharacter ? mimmiLearnBg : learnbg})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "100% 100%",
+          backgroundPosition: "center",
         }}
       >
         {/* Back Button */}
@@ -745,8 +754,11 @@ const handleRestart = () => {
           onClick={() => navigate("/wonderworld")}
           sx={{ 
             position: "absolute", 
-            top: "5cqh", 
-            left: "5cqw", 
+            top: "5%", 
+            left: "5%", 
+            "@media (max-aspect-ratio: 1552/959)": {
+              left: "10%",
+            },
             zIndex: 10, 
             display: "flex", 
             alignItems: "center", 
@@ -779,8 +791,11 @@ const handleRestart = () => {
           onClick={() => setShowPopup(true)}
           sx={{ 
             position: "absolute", 
-            top: "5cqh", 
-            right: "5cqw", 
+            top: "5%", 
+            right: "5%", 
+            "@media (max-aspect-ratio: 1552/959)": {
+              right: "10%",
+            },
             zIndex: 10, 
             display: "flex", 
             alignItems: "center", 
@@ -814,32 +829,22 @@ const handleRestart = () => {
         <Box 
           sx={{ 
             position: "absolute",
-            bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "9cqh" : "16cqh",
-            left: "3cqw",
-            width: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "max(32cqw, 48cqh)" : "max(26cqw, 39cqh)", // Same size as the lion to establish boundary
+            bottom: characterGroundBottom,
+            left: characterLeft,
+            width: characterWidth,
+            "@media (max-aspect-ratio: 1552/959)": {
+              left: isCustomCharacter ? "9.5%" : "9%",
+            },
             zIndex: 5,
-            "@media (max-aspect-ratio: 1.55)": {
-              left: "-1cqw", // Move lion further left on iPads
-            },
-            "@media (min-aspect-ratio: 1.55)": {
-              bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "11cqh" : "16cqh",
-            },
-            "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
-              bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "10cqh" : "16cqh",
-            }
           }}
         >
           <Box sx={{ 
             position: "absolute", 
-            width: "max(20cqw, 30cqh)", // Scales perfectly across 20% of screens
+            width: "78%",
             height: "auto",
-            bottom: "88%", // Above the lion
-            left: "50%",   // To the right of the lion
+            bottom: "88%",
+            left: "50%",
             zIndex: 6,
-            "@media (max-aspect-ratio: 4/3)": {
-              width: "22cqw", // Smaller on iPad so it doesn't overlap
-              left: "40%", // Tucked in slightly closer to the lion
-            }
           }}>
           <Box component='img'
                sx={{
@@ -867,7 +872,7 @@ const handleRestart = () => {
                lineHeight:"1.6",
                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" :'Chewy',
                letterSpacing:"1px",
-               color: "#fff",
+               color:"rgb(15, 21, 27,0.8)",
                opacity:"0.9",
              }}>
              {i18n.language === "ur" ? t("repeatAfterMe") : 'Repeat after me "cookie"'}
@@ -913,29 +918,14 @@ const handleRestart = () => {
         <Box 
           sx={{
             position: "absolute",
-            right: "2cqw",
-            bottom: "16cqh",
-            width: "max(55cqw, 82cqh)",
+            right: boardRight,
+            bottom: boardBottom,
+            width: boardWidth,
+            "@media (max-aspect-ratio: 1552/959)": {
+              right: "9%",
+              width: "50%",
+            },
             aspectRatio: "658 / 481",
-            "@media (min-aspect-ratio: 1.5)": {
-              aspectRatio: "658 / 440",
-            },
-            "@media (max-aspect-ratio: 1.55)": {
-              width: "max(65cqw, 92cqh)", // inflates the entire board diagonally on iPads
-              right: "-2cqw", // Pushes the board further right off-center on 4:3 screens to create space
-              bottom: "14cqh",
-            },
-            "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": {
-              bottom: "12cqh",
-            },
-            "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
-              bottom: "14cqh",
-            },
-            "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": {
-              width: "max(55cqw, 82cqh)", // Scales the board down diagonally for specifically the iPad Pro 13-inch (1366x1024)
-              right: "-1cqw", // Brings it back in slightly to match
-              bottom: "12cqh",
-            },
             zIndex: 4,
           }}
         >
@@ -1014,7 +1004,7 @@ const handleRestart = () => {
                       position: "absolute",
                       left: "50%",
                       transform: "translateX(-50%)",
-                      bottom: "2cqh",
+                      bottom: "2%",
                       backgroundColor: "rgba(0,0,0,0.55)",
                       padding: "max(0.6cqw, 0.9cqh) max(1cqw, 1.5cqh)",
                       borderRadius: "max(1cqw, 1.5cqh)",

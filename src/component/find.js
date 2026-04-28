@@ -103,7 +103,8 @@ function Find() {
       setIsLionSpeaking(false);
       if (onEnded) onEnded();
     };
-    setIsLionSpeaking(true);
+    setIsLionSpeaking(false);
+    audio.onplaying = () => setIsLionSpeaking(true);
     audio.play().catch(() => {
       setIsLionSpeaking(false);
       if (onError) onError();

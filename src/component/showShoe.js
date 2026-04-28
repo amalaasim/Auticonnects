@@ -69,7 +69,12 @@ const playAndWait = (audio) => {
         resolve();
         return;
       }
-      setIsLionSpeaking(true);
+      setIsLionSpeaking(false);
+      audio.onplaying = () => {
+        if (currentAudioRef.current === audio) {
+          setIsLionSpeaking(true);
+        }
+      };
       audio.onended = () => {
         setIsLionSpeaking(false);
         resolve();
@@ -77,7 +82,6 @@ const playAndWait = (audio) => {
       audio.play().catch(() => {
         setIsLionSpeaking(false);
         setTimeout(() => {
-          setIsLionSpeaking(true);
           audio.play().catch(() => console.log("Autoplay blocked"));
         }, 1000);
       });
@@ -91,13 +95,11 @@ useEffect(() => {
   const handlePause = () => setIsLionSpeaking(false);
   const handleEnded = () => setIsLionSpeaking(false);
 
-  audio.addEventListener("play", handlePlay);
   audio.addEventListener("playing", handlePlay);
   audio.addEventListener("pause", handlePause);
   audio.addEventListener("ended", handleEnded);
 
   return () => {
-    audio.removeEventListener("play", handlePlay);
     audio.removeEventListener("playing", handlePlay);
     audio.removeEventListener("pause", handlePause);
     audio.removeEventListener("ended", handleEnded);
@@ -130,7 +132,8 @@ const incrementVoiceTries = () => {
 
 const playMistakeSound = () => {
   const audio = new Audio(i18n.language === "ur" ? noUrduSound : noSound);
-  setIsLionSpeaking(true);
+  setIsLionSpeaking(false);
+  audio.onplaying = () => setIsLionSpeaking(true);
   audio.onended = () => setIsLionSpeaking(false);
   audio.onpause = () => setIsLionSpeaking(false);
   audio.play().catch(() => {});
@@ -229,7 +232,6 @@ const handlePauseResume = () => {
     setIsPaused(false);
     allowListeningRef.current = true;
     if (currentAudioRef.current && currentAudioRef.current.paused) {
-      setIsLionSpeaking(true);
       currentAudioRef.current.play().catch(() => {});
     } else if (startListeningRef.current) {
       try {
