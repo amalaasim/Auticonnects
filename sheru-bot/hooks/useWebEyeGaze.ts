@@ -1,81 +1,132 @@
 import { useEffect, useRef, useState } from "react";
-import { FaceMesh } from "@mediapipe/face_mesh";
-import { Camera } from "@mediapipe/camera_utils";
+import * as faceapi from "face-api.js";
+import { assetUrl } from "../utils/assetUrls";
 
 export function useWebEyeGaze() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isLooking, setIsLooking] = useState(false);
-  const lastFaceTimeRef = useRef<number | null>(null);
-  const watchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const cameraRef = useRef<any>(null);
+  const [cameraAvailable, setCameraAvailable] = useState(true);
+  const streamRef = useRef<MediaStream | null>(null);
+  const modelsLoadedRef = useRef(false);
+  const detectionIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadModels = async () => {
+      try {
+        const modelUrl = assetUrl("/models/face-api");
+        await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl);
+        if (!cancelled) {
+          modelsLoadedRef.current = true;
+        }
+      } catch (error) {
+        console.error("[EyeGaze] Failed to load face-api model:", error);
+        if (!cancelled) {
+          setCameraAvailable(false);
+        }
+      }
+    };
+
+    void loadModels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!videoRef.current) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraAvailable(false);
+      return;
+    }
 
-    const faceMesh = new FaceMesh({
-      locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-    });
+    let cancelled = false;
 
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+          },
+          audio: false,
+        });
 
-    faceMesh.onResults((results) => {
-      const hasFace =
-        results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0;
-
-      if (hasFace) {
-        lastFaceTimeRef.current = Date.now();
-        setIsLooking((prev) => (!prev ? true : prev));
-      }
-    });
-
-    cameraRef.current = new Camera(videoRef.current, {
-      onFrame: async () => {
-        if (videoRef.current) {
-          await faceMesh.send({ image: videoRef.current });
+        if (cancelled || !videoRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
         }
-      },
-      width: 640,
-      height: 480,
-    });
 
-    Promise.resolve(cameraRef.current.start()).catch((error: unknown) => {
-      console.error("Camera start failed:", error);
-    });
+        streamRef.current = stream;
+        setCameraAvailable(true);
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+
+        await videoRef.current.play().catch(() => undefined);
+      } catch (error) {
+        console.error("[EyeGaze] Camera start failed:", error);
+        if (mountedRef.current) {
+          setIsLooking(false);
+          setCameraAvailable(false);
+        }
+      }
+    };
+
+    void startCamera();
 
     return () => {
-      if (cameraRef.current) {
-        cameraRef.current.stop();
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
-      faceMesh.close();
     };
   }, []);
 
   useEffect(() => {
-    watchdogRef.current = setInterval(() => {
-      const now = Date.now();
-      const timeoutThreshold = 1000;
-      const timeSinceLastFace = lastFaceTimeRef.current
-        ? now - lastFaceTimeRef.current
-        : timeoutThreshold + 1;
+    if (!videoRef.current) return;
 
-      if (timeSinceLastFace > timeoutThreshold) {
-        setIsLooking((prev) => (prev ? false : prev));
+    detectionIntervalRef.current = setInterval(async () => {
+      const video = videoRef.current;
+      if (!video || !modelsLoadedRef.current) return;
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+        return;
       }
-    }, 500);
+
+      try {
+        const detection = await faceapi.detectSingleFace(
+          video,
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.35 })
+        );
+
+        if (!mountedRef.current) return;
+        setIsLooking(Boolean(detection));
+      } catch (error) {
+        console.error("[EyeGaze] Detection error:", error);
+        if (mountedRef.current) {
+          setIsLooking(false);
+        }
+      }
+    }, 700);
 
     return () => {
-      if (watchdogRef.current) {
-        clearInterval(watchdogRef.current);
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+        detectionIntervalRef.current = null;
       }
     };
   }, []);
 
-  return { isLooking, videoRef };
+  return { isLooking, videoRef, cameraAvailable };
 }

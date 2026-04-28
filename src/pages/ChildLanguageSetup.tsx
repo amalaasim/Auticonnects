@@ -6,6 +6,12 @@ import { useToast } from '@/hooks/use-toast';
 import LoadingWheel from '@/components/LoadingWheel';
 import { User, Search, RotateCcw, Settings } from 'lucide-react';
 
+const backgroundFrameStyle = {
+  width: 'max(100vw, calc(100vh * (1440 / 1026)))',
+  height: 'max(100vh, calc(100vw * (1026 / 1440)))',
+  flexShrink: 0,
+} as const;
+
 const ChildLanguageSetup: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -132,24 +138,49 @@ const ChildLanguageSetup: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex items-center justify-center" style={{ backgroundImage: 'url(/assets/child-profile-bg-1.png)' }}>
-        <LoadingWheel size={92} />
+      <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 flex items-end justify-center overflow-hidden">
+          <div className="relative" style={backgroundFrameStyle}>
+            <img
+              src="/assets/child-profile-bg-1.png"
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-fill object-center"
+            />
+          </div>
+        </div>
+        <div className="relative z-10 flex items-center justify-center">
+          <LoadingWheel size={92} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
-      style={{ backgroundImage: 'url(/assets/child-profile-bg-1.png)' }}
-    >
+    <div className="min-h-screen w-full relative overflow-hidden [container-type:size]">
+      <div className="absolute inset-0 flex items-end justify-center overflow-hidden">
+        <div className="relative" style={backgroundFrameStyle}>
+          <img
+            src="/assets/child-profile-bg-1.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-fill object-center"
+          />
+        </div>
+      </div>
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-6 z-10">
-        <div className="flex flex-col">
-          <h1 className="text-white text-4xl font-bold" style={{ fontFamily: "'Chewy', cursive" }}>
+      <div
+        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-[3.5cqh]"
+        style={{
+          height: '10cqh',
+          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)',
+        }}
+      >
+        <div className="mt-[1.1cqh] flex flex-col">
+          <h1 className="text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '3.6cqh', lineHeight: '1' }}>
             Child Profile
           </h1>
-          <p className="text-white text-sm mt-1" style={{ fontFamily: "'Chewy', cursive" }}>
+          <p className="mt-[0.35cqh] text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '1.35cqh', lineHeight: '1' }}>
             Creation by Parent
           </p>
         </div>
@@ -171,21 +202,23 @@ const ChildLanguageSetup: React.FC = () => {
       </div>
 
       {/* Main Content - Language Board */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 z-10">
-        <div className="relative w-full max-w-4xl">
+      <div 
+        className="absolute bottom-[5%] left-1/2 z-10 w-[68vmin] -translate-x-1/2 aspect-[1721/1454] pointer-events-auto"
+      >
+        <div className="relative h-full w-full">
           <img 
             src="/assets/language-board.png" 
             alt="Language Board" 
-            className="w-full h-auto"
+            className="absolute inset-0 h-full w-full object-contain pointer-events-none"
           />
           
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-12 py-16">
-            <div className="w-full relative h-full">
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 py-[8%]">
+            <div className="w-full relative h-full flex flex-col items-center justify-center gap-4 sm:gap-[3cqh]">
               <button 
                 type="button" 
                 onClick={() => handleLanguageSelect('english')} 
                 disabled={loading}
-                className="text-white font-bold py-4 px-8 rounded-lg text-6xl transition-opacity disabled:opacity-50 disabled:cursor-not-allowed absolute top-[20%] left-1/2 transform -translate-x-1/2"
+                className="text-white font-bold py-2 px-6 sm:py-[1.5cqh] sm:px-[4cqh] rounded-lg text-[4vh] sm:text-[4.5cqh] lg:text-[5cqh] transition-opacity disabled:opacity-50 disabled:cursor-not-allowed uppercase"
                 style={{ fontFamily: "'Chewy', cursive" }}
               >
                 English
@@ -195,7 +228,7 @@ const ChildLanguageSetup: React.FC = () => {
                 type="button" 
                 onClick={() => handleLanguageSelect('urdu')} 
                 disabled={loading}
-                className="text-white font-bold py-4 px-8 rounded-lg text-6xl transition-opacity disabled:opacity-50 disabled:cursor-not-allowed absolute bottom-1/4 right-1/2 transform translate-x-1/2"
+                className="text-white font-bold py-2 px-6 sm:py-[1.5cqh] sm:px-[4cqh] rounded-lg text-[4vh] sm:text-[4.5cqh] lg:text-[5cqh] transition-opacity disabled:opacity-50 disabled:cursor-not-allowed uppercase"
                 style={{ fontFamily: "'Chewy', cursive" }}
               >
                 Urdu

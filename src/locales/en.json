@@ -11,7 +11,7 @@
     "line2": "guided way."
   },
 
-  "roccoTitle": "Say hi to your friend Rocco! He loves chatting.",
+  "roccoTitle": "Say hi to your friend Sheru! He loves chatting.",
   "roccoDesc": {
     "line1": "Share your day with him, your feelings,or anything on",
     "line2": "your mind."
@@ -44,7 +44,7 @@
                 "questionBall":"Can you find Ball?",
                 "uploadpicture":"Upload Picture",
 "adult": "Adult Verification",
-"shoeQuestion":"How many zeros are there in Thousand?",
+"shoeQuestion":"How many zeros are there in a thousand?",
               "Submit": "Submit",
               "upload":"Upload picture from your device",
               "Continue":"Continue",
@@ -62,4 +62,3 @@
 
 
   
-

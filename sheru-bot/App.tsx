@@ -5,14 +5,13 @@ import { useEmotionDetection } from './hooks/useEmotionDetection';
 import { CartoonAvatar } from './components/CartoonAvatar';
 import { TopBar } from './components/TopBar';
 import { BottomControls } from './components/BottomControls';
-import { EmotionDisplay } from './components/EmotionDisplay';
 import { assetUrl } from './utils/assetUrls';
 import { finishSession, startSession } from '../src/lib/analytics/client';
 import { normalizeFocusMetrics } from '../src/lib/analytics/mappers';
 
 const App: React.FC = () => {
   const { connect, startConversation, disconnect, isConnected, isConnecting, isReady, aiVolume, userVolume, error, sendPrompt } = useGeminiLive();
-  const { isLooking, videoRef } = useWebEyeGaze();
+  const { isLooking, videoRef, cameraAvailable } = useWebEyeGaze();
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
   
   // Emotion detection using the same video ref as gaze detection
@@ -36,6 +35,93 @@ const App: React.FC = () => {
   const distractionCountRef = useRef(0);
   const lastAttentionChangeRef = useRef<number | null>(null);
   const previousIsLookingRef = useRef<boolean | null>(null);
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const favoriteCharacter =
+    typeof window !== "undefined" ? window.sessionStorage.getItem("favoriteCharacter") : null;
+  const isBubbles = favoriteCharacter === "bubbles";
+  const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
+  const [mimmiBackgroundPosition, setMimmiBackgroundPosition] = useState("center calc(100% + 8cqh)");
+  const emotionEmoji = {
+    happy: "😊",
+    sad: "😢",
+    angry: "😠",
+    neutral: "😐",
+    surprised: "😲",
+    fearful: "😨",
+    disgusted: "🤢",
+  }[currentEmotion] || "😐";
+  const emotionColors = {
+    happy: { bg: "rgba(34, 197, 94, 0.2)", border: "rgba(34, 197, 94, 0.5)", text: "#dcfce7" },
+    sad: { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 0.5)", text: "#dbeafe" },
+    angry: { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 0.5)", text: "#fecaca" },
+    neutral: { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" },
+    surprised: { bg: "rgba(234, 179, 8, 0.2)", border: "rgba(234, 179, 8, 0.5)", text: "#fef3c7" },
+    fearful: { bg: "rgba(168, 85, 247, 0.2)", border: "rgba(168, 85, 247, 0.5)", text: "#f3e8ff" },
+    disgusted: { bg: "rgba(249, 115, 22, 0.2)", border: "rgba(249, 115, 22, 0.5)", text: "#ffedd5" },
+  }[currentEmotion] || { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" };
+  const [sceneRect, setSceneRect] = useState({ left: 0, top: 0, width: 0, height: 0 });
+
+  useEffect(() => {
+    const updateSceneRect = () => {
+      const container = sceneRef.current;
+      if (!container) return;
+
+      const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
+      const scale = Math.max(containerWidth / 1582, containerHeight / 1015);
+      const width = 1582 * scale;
+      const height = 1015 * scale;
+      const left = (containerWidth - width) / 2;
+      const top = containerHeight - height - (containerHeight * 0.08);
+
+      setSceneRect({ left, top, width, height });
+    };
+
+    updateSceneRect();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateSceneRect();
+    });
+
+    if (sceneRef.current) {
+      resizeObserver.observe(sceneRef.current);
+    }
+
+    window.addEventListener("resize", updateSceneRect);
+    window.addEventListener("orientationchange", updateSceneRect);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateSceneRect);
+      window.removeEventListener("orientationchange", updateSceneRect);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateMimmiBackgroundObjectPosition = () => {
+      if (typeof window === "undefined") return;
+
+      const isLaptopWide = window.matchMedia("(min-width: 1200px) and (min-aspect-ratio: 3/2)").matches;
+      const isIpadPortrait = window.matchMedia("(min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)").matches;
+      const isIpad13 = window.matchMedia("(min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)").matches;
+
+      if (isLaptopWide) {
+        setMimmiBackgroundPosition("center calc(100% + 0cqh)");
+      } else if (isIpadPortrait || isIpad13) {
+        setMimmiBackgroundPosition("center calc(100% + 0cqh)");
+      } else {
+        setMimmiBackgroundPosition("center calc(100% + 0cqh)");
+      }
+    };
+
+    updateMimmiBackgroundObjectPosition();
+    window.addEventListener("resize", updateMimmiBackgroundObjectPosition);
+    window.addEventListener("orientationchange", updateMimmiBackgroundObjectPosition);
+
+    return () => {
+      window.removeEventListener("resize", updateMimmiBackgroundObjectPosition);
+      window.removeEventListener("orientationchange", updateMimmiBackgroundObjectPosition);
+    };
+  }, []);
 
   useEffect(() => {
     if (hasStartedConversation || isReady || isConnecting) return;
@@ -123,11 +209,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAiTalking && !currentAiText) {
-      setCurrentAiText("Hello! I'm Sheru.");
+      setCurrentAiText(`Hello! I'm ${isBubbles ? "Bubbles" : isMimmi ? "Mimmi" : "Sheru"}.`);
     } else if (!isAiTalking) {
       setCurrentAiText("");
     }
-  }, [isAiTalking]);
+  }, [isAiTalking, isBubbles, isMimmi]);
 
   // Eye-gaze monitoring logic
   useEffect(() => {
@@ -149,7 +235,7 @@ const App: React.FC = () => {
       console.log('🎤 AI finished speaking.');
       
       // Check current gaze status immediately (no delay)
-      if (!isLooking && !gazeReminderSentRef.current && isConnected) {
+      if (cameraAvailable && !isLooking && !gazeReminderSentRef.current && isConnected) {
         console.log('👁️❌ Child is not looking after AI finished. Sending gentle reminder...');
         
         // Send a gentle reminder to Sheru immediately
@@ -167,6 +253,8 @@ const App: React.FC = () => {
         }, 30000);
       } else if (isLooking) {
         console.log('👁️✅ Child is looking! No reminder needed.');
+      } else if (!cameraAvailable) {
+        console.log('📷 Camera unavailable. Skipping gaze reminder.');
       } else if (gazeReminderSentRef.current) {
         console.log('⏳ Child not looking but cooldown active - skipping reminder');
       }
@@ -175,7 +263,7 @@ const App: React.FC = () => {
     // Track AI talking state
     setWasAiTalking(isAiTalking);
 
-  }, [isAiTalking, wasAiTalking, isLooking, hasStartedConversation, sendPrompt]);
+  }, [isAiTalking, wasAiTalking, isLooking, hasStartedConversation, sendPrompt, cameraAvailable]);
 
   // Emotion-based interaction logic
   useEffect(() => {
@@ -267,7 +355,29 @@ const App: React.FC = () => {
   }, [currentEmotion, isAiTalking, hasStartedConversation, sendPrompt]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-between p-6 overflow-hidden relative">
+    <div
+      ref={sceneRef}
+      className="relative w-screen h-screen min-h-screen max-h-screen overflow-hidden"
+      style={{
+        height: "100dvh",
+        maxHeight: "100dvh",
+        minHeight: "100dvh",
+        containerType: "size",
+        background: "linear-gradient(180deg, #104d46 0%, #0c2f31 42%, #4a984e 100%)",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full pointer-events-none select-none"
+        style={{
+          backgroundImage: `url(${isBubbles ? "/assets/Bubbles/Bubbles_BotPg_BG.png" : isMimmi ? "/assets/Mimmi/mimmi_bg_unified_extended.png" : assetUrl("/images/background.png")})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundPosition: isMimmi ? mimmiBackgroundPosition : "bottom center",
+          backgroundAttachment: "fixed",
+        }}
+      />
+
       
       {/* Hidden video element for eye-gaze tracking and emotion detection */}
       <video 
@@ -277,74 +387,112 @@ const App: React.FC = () => {
         autoPlay
       />
 
-      {/* Emotion Display - Bottom Left */}
-      <div className="absolute bottom-6 left-6 z-50">
-        {hasStartedConversation && (
-          <EmotionDisplay emotion={currentEmotion} confidence={emotionConfidence} />
-        )}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "2.5cqh",
+          left: "1.5cqw",
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "1cqh 0.85cqw",
+          borderRadius: "1cqh",
+          fontSize: "1.75cqh",
+          zIndex: 9999,
+        }}
+      >
+        Eye gaze: {!cameraAvailable ? "Look at me" : isLooking ? "👀 Looking" : "🙈 Not looking"}
       </div>
 
-      {/* Full Screen Background */}
-      <div className="absolute inset-0 -z-10">
-        <img 
-          src={assetUrl("/images/background.png")} 
-          alt="Arctic Background"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ 
-            filter: 'none',
-            opacity: 1
-          }}
-        />
+      <div
+        style={{
+          position: "fixed",
+          bottom: "9.5cqh",
+          left: "1.5cqw",
+          background: emotionColors.bg,
+          border: `1px solid ${emotionColors.border}`,
+          color: emotionColors.text,
+          padding: "1.25cqh 1cqw",
+          borderRadius: "2cqh",
+          fontSize: "1.75cqh",
+          backdropFilter: "blur(1cqh)",
+          zIndex: 9999,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
+          <div style={{ fontSize: "3.25cqh", lineHeight: 1 }}>{emotionEmoji}</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: "1.75cqh", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+              {currentEmotion}
+            </div>
+            <div style={{ fontSize: "1.5cqh", opacity: 0.8, lineHeight: 1.1 }}>
+              {Math.round((emotionConfidence || 0) * 100)}%
+            </div>
+          </div>
+        </div>
       </div>
-
-      <TopBar />
 
       <main
-        className="flex-1 flex items-end justify-center w-full max-w-2xl relative z-10"
-        style={{ transform: 'translateY(50px)' }}
+        className="absolute inset-0 w-full h-full z-10 overflow-visible pointer-events-none"
       >
-        <CartoonAvatar 
-          isTalking={isAiTalking}
-          volume={aiVolume}
-          isListening={isUserTalking}
-          userVolume={userVolume}
-          currentText={currentAiText}
-          isConnected={hasStartedConversation}
-        />
+        <div
+          className="absolute overflow-visible"
+          style={{
+            left: `${sceneRect.left}px`,
+            top: `${sceneRect.top}px`,
+            width: `${sceneRect.width}px`,
+            height: `${sceneRect.height}px`,
+            containerType: "size",
+          }}
+        >
+          <CartoonAvatar 
+            isTalking={isAiTalking}
+            volume={aiVolume}
+            isListening={isUserTalking}
+            userVolume={userVolume}
+            currentText={currentAiText}
+            isConnected={hasStartedConversation}
+            isBubbles={isBubbles}
+            isMimmi={isMimmi}
+          />
+        </div>
       </main>
 
-      <footer
-        className="w-full max-w-4xl flex flex-col items-center gap-6 z-10"
-        style={{ transform: 'translateY(50px)' }}
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-between p-6 overflow-x-hidden overflow-y-visible">
+        <TopBar />
+      </div>
+
+      <div
+        className="absolute z-20 overflow-visible pointer-events-none"
+        style={{
+          left: `${sceneRect.left}px`,
+          top: `${sceneRect.top}px`,
+          width: `${sceneRect.width}px`,
+          height: `${sceneRect.height}px`,
+          containerType: "size",
+        }}
       >
-        <BottomControls
-          isConnected={hasStartedConversation}
-          isConnecting={isConnecting}
-          isReady={isReady}
-          onStart={handleStart}
-          onStop={handleStop}
-        />
+        <footer
+          className="absolute left-1/2 w-full -translate-x-1/2 flex flex-col items-center gap-6 pointer-events-auto"
+          style={{ bottom: isMimmi ? '-10%' : '-5%' }}
+        >
+          <BottomControls
+            isConnected={hasStartedConversation}
+            isConnecting={isConnecting}
+            isReady={isReady}
+            onStart={handleStart}
+            onStop={handleStop}
+          />
 
-        <div className="min-h-[68px] flex flex-col items-center gap-3">
-          {/* Gaze Status Indicator */}
-          {hasStartedConversation && (
-            <div className={`px-3 py-1 border rounded text-xs ${
-              isLooking 
-                ? 'bg-green-500/10 border-green-500/30 text-green-200' 
-                : 'bg-blue-500/10 border-blue-500/30 text-blue-200'
-            }`}>
-              {isLooking ? '👀 Looking at screen' : '👁️ Not looking'}
-            </div>
-          )}
-
-          {/* Error Messages */}
-          {error && (
-            <div className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-200 rounded-lg text-sm">
-              Voice Error: {error}
-            </div>
-          )}
-        </div>
-      </footer>
+          <div className="min-h-[68px] flex flex-col items-center gap-3">
+            {/* Error Messages */}
+            {error && (
+              <div className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-200 rounded-lg text-sm">
+                Voice Error: {error}
+              </div>
+            )}
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

@@ -27,18 +27,20 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
           src={assetUrl("/images/play-circle.png")} 
           alt="Play"
           onClick={canStart ? onStart : undefined}
-          className={`h-20 w-20 cursor-pointer transition-transform ${
+          className={`cursor-pointer transition-transform ${
             !canStart
               ? 'opacity-50 cursor-not-allowed' 
               : 'hover:scale-110 active:scale-95'
           }`}
+          style={{ width: '6cqw', height: '6cqw' }}
         />
       ) : (
         <img 
           src={assetUrl("/images/pause-circle.png")} 
           alt="Pause"
           onClick={onStop}
-          className="h-20 w-20 cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+          className="cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+          style={{ width: '6cqw', height: '6cqw' }}
         />
       )}
       
@@ -47,7 +49,8 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
         src={assetUrl("/images/stop-circle.png")} 
         alt="Stop"
         onClick={onStop}
-        className="h-14 w-14 cursor-pointer hover:scale-110 transition-transform active:scale-95"
+        className="cursor-pointer hover:scale-110 transition-transform active:scale-95"
+        style={{ width: '6cqw', height: '6cqw' }}
       />
     </div>
   );

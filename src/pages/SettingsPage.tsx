@@ -5,10 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import i18n from "@/i18n";
 import englishBackground from "../assests/english_bg.png";
+import { bubblesSettingsBg, mimmiSettingsBg } from "../assests/characterBackgrounds";
 import settingsBoard from "../assests/settingsboard.png";
 import reportNew from "../assests/report-new.png";
 import homeButton from "../assests/homebutton.png";
-import settingsIcon from "../assests/settings.png";
 import signoutNew from "../assests/signout-new.png";
 import editIcon from "../assests/editicon.png";
 import backNew from "../assests/backnew.png";
@@ -21,6 +21,12 @@ function normalizeLanguage(value: string | null | undefined) {
   if (value === "english") return "en";
   return value || "en";
 }
+
+const characterOptions = [
+  { name: "Bubbles", value: "bubbles", color: "#B78FD7" },
+  { name: "Sheru", value: "rocco", color: "#F2A156" },
+  { name: "Mimmi", value: "mimi", color: "#80E2F4" },
+] as const;
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -38,6 +44,9 @@ export default function SettingsPage() {
     typeof window !== "undefined" ? window.sessionStorage.getItem("childAge") || "7" : "7"
   );
   const [language, setLanguage] = useState(storedLanguage);
+  const [favoriteCharacter, setFavoriteCharacter] = useState(
+    typeof window !== "undefined" ? window.sessionStorage.getItem("favoriteCharacter") || "rocco" : "rocco"
+  );
 
   const email = useMemo(() => user?.email || "nimrahkamran620@gmail.com", [user?.email]);
   const authProvider = user?.app_metadata?.provider;
@@ -54,6 +63,7 @@ export default function SettingsPage() {
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("childName", childName);
       window.sessionStorage.setItem("childAge", childAge);
+      window.sessionStorage.setItem("favoriteCharacter", favoriteCharacter);
       window.localStorage.setItem("app_language", language);
     }
     i18n.changeLanguage(language);
@@ -68,6 +78,7 @@ export default function SettingsPage() {
           child_name: childName,
           child_age: childAge ? parseInt(childAge, 10) : null,
           language: language === "ur" ? "urdu" : "english",
+          favorite_character: favoriteCharacter,
         },
         {
           onConflict: "user_id",
@@ -85,7 +96,7 @@ export default function SettingsPage() {
     const loadProfile = async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("child_name, child_age, language")
+        .select("child_name, child_age, language, favorite_character")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -102,6 +113,13 @@ export default function SettingsPage() {
       if (data.language) {
         setLanguage(normalizeLanguage(data.language));
       }
+
+      if (data.favorite_character) {
+        setFavoriteCharacter(data.favorite_character);
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+        }
+      }
     };
 
     loadProfile();
@@ -111,15 +129,53 @@ export default function SettingsPage() {
     };
   }, [user?.id]);
 
+  // Determine background image and position based on favoriteCharacter
+  const isBubbles = favoriteCharacter === "bubbles";
+  const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
+  const settingsBg = isBubbles
+    ? bubblesSettingsBg
+    : isMimmi
+      ? mimmiSettingsBg
+      : englishBackground;
+  const settingsBgPosition = isBubbles
+    ? "center calc(100% + 5.2cqh)" // was 4cqh, now 2cqh further down
+    : isMimmi
+      ? "center calc(100% + 15cqh)"
+      : "bottom center";
+  const laptopWideLayout = "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)";
+  // iPad 11" (1180x820) and iPad 13" (1366x1024) media queries
+  const ipad11Media = "@media (min-width: 1170px) and (max-width: 1190px) and (min-height: 810px) and (max-height: 830px)";
+  const ipad13Media = "@media (min-width: 1350px) and (max-width: 1380px) and (min-height: 1000px) and (max-height: 1050px)";
+
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        backgroundImage: `url(${englishBackground})`,
+        width: "100cqw",
+        height: "100cqh",
+        minHeight: "100cqh",
+        backgroundImage: `url(${settingsBg})`,
+        backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundPosition: settingsBgPosition,
         position: "relative",
         overflow: "hidden",
+        containerType: "size",
+        [laptopWideLayout]: {
+          backgroundPosition: isBubbles
+            ? "center calc(100% + 9cqh)" // was 7cqh, now 2cqh further down
+            : isMimmi
+              ? "center calc(100% + 20cqh)"
+              : "bottom center",
+        },
+        // iPad 11" (move Mimmi bg 1 unit up)
+        [ipad11Media]: isMimmi ? {
+          backgroundPosition: "center calc(100% + 14cqh)",
+        } : {},
+        // iPad 13" (move Mimmi bg 3 units up)
+        [ipad13Media]: isMimmi ? {
+          backgroundPosition: "center calc(100% + 12cqh)",
+        } : {},
       }}
     >
       <Box
@@ -127,26 +183,30 @@ export default function SettingsPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          px: "5%",
-          pt: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
-          pb: "8px",
-          background: "transparent",
+          px: "5cqw",
+          pt: "3.6cqh",
+          pb: "1cqh",
+          height: "10cqh",
+          background: "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 26.91%, rgba(0, 0, 0, 0) 100%)",
           boxShadow: "none",
+          boxSizing: "border-box",
+          position: "relative",
+          zIndex: 3,
         }}
       >
-        <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "34%" }, mt: 0 }} />
-        <Box sx={{ display: "flex", gap: "0.5rem" }}>
+        <Box component={AppGreetingHeader} sx={{ width: "17cqw", minWidth: "16cqh", mt: 0 }} />
+        <Box sx={{ display: "flex", gap: "0.7cqw" }}>
           {topBarIcons.map((item, index) =>
             item.volumeToggle ? (
               <TopBarVolumeIcon
                 key={index}
                 alt={item.alt}
                 sx={{
-                  width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
-                  height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
+                  width: "5.6cqh",
+                  height: "5.6cqh",
                   objectFit: "contain",
                   mt: 0,
-                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 0.25cqh 0.75cqh rgba(0,0,0,0.22))",
                 }}
               />
             ) : item.logoutMenu ? (
@@ -155,11 +215,11 @@ export default function SettingsPage() {
                 src={item.src}
                 alt={item.alt}
                 sx={{
-                  width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
-                  height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
+                  width: "5.6cqh",
+                  height: "5.6cqh",
                   objectFit: "contain",
                   mt: 0,
-                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 0.25cqh 0.75cqh rgba(0,0,0,0.22))",
                 }}
               />
             ) : (
@@ -170,12 +230,12 @@ export default function SettingsPage() {
                 alt={item.alt}
                 onClick={item.onClick}
                 sx={{
-                  width: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
-                  height: { lg: "45px", md: "42px", sm: "36px", xs: "30px" },
+                  width: "5.6cqh",
+                  height: "5.6cqh",
                   objectFit: "contain",
                   mt: 0,
                   cursor: item.onClick ? "pointer" : "default",
-                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                  filter: "brightness(1.12) contrast(1.08) drop-shadow(0 0.25cqh 0.75cqh rgba(0,0,0,0.22))",
                 }}
               />
             )
@@ -185,11 +245,14 @@ export default function SettingsPage() {
 
       <Box
         sx={{
-          position: "relative",
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          pt: { lg: 6, xs: 7 },
+          position: "absolute",
+          left: "50%",
+          bottom: "7cqh",
+          transform: "translateX(-50%)",
+          width: "min(82cqw, 98cqh)",
+          aspectRatio: "986 / 821",
+          containerType: "size",
+          zIndex: 1,
         }}
       >
         <Box
@@ -197,9 +260,10 @@ export default function SettingsPage() {
           src={settingsBoard}
           alt="Settings board"
           sx={{
-            width: { lg: "46rem", md: "38rem", sm: "84vw", xs: "88vw" },
-            maxWidth: "88vw",
-            maxHeight: "calc(100vh - 110px)",
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
             objectFit: "contain",
           }}
         />
@@ -207,13 +271,13 @@ export default function SettingsPage() {
         <Typography
           sx={{
             position: "absolute",
-            top: { lg: "calc(12.5% + 2px)", md: "calc(12% + 2px)", sm: "calc(11% + 2px)", xs: "calc(10.5% + 2px)" },
+            top: "6.5cqh",
             left: "50%",
             transform: "translateX(-50%)",
             fontFamily: "Chewy",
             fontWeight: 400,
             fontStyle: "normal",
-            fontSize: "40px",
+            fontSize: "5.2cqh",
             lineHeight: "90%",
             letterSpacing: "0%",
             color: "#5f2506",
@@ -227,16 +291,19 @@ export default function SettingsPage() {
         <Box
           sx={{
             position: "absolute",
-            top: { lg: "calc(20% + 88px)", md: "calc(19% + 88px)", sm: "calc(17% + 88px)", xs: "calc(15% + 88px)" },
-            width: { lg: "24rem", md: "20.5rem", sm: "52vw", xs: "58vw" },
+            top: "26.2cqh",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "48cqw",
             display: "flex",
             flexDirection: "column",
-            gap: { lg: "0.95rem", xs: "0.7rem" },
+            gap: "2.05cqh",
+            zIndex: 1,
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "0.55cqh" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Typography sx={{ fontFamily: "Chewy", color: "#7e3f0b", fontWeight: 400, fontStyle: "normal", fontSize: "16px", lineHeight: "90%", letterSpacing: "0%" }}>
+            <Typography sx={{ fontFamily: "Chewy", color: "#7e3f0b", fontWeight: 400, fontStyle: "normal", fontSize: "2.55cqh", lineHeight: "90%", letterSpacing: "0%" }}>
               Email
             </Typography>
             {canChangePassword && (
@@ -248,18 +315,18 @@ export default function SettingsPage() {
                   color: "#7e3f0b",
                   fontWeight: 400,
                   fontStyle: "normal",
-                  fontSize: "15px",
+                  fontSize: "2.2cqh",
                   minWidth: "auto",
                   padding: 0,
-                  lineHeight: "22px",
+                  lineHeight: "2.7cqh",
                   letterSpacing: "0%",
                   verticalAlign: "middle",
                   textDecoration: "underline",
                   textDecorationStyle: "solid",
                   textDecorationColor: "#7e3f0b",
-                  textDecorationThickness: "1px",
-                  textUnderlineOffset: "2px",
-                  transform: "translateY(-15px)",
+                  textDecorationThickness: "0.14cqh",
+                  textUnderlineOffset: "0.25cqh",
+                  transform: "translateY(-1.7cqh)",
                   textTransform: "none",
                   backgroundColor: "transparent",
                   "&:hover": {
@@ -280,7 +347,7 @@ export default function SettingsPage() {
             />
           </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "0.55cqh" }}>
             <Typography sx={labelSx}>Child's Name</Typography>
             <TextField
               value={childName}
@@ -294,7 +361,7 @@ export default function SettingsPage() {
                       component="img"
                       src={editIcon}
                       alt="Edit"
-                      sx={{ width: "18px", height: "18px", objectFit: "contain" }}
+                      sx={{ width: "2.6cqh", height: "2.6cqh", objectFit: "contain" }}
                     />
                   </InputAdornment>
                 ),
@@ -302,7 +369,7 @@ export default function SettingsPage() {
             />
           </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "0.55cqh" }}>
             <Typography sx={labelSx}>Child's Age</Typography>
             <TextField
               value={childAge}
@@ -316,7 +383,7 @@ export default function SettingsPage() {
                       component="img"
                       src={editIcon}
                       alt="Edit"
-                      sx={{ width: "18px", height: "18px", objectFit: "contain" }}
+                      sx={{ width: "2.6cqh", height: "2.6cqh", objectFit: "contain" }}
                     />
                   </InputAdornment>
                 ),
@@ -324,9 +391,9 @@ export default function SettingsPage() {
             />
           </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "0.55cqh" }}>
             <Typography sx={labelSx}>Select Language</Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, width: "100%" }}>
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2cqw", width: "100%" }}>
               <Button
                 onClick={() => setLanguage("ur")}
                 sx={language === "ur" ? activeLanguageButtonSx : languageButtonSx}
@@ -339,6 +406,21 @@ export default function SettingsPage() {
               >
                 English
               </Button>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "0.55cqh" }}>
+            <Typography sx={labelSx}>Select Character</Typography>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.9cqw", width: "100%" }}>
+              {characterOptions.map((character) => (
+                <Button
+                  key={character.value}
+                  onClick={() => setFavoriteCharacter(character.value)}
+                  sx={characterButtonSx(character.color, favoriteCharacter === character.value)}
+                >
+                  {character.name}
+                </Button>
+              ))}
             </Box>
           </Box>
 
@@ -355,10 +437,10 @@ export default function SettingsPage() {
         onClick={() => navigate("/english")}
         sx={{
           position: "absolute",
-          left: { lg: "42px", sm: "18px", xs: "14px" },
-          bottom: { lg: "41px", sm: "27px", xs: "25px" },
-          width: { lg: "210px", sm: "170px", xs: "150px" },
-          height: { lg: "250px", sm: "210px", xs: "180px" },
+          left: "3cqw",
+          bottom: isBubbles || isMimmi ? "-2cqh" : "6cqh", // Move up for Bubbles
+          width: "25cqh",
+          height: "30cqh",
           objectFit: "contain",
           cursor: "pointer",
           zIndex: 2,
@@ -376,20 +458,21 @@ const labelSx = {
   color: "#7e3f0b",
   fontWeight: 400,
   fontStyle: "normal",
-  fontSize: "16px",
+  fontSize: "2.55cqh",
   lineHeight: "90%",
   letterSpacing: "0%",
   mt: 0,
 };
 
 const fieldSx = {
-  borderRadius: "10px",
+  borderRadius: "1.25cqh",
   backgroundColor: "#914b14",
   color: "#f5c37d",
   fontFamily: "Chewy",
   width: "100%",
-  minHeight: { lg: "44px", xs: "38px" },
-  fontSize: "16px",
+  height: "5.8cqh",
+  minHeight: "5.8cqh",
+  fontSize: "2.45cqh",
   lineHeight: "90%",
   letterSpacing: "0%",
   "& input": {
@@ -397,10 +480,16 @@ const fieldSx = {
     fontFamily: "Chewy",
     fontWeight: 400,
     fontStyle: "normal",
-    fontSize: "16px",
+    fontSize: "2.45cqh",
     lineHeight: "90%",
     letterSpacing: "0%",
-    py: 0.25,
+    py: 0,
+    px: "1.4cqw",
+    height: "5.8cqh",
+    boxSizing: "border-box",
+  },
+  "& .MuiInputAdornment-root": {
+    mr: "0.7cqw",
   },
   "& fieldset": {
     border: "none",
@@ -408,17 +497,17 @@ const fieldSx = {
 };
 
 const languageButtonSx = {
-  borderRadius: "10px",
+  borderRadius: "1.25cqh",
   backgroundColor: "#b47a3f",
   color: "#f5c37d",
   fontFamily: "Chewy",
   fontWeight: 400,
   fontStyle: "normal",
-  fontSize: "16px",
+  fontSize: "2.45cqh",
   lineHeight: "90%",
   letterSpacing: "0%",
   textTransform: "none",
-  minHeight: { lg: "44px", xs: "38px" },
+  minHeight: "5.8cqh",
   py: 0,
   "&:hover": {
     backgroundColor: "#a96d31",
@@ -433,16 +522,39 @@ const activeLanguageButtonSx = {
   },
 };
 
+const characterButtonSx = (color: string, selected: boolean) => ({
+  borderRadius: "1.25cqh",
+  backgroundColor: color,
+  color: "#fff",
+  fontFamily: "Chewy",
+  fontWeight: 400,
+  fontStyle: "normal",
+  fontSize: "2.25cqh",
+  lineHeight: "90%",
+  letterSpacing: "0%",
+  textTransform: "none",
+  minHeight: "5.4cqh",
+  py: 0,
+  opacity: selected ? 1 : 0.72,
+  border: selected ? "0.28cqh solid rgba(95, 37, 6, 0.72)" : "0.28cqh solid transparent",
+  boxShadow: selected ? "0 0.55cqh 1.3cqh rgba(95, 37, 6, 0.22)" : "none",
+  "&:hover": {
+    backgroundColor: color,
+    opacity: 1,
+  },
+});
+
 const saveButtonSx = {
-  mt: 1,
-  borderRadius: "10px",
+  mt: "0.3cqh",
+  borderRadius: "1.25cqh",
   background: "linear-gradient(180deg, #d97a08 0%, #b75d00 100%)",
   color: "#fff",
   fontFamily: "Chewy",
-  fontSize: { lg: 17, xs: 14 },
+  fontSize: "2.65cqh",
   textTransform: "none",
-  py: 0.6,
-  boxShadow: "0 8px 18px rgba(122,61,16,0.28)",
+  minHeight: "6.1cqh",
+  py: 0,
+  boxShadow: "0 1cqh 2.2cqh rgba(122,61,16,0.28)",
   "&:hover": {
     background: "linear-gradient(180deg, #c86f08 0%, #a85400 100%)",
   },

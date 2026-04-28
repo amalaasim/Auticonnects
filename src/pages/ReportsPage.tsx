@@ -99,13 +99,13 @@ function getModulePercent(row: { moduleKey: string; bestScore: number | null; co
   return Math.max(0, Math.min(100, row.bestScore));
 }
 
-function buildCloud(left: string, top: string, size: number, opacity = 0.18) {
+function buildCloud(left: string, top: string, width: string, opacity = 0.18) {
   return {
     position: "absolute",
     left,
     top,
-    width: size,
-    height: size * 0.58,
+    width,
+    aspectRatio: "100 / 58",
     borderRadius: "999px",
     background: `radial-gradient(circle at 50% 50%, rgba(255,255,255,${opacity}) 0%, rgba(255,255,255,0) 72%)`,
     filter: "blur(4px)",
@@ -130,12 +130,13 @@ function StatCard({
     <Paper
       elevation={0}
       sx={{
-        borderRadius: "18px",
-        px: { xs: 1.75, md: 2 },
-        py: { xs: 1.5, md: 1.75 },
+        borderRadius: "1.5cqh",
+        px: "1cqw",
+        py: "1.2cqh",
+        height: "100%",
         display: "flex",
         alignItems: "center",
-        gap: 1.25,
+        gap: "0.8cqw",
         background: "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.16) 100%)",
         border: "1px solid rgba(255,255,255,0.22)",
         boxShadow: "0 16px 40px rgba(11, 31, 42, 0.18)",
@@ -144,15 +145,19 @@ function StatCard({
     >
       <Box
         sx={{
-          width: 36,
-          height: 36,
-          borderRadius: "12px",
+          width: "4cqh",
+          height: "4cqh",
+          borderRadius: "1.2cqh",
           display: "grid",
           placeItems: "center",
           color: "#fff",
           background: accent,
           boxShadow: "0 12px 24px rgba(0,0,0,0.18)",
           flexShrink: 0,
+          "& svg": {
+            width: "2.2cqh",
+            height: "2.2cqh",
+          },
         }}
       >
         {icon}
@@ -162,10 +167,10 @@ function StatCard({
         <Typography
           sx={{
             color: "#ffffff",
-            fontSize: { xs: 12, md: 13 },
+            fontSize: "1.45cqh",
             lineHeight: 1.2,
             opacity: 0.8,
-            fontFamily: "Petrona, serif",
+            fontFamily: "'Chewy', cursive",
           }}
         >
           {title}
@@ -173,7 +178,7 @@ function StatCard({
         <Typography
           sx={{
             color: "#fff",
-            fontSize: { xs: 20, md: 24 },
+            fontSize: "2.5cqh",
             lineHeight: 1.1,
             fontWeight: 700,
           }}
@@ -185,7 +190,7 @@ function StatCard({
       <Typography
         sx={{
           color: "#79ffb5",
-          fontSize: { xs: 11, md: 12 },
+          fontSize: "1.25cqh",
           fontWeight: 700,
           whiteSpace: "nowrap",
         }}
@@ -213,40 +218,47 @@ function ChartCard({
     <Paper
       elevation={0}
       sx={{
-        p: { xs: 1.5, md: 1.75 },
-        borderRadius: "20px",
-        minHeight: 300,
+        p: "1.2cqh",
+        borderRadius: "1.7cqh",
+        height: "100%",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
         background: "linear-gradient(180deg, rgba(247,250,255,0.95) 0%, rgba(240,247,255,0.9) 100%)",
         border: "1px solid rgba(255,255,255,0.5)",
         boxShadow: "0 24px 50px rgba(17, 51, 67, 0.18)",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.1, mb: 1.25 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: "0.7cqw", mb: "0.8cqh", flexShrink: 0 }}>
         <Box
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: "11px",
+            width: "3.6cqh",
+            height: "3.6cqh",
+            borderRadius: "1.1cqh",
             display: "grid",
             placeItems: "center",
             color: "#fff",
             background: iconBg,
             flexShrink: 0,
+            "& svg": {
+              width: "2cqh",
+              height: "2cqh",
+            },
           }}
         >
           {icon}
         </Box>
         <Box>
-          <Typography sx={{ color: "#223249", fontSize: 15, fontWeight: 700, lineHeight: 1.15 }}>
+          <Typography sx={{ color: "#223249", fontSize: "1.65cqh", fontWeight: 700, lineHeight: 1.15 }}>
             {title}
           </Typography>
-          <Typography sx={{ color: "#617189", fontSize: 11.5, lineHeight: 1.15 }}>
+          <Typography sx={{ color: "#617189", fontSize: "1.25cqh", lineHeight: 1.15 }}>
             {subtitle}
           </Typography>
         </Box>
       </Box>
 
-      <Box sx={{ height: 210 }}>{children}</Box>
+      <Box sx={{ flex: 1, minHeight: 0 }}>{children}</Box>
     </Paper>
   );
 }
@@ -459,26 +471,29 @@ export default function ReportsPage() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        height: "100vh",
+        overflow: "hidden",
         background: "linear-gradient(180deg, #05080b 0%, #0e1c24 100%)",
+        containerType: "size",
       }}
     >
       <Box
         sx={{
           position: "relative",
           overflowX: "hidden",
-          overflowY: "visible",
+          overflowY: "hidden",
           width: "100%",
-          minHeight: "100vh",
+          height: "100vh",
           background:
             "linear-gradient(180deg, rgba(22,36,44,0.98) 0%, rgba(79,131,157,0.94) 56%, rgba(126,205,242,0.96) 100%)",
+          containerType: "size",
         }}
       >
-        <Box sx={buildCloud("-4%", "52%", 240, 0.3)} />
-        <Box sx={buildCloud("82%", "6%", 210, 0.13)} />
-        <Box sx={buildCloud("88%", "16%", 180, 0.16)} />
-        <Box sx={buildCloud("64%", "73%", 220, 0.16)} />
-        <Box sx={buildCloud("27%", "73%", 180, 0.12)} />
+        <Box sx={buildCloud("-4cqw", "52cqh", "18cqw", 0.3)} />
+        <Box sx={buildCloud("82cqw", "6cqh", "15cqw", 0.13)} />
+        <Box sx={buildCloud("88cqw", "16cqh", "13cqw", 0.16)} />
+        <Box sx={buildCloud("64cqw", "73cqh", "16cqw", 0.16)} />
+        <Box sx={buildCloud("27cqw", "73cqh", "13cqw", 0.12)} />
 
         <Paper
           sx={{
@@ -487,9 +502,11 @@ export default function ReportsPage() {
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
-            paddingLeft: "5%",
-            paddingRight: "5%",
-            mb: 2,
+            alignItems: "center",
+            height: "7cqh",
+            paddingLeft: "2.5cqw",
+            paddingRight: "2.5cqw",
+            mb: 0,
             borderRadius: 0,
             border: "none",
             background: "linear-gradient(10deg, rgba(5, 8, 7, 0.6) 0%, rgba(11,61,46,0.4) 100%)",
@@ -500,19 +517,19 @@ export default function ReportsPage() {
           <Box
             component={AppGreetingHeader}
             sx={{
-              width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" },
+              width: "17cqw",
               marginTop: 0,
             }}
           />
-          <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
+          <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5cqw" }}>
             {topBarIcons.map((item, index) => (
               item.volumeToggle ? (
                 <TopBarVolumeIcon
                   key={index}
                   alt={item.alt}
                   sx={{
-                    width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
-                    height: "45.23px",
+                    width: "5cqh",
+                    height: "5cqh",
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -524,8 +541,8 @@ export default function ReportsPage() {
                   key={index}
                   src={item.src}
                   sx={{
-                    width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
-                    height: "45.23px",
+                    width: "5cqh",
+                    height: "5cqh",
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -538,8 +555,8 @@ export default function ReportsPage() {
                   component="img"
                   onClick={item.onClick}
                   sx={{
-                    width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
-                    height: "45.23px",
+                    width: "5cqh",
+                    height: "5cqh",
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -556,12 +573,17 @@ export default function ReportsPage() {
 
         <Box
           sx={{
-            px: { xs: 2, md: 4.5 },
-            pb: { xs: 1.5, md: 2 },
+            width: "95cqw",
+            height: "91cqh",
+            mx: "auto",
+            pt: "1cqh",
+            pb: "1cqh",
+            boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
           {error && (
-            <Alert severity="error" sx={{ mb: 3, position: "relative", zIndex: 1 }}>
+            <Alert severity="error" sx={{ mb: "1cqh", position: "relative", zIndex: 1 }}>
               {error}
             </Alert>
           )}
@@ -572,8 +594,8 @@ export default function ReportsPage() {
               sx={{
                 position: "relative",
                 zIndex: 1,
-                p: 4,
-                borderRadius: "28px",
+                p: "3cqh",
+                borderRadius: "2.8cqh",
                 background: "rgba(255,255,255,0.18)",
                 color: "#fff",
                 backdropFilter: "blur(16px)",
@@ -582,13 +604,14 @@ export default function ReportsPage() {
               No report data yet. Complete a few game sessions and this dashboard will populate.
             </Paper>
           ) : (
-            <Box sx={{ position: "relative", zIndex: 1 }}>
+            <Box sx={{ position: "relative", zIndex: 1, height: "100%", display: "grid", gridTemplateRows: "10.5cqh 1fr", gap: "2.6cqh" }}>
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, minmax(0, 1fr))" },
-                gap: 1.5,
-                mb: 1.5,
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                columnGap: "1.2cqw",
+                rowGap: "2.4cqh",
+                minHeight: 0,
               }}
             >
               <StatCard
@@ -624,8 +647,10 @@ export default function ReportsPage() {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-                gap: 1.5,
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gridTemplateRows: "repeat(2, minmax(0, 1fr))",
+                gap: "1.2cqw",
+                minHeight: 0,
               }}
             >
               <ChartCard
@@ -685,7 +710,7 @@ export default function ReportsPage() {
                 title="Module Progress"
                 subtitle="Completion status by module"
               >
-                <Box sx={{ display: "grid", gap: 1.1 }}>
+                <Box sx={{ display: "grid", gap: "1cqh" }}>
                   {sortedModuleProgress.map((row) => {
                     const percent = getModulePercent(row);
 
@@ -696,21 +721,21 @@ export default function ReportsPage() {
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
-                            mb: 0.45,
-                            gap: 1.5,
+                            mb: "0.35cqh",
+                            gap: "1cqw",
                           }}
                         >
-                          <Typography sx={{ color: "#2a3850", fontSize: 13, fontWeight: 600 }}>
+                          <Typography sx={{ color: "#2a3850", fontSize: "1.45cqh", fontWeight: 600 }}>
                             {prettifyLabel(row.moduleKey)}
                           </Typography>
-                          <Typography sx={{ color: "#5c6b81", fontSize: 12 }}>
+                          <Typography sx={{ color: "#5c6b81", fontSize: "1.3cqh" }}>
                             {formatPercent(percent)}
                           </Typography>
                         </Box>
                         <Box
                           sx={{
                             width: "100%",
-                            height: 8,
+                            height: "0.8cqh",
                             borderRadius: "999px",
                             background: "rgba(161, 175, 191, 0.28)",
                             overflow: "hidden",

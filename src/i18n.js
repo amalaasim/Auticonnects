@@ -14,9 +14,9 @@ const resources = {
         line1: "Practice real-life situations in a calm,",
         line2: "guided way."
       },
-      roccoTitle: "Say hi to your friend Rocco! He loves chatting.",
+      roccoTitle: "Say hi to your friend Sheru! He loves chatting.",
       roccoDesc: {
-        line1: "Share your day with him, your feelings,",
+        line1: "Share your day with him, your feelings, ",
         line2: "or anything on your mind."
       },
   "objectLearningTitle": "Object Learning Game",
@@ -47,7 +47,7 @@ const resources = {
                         "questionBall":"Can you find Ball?",
              "uploadpicture":"Upload Picture",
              "adult": "Adult Verification",
-"shoeQuestion":"How many zeros are there in Thousand?",
+"shoeQuestion":"How many zeros are there in a thousand?",
               "Submit": "Submit",
                             "upload":"Upload picture from your device",
                             "Continue":"Continue",
@@ -79,7 +79,7 @@ const resources = {
         line1: "حقیقی زندگی کے حالات کو پُرسکون انداز میں",
         line2: "سیکھیں"
       },
-      roccoTitle: "اپنے دوست روکو کو ہیلو کہیں! اسے باتیں کرنا پسند ہے۔",
+      roccoTitle: "اپنے دوست شیرو کو ہیلو کہیں! اسے باتیں کرنا پسند ہے۔",
       roccoDesc: {
         line1: " اس کے ساتھ اپنا دن، احساسات",
         line2: "اور خیالات شیئر کریں۔"

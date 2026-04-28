@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface AuthButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -30,14 +29,24 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   }
 
   return (
-    <Button
-      style={{ fontFamily: "'Chewy', cursive" }}
+    <button
+      type={props.type ?? 'button'}
       className={cn(
-        "h-[4.4cqh] w-full rounded-md bg-[#824D1F] px-[2.4cqh] py-[0.45cqh] font-['Chewy'] text-[2.1cqh] font-bold text-white shadow-lg",
-        "transform hover:scale-105 transition-all duration-200",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
+        "inline-flex h-[4.4cqh] w-full items-center justify-center whitespace-nowrap border-0 px-[2.4cqh] py-[0.45cqh] font-['Chewy'] text-[2.1cqh] text-white outline-none appearance-none",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
         className
       )}
+      style={{
+        fontFamily: "'Chewy', cursive",
+        fontStyle: 'normal',
+        fontWeight: 400,
+        lineHeight: '90%',
+        textAlign: 'center',
+        color: '#FFFFFF',
+        background: '#B35300',
+        boxShadow: '0px 3px 4px #8E3B11, inset 0px -5px 9.7px rgba(0, 0, 0, 0.21)',
+        borderRadius: '7.28451px',
+      }}
       disabled={loading}
       {...props}
     >
@@ -50,7 +59,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
           Loading...
         </span>
       ) : children}
-    </Button>
+    </button>
   );
 };
 

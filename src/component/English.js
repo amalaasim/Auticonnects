@@ -16,6 +16,8 @@ import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
 import { preloadImageAsset } from "@/lib/preloadImageAsset";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ✅ Import Framer Motion
 import { motion } from "framer-motion";
@@ -23,10 +25,34 @@ import { motion } from "framer-motion";
 export default function English() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const bubblesEnglishBg = "/assets/Bubbles/Bubbles_bg_english.png";
+  const mimmiUnifiedBg = "/assets/Mimmi/mimmi_bg_unified_extended.png";
+  const bubblesStandingGif = "/assets/Bubbles/standing-loop.gif";
+  const mimmiHiGif = "/assets/Mimmi/hi_mimmi.gif";
+  const bubblesBotBg = "/assets/Bubbles/bubbles_bot_bg.png";
+  const mimmiBotBg = "/assets/Mimmi/mimmi_bot_bg.png";
+  const [favoriteCharacter, setFavoriteCharacter] = React.useState(() => {
+    if (typeof window === "undefined") return "";
+    return window.sessionStorage.getItem("favoriteCharacter") || "";
+  });
+  const isUrdu = i18n.language === "ur";
+  const stackedLayout = "@media (max-aspect-ratio: 4/3)";
+  const tabletLandscapeLayout = "@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 3/2)";
+  const laptopWideLayout = "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)";
+  const contentCardWidth = "45cqw";
+  const contentCardHeight = "45cqh";
+  const contentCardRadius = "2.07cqh";
+  const contentCardOverlayHeight = "14.8cqh";
+  const isBubbles = favoriteCharacter === "bubbles";
+  const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
 
   React.useEffect(() => {
     const nextAssets = [
       bg,
+      bubblesEnglishBg,
+      bubblesStandingGif,
+      bubblesBotBg,
       game,
       storyland,
       back,
@@ -54,6 +80,33 @@ export default function English() {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    let ignore = false;
+
+    const loadFavoriteCharacter = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("favorite_character")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (ignore || !data?.favorite_character) return;
+
+      setFavoriteCharacter(data.favorite_character);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+      }
+    };
+
+    loadFavoriteCharacter();
+
+    return () => {
+      ignore = true;
+    };
+  }, [user?.id]);
+
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },
     { src: reportNew, alt: "Reports", onClick: () => navigate("/reports") },
@@ -72,50 +125,71 @@ export default function English() {
   exit={{ opacity: 0, x: -60 }}
   transition={{ duration: 0.3 }}
   style={{
+    height: "100vh",
     minHeight: "100vh",
     backgroundColor: "transparent",
   }}
 >
 
-      <Box dir={i18n.language === 'ur' ? 'rtl' : 'ltr'} sx={{ cursor: `url(${click}) 32 32, auto` }}>
+      <Box dir={isUrdu ? 'rtl' : 'ltr'} sx={{ cursor: `url(${click}) 32 32, auto` }}>
         <Box
           sx={{
-            backgroundImage: `url(${bg})`,
+            backgroundImage: `url(${isBubbles ? bubblesEnglishBg : isMimmi ? mimmiUnifiedBg : bg})`,
             width: "100vw",
+            height: "100vh",
             minHeight: "100vh",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",
             position: "relative",
-            backgroundPosition: "center",
+            backgroundPosition: isBubbles
+              ? "center calc(100% + 4cqh)"
+              : isMimmi
+                ? "center calc(100% + 15cqh)"
+                : "bottom center",
+            overflow: "hidden",
+            containerType: "size",
+            [laptopWideLayout]: {
+              backgroundPosition: isBubbles
+                ? "center calc(100% + 7cqh)"
+                : isMimmi
+                  ? "center calc(100% + 20cqh)"
+                  : "bottom center",
+            },
           }}
         >
+          <Box
+            sx={{
+              position: "absolute",
+              left: 0,
+              bottom: 0,
+              width: "100%",
+              height: "14.7cqh",
+              zIndex: 1,
+              pointerEvents: "none",
+              background:
+                "linear-gradient(0deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)",
+            }}
+          />
           <Paper
             dir="ltr"
             sx={{
-              position: "relative",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              paddingLeft: "5%",
-              paddingRight: "5%",
-              paddingTop: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
-              paddingBottom: "8px",
-              marginTop: 0,
+              paddingLeft: "3.5cqh",
+              paddingRight: "3.5cqh",
+              height: "10cqh",
               border: "none",
-              background: "transparent",
+              background:
+                "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)",
               boxShadow: "none",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 26.91%, rgba(0, 0, 0, 0) 100%)",
-                pointerEvents: "none",
-                zIndex: 0,
-              },
             }}
           >
             <Box
@@ -123,26 +197,36 @@ export default function English() {
               sx={{
                 position: "relative",
                 zIndex: 1,
-                width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" },
-                marginTop: 0,
+                width: "18cqw",
+                marginTop: "1.1cqh",
                 textAlign: "left",
+                [stackedLayout]: {
+                  width: "28cqw",
+                },
+                [tabletLandscapeLayout]: {
+                  width: "22cqw",
+                },
               }}
             />
 
-            <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "row", gap: "0.5rem", direction: "ltr" }}>
+            <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "row", gap: "1cqh", direction: "ltr" }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
                   <TopBarVolumeIcon
                     key={i}
                     alt={item.alt}
                     sx={{
-                      width: { lg: "45.23px", md: "25%", sm: "30%", xs: "40px" },
-                      height: {lg:"45.23px",sm:"45.23px"},
+                      width: "4.6cqh",
+                      height: "4.6cqh",
                       objectFit: "contain",
-                      paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
+                      paddingBottom: 0,
                       marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                      [stackedLayout]: {
+                        width: "4.2cqh",
+                        height: "4.2cqh",
+                      },
                     }}
                   />
                 ) : item.logoutMenu ? (
@@ -151,13 +235,17 @@ export default function English() {
                     src={item.src}
                     alt={item.alt}
                     sx={{
-                      width: { lg: "45.23px", md: "25%", sm: "30%", xs: "40px" },
-                      height: {lg:"45.23px",sm:"45.23px"},
+                      width: "4.6cqh",
+                      height: "4.6cqh",
                       objectFit: "contain",
-                      paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
+                      paddingBottom: 0,
                       marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
+                      [stackedLayout]: {
+                        width: "4.2cqh",
+                        height: "4.2cqh",
+                      },
                     }}
                   />
                 ) : (
@@ -166,14 +254,18 @@ export default function English() {
                     component="img"
                     onClick={item.onClick}
                     sx={{
-                      width: { lg: "45.23px", md: "25%", sm: "30%", xs: "40px" },
-                      height: {lg:"45.23px",sm:"45.23px"},
+                      width: "4.6cqh",
+                      height: "4.6cqh",
                       objectFit: "contain",
-                      paddingBottom:{ lg: "0", md: "0", sm: "3%", xs: "0"},
+                      paddingBottom: 0,
                       marginTop: 0,
                       opacity: 1,
                       filter: "brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))",
                       cursor: item.onClick ? "pointer" : "default",
+                      [stackedLayout]: {
+                        width: "4.2cqh",
+                        height: "4.2cqh",
+                      },
                     }}
                     src={item.src}
                   />
@@ -183,103 +275,243 @@ export default function English() {
           </Paper>
 
           {/* Cards */}
-          <Box sx={{ display: "flex", flexDirection: {lg:"row",md:"row",sm:"column"},marginLeft:{ lg: "0", md: "0", sm: "5%", xs: "0"},
-justifyContent: "space-around", padding: "4%",marginTop:"-2%",
-gap:{ lg:"2.75rem", md:"2rem", sm:"1rem" } }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-start",
+              alignItems: "flex-start",
+              paddingLeft: "4cqw",
+              paddingRight: "4cqw",
+              paddingTop: "14cqh",
+              gap: "3cqh",
+              [stackedLayout]: {
+                flexDirection: "column",
+                paddingLeft: "5cqw",
+                paddingRight: "5cqw",
+                paddingTop: "11cqh",
+                gap: "3cqh",
+              },
+              [tabletLandscapeLayout]: {
+                paddingTop: "13cqh",
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-around",
+                alignItems: "flex-start",
+                width: "100%",
+                gap: "2.5cqw",
+                [stackedLayout]: {
+                  flexDirection: "column",
+                  gap: "1.6cqh",
+                },
+              }}
+            >
 
             {/* WonderWorld */}
             <Box
               onClick={() => navigate("/wonderworld")}
-              sx={{ display: "flex", flexDirection: "column", opacity: "0.9", cursor: "pointer","&:hover": {
+              sx={{ display: "flex", flexDirection: "column", width: contentCardWidth, opacity: "0.9", cursor: "pointer", overflow: "hidden", position: "relative","&:hover": {
                   transform: "scale(1.08)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
-                }, }}
+                },
+                [stackedLayout]: {
+                  width: "100%",
+                  boxSizing: "border-box",
+                },
+                [tabletLandscapeLayout]: {
+                  width: contentCardWidth,
+                },
+              }}
             >
               <Box
                 component="img"
-                sx={{ borderRadius: "20px", height: { lg: "45vh", md: "40vh", sm: "30vh", xs: "30vh" },
-              width: { lg: "100%", md: "100%", sm: "95%", xs: "30%"},}}
+                sx={{
+                  borderRadius: contentCardRadius,
+                  height: contentCardHeight,
+                  width: "100%",
+                  objectFit: "cover",
+                  [stackedLayout]: {
+                    height: contentCardHeight,
+                  },
+                  [tabletLandscapeLayout]: {
+                    height: contentCardHeight,
+                  },
+                }}
                 src={game}
               />
 
-              <Typography sx={{backgroundColor:"rgba(111, 117, 131, 0.6)",fontFamily:i18n.language === "ur" ? "JameelNooriNastaleeq" :  "Petrona",fontWeight:"600",color:"rgba(255, 255, 255, 1)",fontSize:i18n.language === "ur" ? "28px" : "22px",lineHeight:i18n.language === "ur" ? "36px":"24px",paddingRight:"5%",letterSpacing:"0.38px",
-                  mt: { lg: i18n.language === "ur" ? "-23.5%" : "-19.3%", sm: i18n.language === "ur" ?"-23%": "-19.3%", xs: "-12%" },
-               width:{ lg: "100%", md: "100%", sm: "95%", xs: "100%"},
-paddingTop:"2.3%",paddingLeft:"5%",paddingBottom:"2.6%",height:"auto",borderRadius:"20px"}}>
-                <span style={{fontFamily:i18n.language === "ur" ? "JameelNooriNastaleeq" :  "chewy",fontWeight:"400",fontStyle:"Regular",fontSize:i18n.language === "ur" ? "42px" : "26.45px",lineHeight:"47px",letterSpacing:"2px"}}>
+              <Typography sx={{background:"rgba(15, 23, 42, 0.2)",backdropFilter:"blur(1.29cqh)",fontFamily:isUrdu ? "JameelNooriNastaleeq" :  "Petrona",fontWeight:"600",color:"rgba(255, 255, 255, 1)",fontSize:isUrdu ? "3.05cqh" : "2.45cqh",lineHeight:isUrdu ? "3.9cqh":"2.8cqh",paddingRight:"2.1cqh",letterSpacing:"0.037cqh",
+               position:"absolute",
+               left:0,
+               right:0,
+               bottom:0,
+               width:"100%",
+               boxSizing:"border-box",
+paddingTop:"1.5cqh",paddingLeft:"2.1cqh",paddingBottom:"1.5cqh",minHeight:contentCardOverlayHeight,borderRadius:`0 0 ${contentCardRadius} ${contentCardRadius}`,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                <span style={{display:"block",whiteSpace:"nowrap",marginBottom:"0.4cqh",fontFamily:isUrdu ? "JameelNooriNastaleeq" :  "Chewy",fontWeight:"400",fontStyle:"normal",fontSize:isUrdu ? "3.3cqh" : "3.3cqh",lineHeight:"4.1cqh",letterSpacing:"0.1cqh"}}>
                   {t("wonderWorldTitle")}
                 </span>
-                <br />
                 {t("wonderWorldDesc.line1")}<br/>
                 {t("wonderWorldDesc.line2")}
               </Typography>
             </Box>
 
             {/* Social Storyland */}
-            <Box onClick={() => navigate("/garden")} sx={{ display: "flex", flexDirection: "column", opacity: "0.9", cursor: "pointer","&:hover": {
+            <Box onClick={() => navigate("/garden")} sx={{ display: "flex", flexDirection: "column", width: contentCardWidth, opacity: "0.9", cursor: "pointer", overflow: "hidden", position: "relative","&:hover": {
                   transform: "scale(1.08)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
-                }, }}>
+                },
+                [stackedLayout]: {
+                  width: "100%",
+                  boxSizing: "border-box",
+                },
+                [tabletLandscapeLayout]: {
+                  width: contentCardWidth,
+                },
+              }}>
               <Box 
                 component="img"
-                sx={{ borderRadius: "20px", height: { lg: "45vh", md: "40vh", sm: "30vh", xs: "30vh" },
-              width: { lg: "100%", md: "100%", sm: "95%", xs: "30%"},}}
+                sx={{
+                  borderRadius: contentCardRadius,
+                  height: contentCardHeight,
+                  width: "100%",
+                  objectFit: "cover",
+                  [stackedLayout]: {
+                    height: contentCardHeight,
+                  },
+                  [tabletLandscapeLayout]: {
+                    height: contentCardHeight,
+                  },
+                }}
                 src={storyland}
               />
 
-              <Typography sx={{backgroundColor:"rgba(111, 117, 131, 0.6)",
-    width:{ lg: "100%", md: "100%", sm: "95%", xs: "100%"},
-paddingRight:"5%",paddingBottom:"2.6%",fontFamily:i18n.language === "ur" ? "JameelNooriNastaleeq" : "Petrona",fontWeight:"600",color:"rgba(255, 255, 255, 1)",fontSize:i18n.language === "ur" ? "27px" : "22px",lineHeight:i18n.language === "ur" ? "36px" : "24px",letterSpacing:"0.38px",
-mt: { lg: i18n.language === "ur" ? "-23.5%" : "-19.5%", sm:  i18n.language === "ur" ?"-22.6%":"-19.2%", xs: "-12%" },
-paddingTop:"2.3%",paddingLeft:"5%",height:"auto",borderRadius:"20px"}}>
-                  <span style={{fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "chewy",fontWeight:"400",fontStyle:"Regular",fontSize:i18n.language === "ur" ? "42px" : "26.45px",lineHeight:"47px",letterSpacing:"2px"}}>
+              <Typography sx={{background:"rgba(15, 23, 42, 0.2)",backdropFilter:"blur(1.29cqh)",
+    width:"100%",
+    boxSizing:"border-box",
+paddingRight:"2.1cqh",paddingBottom:"1.5cqh",fontFamily:isUrdu ? "JameelNooriNastaleeq" : "Petrona",fontWeight:"600",color:"rgba(255, 255, 255, 1)",fontSize:isUrdu ? "3.05cqh" : "2.45cqh",lineHeight:isUrdu ? "3.9cqh" : "2.8cqh",letterSpacing:"0.037cqh",
+position:"absolute",
+left:0,
+right:0,
+bottom:0,
+paddingTop:"1.5cqh",paddingLeft:"2.1cqh",minHeight:contentCardOverlayHeight,borderRadius:`0 0 ${contentCardRadius} ${contentCardRadius}`,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                  <span style={{display:"block",whiteSpace:"nowrap",marginBottom:"0.4cqh",fontFamily: isUrdu ? "JameelNooriNastaleeq" : "Chewy",fontWeight:"400",fontStyle:"normal",fontSize:isUrdu ? "3.3cqh" : "3.3cqh",lineHeight:"4.1cqh",letterSpacing:"0.1cqh"}}>
                   {t("socialStoryTitle")}
                 </span>
-                <br />
                 {t("socialStoryDesc.line1")}<br/>
                 {t("socialStoryDesc.line2")}
               </Typography>
             </Box>
-          </Box>
-
-          {/* Rocco */}
-          <Box
-            onClick={openSheruBot}
-            sx={{width:{ lg:"calc(100% - 4%)", md:"calc(100% - 4%)", sm:"98%", xs:"96%" }, mx:"auto", borderRadius:"20px", cursor: "pointer","&:hover": {
+            </Box>
+            {/* Rocco */}
+            <Box
+              onClick={openSheruBot}
+              sx={{position: "relative", width: "92cqw", mx:"auto", mt: "3cqh", borderRadius: contentCardRadius, cursor: "pointer", zIndex: 2, "& > *": { position: "relative", zIndex: 1 }, "&:hover": {
                   transform: "scale(1.03)",
                   boxShadow: "0 10px 25px rgba(0,0,0,0)",
+                },
+                [stackedLayout]: {
+                  width: "92cqw",
+                },
+                [tabletLandscapeLayout]: {
+                  width: "92cqw",
+                },
+              }}
+            >
+          <Box sx={{ display: "flex", flexDirection: "column", borderRadius: contentCardRadius, position: "relative", top: 0 }}>
+            <Box
+              sx={{
+                width: "100%",
+                height: "18cqh",
+                borderRadius: contentCardRadius,
+                backgroundImage: `url(${isBubbles ? bubblesBotBg : isMimmi ? mimmiBotBg : back})`,
+                backgroundRepeat: "no-repeat",
+                backgroundSize: isBubbles || isMimmi ? "cover" : "100% 100%",
+                backgroundPosition: isMimmi ? "center 95%" : "bottom center",
+                [stackedLayout]: {
+                  height: "15cqh",
+                },
+                [tabletLandscapeLayout]: {
+                  height: "16cqh",
+                },
+              }}
+            />
 
-                },}}
-          >
-          <Box sx={{ display: "flex", flexDirection: "column",marginTop:"-2%",borderRadius:"20px" }}>
-            <Box component="img" src={back} sx={{ width: {lg:"100%",md:"100%",sm:"98%", xs:"100%"},
-                  height: { lg: "22vh", md: "22vh", sm: "17vh", xs: "15vh" },
-               borderRadius:{lg:"7%"}, paddingLeft: {lg:"2%", md:"2%", sm:i18n.language === "ur" ? "12%" :"9%", xs:"0"}, paddingRight: { lg:"2%", md:"2%", sm:"6%", xs:"0" }, 
-               }} />
-
-            <Typography  sx={{paddingBottom:"2.3%",
-            fontFamily:i18n.language === "ur" ? "JameelNooriNastaleeq" : "Petrona",
+            <Typography  sx={{paddingBottom:"1.5cqh",
+            fontFamily:isUrdu ? "JameelNooriNastaleeq" : "Petrona",
               fontWeight:"500",
               color:"rgba(255, 255, 255, 1)",
-              fontSize:{lg:i18n.language === "ur" ? "28px" : "22px", sm: i18n.language === "ur" ? "22px" : "18px"},
-              lineHeight:i18n.language === "ur" ? "37px" : "24px",
-              letterSpacing:"0.38px",
-                px: { lg: i18n.language === "ur" ? "8%" : "8%", sm: "12%", xs: "2%" },
-              marginTop:{lg:"-10.5%",sm:"-17%"},
-              width:{lg:"100%",sm:"70%"},paddingTop:"2.3%",paddingLeft: i18n.language === "ur" ? "0%" : "8%",paddingRight: i18n.language === "ur" ? "8%" : "0%",height:"100%",borderRadius:"20px"}}>
-                      <span style={{fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",fontWeight:"400",fontStyle:"normal",fontSize:{lg:i18n.language === "ur" ? "42px" : "37.35px",},lineHeight:"30px",letterSpacing:"2px",width:"100%"}}>              
-                        {t("roccoTitle")}
+              fontSize:isUrdu ? "3.05cqh" : "2.45cqh",
+              lineHeight:isUrdu ? "3.9cqh" : "2.8cqh",
+              letterSpacing:"0.037cqh",
+              position:"relative",
+              top:"auto",
+              transform:"none",
+              left:"auto",
+              zIndex:2,
+                px: "2.1cqh",
+              marginTop:"-14.2cqh",
+              width:"100%",paddingTop:"1.5cqh",paddingLeft: isUrdu ? "0" : "3.2cqh",paddingRight: isUrdu ? "2.1cqh" : "0",height:"auto",borderRadius: contentCardRadius,
+              [stackedLayout]: {
+                px: "2.1cqh",
+                paddingTop: "1.5cqh",
+                width: "72cqw",
+                marginTop: "-7.2cqh",
+                fontSize: isUrdu ? "3.05cqh" : "2.45cqh",
+              },
+              [tabletLandscapeLayout]: {
+                position: "absolute",
+                top: "9.4cqh",
+                transform: "translateY(-50%)",
+                left: 0,
+                px: "2.1cqh",
+                marginTop: 0,
+                width: "70cqw",
+                paddingTop: 0,
+                fontSize: isUrdu ? "3.05cqh" : "2.45cqh",
+              }}}>
+                      <span style={{display:"block",marginBottom:"0.4cqh",fontFamily: isUrdu ? "JameelNooriNastaleeq" : "Chewy",fontWeight:"400",fontStyle:"normal",fontSize:"3.3cqh",lineHeight:"4.1cqh",letterSpacing:"0.1cqh"}}>              
+                        {isBubbles
+                          ? t("roccoTitle").replace("Sheru", "Bubbles").replace("شیرو", "ببلز")
+                          : isMimmi
+                            ? "Say hi to your friend Mimmi"
+                            : t("roccoTitle")}
                     </span>
-                    <br />
             {t("roccoDesc.line1")}
             {t("roccoDesc.line2")}
           </Typography>
         </Box>
 
-       <Box component="img" src={cartoon} sx={{width:{lg:"32%",sm:"235%"},height:"43%", marginLeft:"66%",marginRight:{lg:i18n.language === "ur" ? "70%" : "0%",sm:i18n.language === "ur" ? "65%" : "0%"},paddingLeft:"6%",marginTop:{lg: i18n.language === "ur" ?"-18%":"-16%",sm: i18n.language === "ur" ?"-24%":"-35%"}, position: "relative", zIndex: 1, pointerEvents: "none"}}/>
+       <Box component="img" src={isBubbles ? bubblesStandingGif : isMimmi ? mimmiHiGif : cartoon} sx={{width:"31cqw",height:"46cqh", position: "absolute", right: isUrdu ? "auto" : "-0.2cqw", left: isUrdu ? "-0.2cqw" : "auto", bottom: "-18cqh", zIndex: 1, pointerEvents: "none", transformOrigin:"center bottom",
+        [laptopWideLayout]: {
+          width: "31cqw",
+          height: "46cqh",
+          bottom: "-18cqh",
+        },
+        [stackedLayout]: {
+          width: "39cqw",
+          height: "46cqh",
+          right: isUrdu ? "auto" : "0cqw",
+          left: isUrdu ? "0cqw" : "auto",
+          bottom: "-16cqh",
+        },
+        [tabletLandscapeLayout]: {
+          width: "39cqw",
+          height: "47cqh",
+          right: isUrdu ? "auto" : "0cqw",
+          left: isUrdu ? "0cqw" : "auto",
+          bottom: "-17cqh",
+        },
+       }}/>
        </Box>
        </Box>
       </Box>
+    </Box>
     </motion.div>
   );
 }

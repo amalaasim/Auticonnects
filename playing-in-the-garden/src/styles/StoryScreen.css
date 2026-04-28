@@ -1,19 +1,27 @@
 .story-container {
+  width: 100vw;
+  height: 100vh;
   min-height: 100vh;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2a2a2a;
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
 
 .scene-wrapper {
   position: relative;
+  background-image: url("/backgrounds/garden.png");
   width: 100vw;
   height: 100vh;
+  min-height: 100vh;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: bottom center;
   overflow: hidden;
+  container-type: size;
 }
 
 .final-loading-screen {
@@ -24,21 +32,42 @@
 }
 
 .scene-background {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;   /* THIS fills the screen */
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  object-fit: cover;
+  object-position: bottom center;
 }
 
 /* Characters positioned relative to the IMAGE */
 .scene-characters {
   position: absolute;
 
-  /* From your Figma math */
-  top: 45.37%;
-  left: 10.41%;
-  width: 42.87%;
+  /* Anchor to the scene floor so varying asset heights stay grounded */
+  bottom: 4.2cqh;
+  left: 10.41cqw;
+  width: 42.87cqw;
 
   pointer-events: none;
+}
+
+.scene-characters.scene-characters-push {
+  bottom: 2cqh;
+}
+
+.scene-characters.scene-characters-push-2 {
+  bottom: 7.4cqh;
+  width: 39.5cqw;
+}
+
+.scene-characters.scene-characters-settlement {
+  bottom: 1.5cqh;
+}
+
+.scene-characters.scene-characters-dosti {
+  bottom: 4.5cqh;
 }
 
 .scene-characters img {
@@ -51,45 +80,62 @@
   position: absolute;
   z-index: 10;
   background: rgba(255, 255, 255, 0.85);
-  padding: 32px;
-  border-radius: 16px;
-  max-width: 600px;
-  width: 90%;
+  padding: 4cqh;
+  border-radius: 2cqh;
+  max-width: 42cqw;
+  width: 90cqw;
   text-align: center;
+}
+
+.story-banner-layer {
+  position: absolute;
+  left: -5.55%;
+  right: -2.67%;
+  top: 7.73%;
+  bottom: 61.33%;
+  z-index: 3;
+  background: none;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: auto;
+  container-type: inline-size;
+}
+
+/* Banner SVG should be placed inside .story-banner-layer as an <img> or inline <svg> */
+.banner-svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .text-banner {
   position: absolute;
-
-  /* Vertical placement from Figma */
-  top: 7.7%;
-
-  /* Horizontal overflow like Figma */
-  left: -5.5%;
-  width: 108%;
-
-  height: auto;
-
-  /* Visual behavior */
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
   pointer-events: none;
-  z-index: 3;
-
-  /* Match Figma blend mode */
-  mix-blend-mode: multiply;
+  z-index: 0;
+  opacity: 1;
+  mix-blend-mode: normal;
+  filter: none;
 }
 
 .story-text-group {
   position: absolute;
-
-  top: 25%;
-  left: 50%;
+  top: 57%;
+  left: 51.4%;
   transform: translate(-50%, -50%) rotate(3deg);
 
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 1.7cqw;
 
-  z-index: 5;
+  z-index: 2;
   flex-wrap: nowrap;
 }
 
@@ -99,10 +145,10 @@
 
   /* Typography */
   font-family: "Chewy", cursive;
-  font-size: 35px;
+  font-size: 2.5cqw;
   font-weight: 400;
   line-height: 140%;
-  letter-spacing: 1.32px;
+  letter-spacing: 0.09cqw;
   color: #ffffff;
 
   /* Layering */
@@ -113,7 +159,8 @@
 /* Emotion selector (row of emojis) */
 .emotion-selector {
   display: flex;
-  gap: 20px;
+  gap: 0.75cqw;
+  margin-top: 3.7cqh;
 
   z-index: 6;
   flex-wrap: nowrap;
@@ -121,7 +168,7 @@
 
 /* Individual emoji */
 .emotion-emoji {
-  font-size: 56px;
+  font-size: 7.6cqh;
   cursor: pointer;
   user-select: none;
 
@@ -131,27 +178,27 @@
 /* Hover / tap feedback */
 .emotion-emoji:hover {
   transform: scale(1.15);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0.5cqh 0.75cqh rgba(0, 0, 0, 0.25));
 }
 
 .next-button {
   position: absolute;
-  top: 22%;
-  left: 1301px;
-  width: 84px;
-  height: 84px;
-  transform: rotate(-5deg);
+  top: 60%;
+  right: 5.6%;
+  width: auto;
+  height: 27%;
+  transform: translateY(-50%) rotate(-5deg);
   cursor: pointer;
   z-index: 20;
 }
 
 .prev-button {
   position: absolute;
-  top: calc(22% - 40px);
-  left: 28px;
-  width: 84px;
-  height: 84px;
-  transform: scaleX(-1) rotate(-5deg);
+  top: 48%;
+  left: 6.6%;
+  width: auto;
+  height: 27%;
+  transform: translateY(-50%) scaleX(-1) rotate(20deg);
   cursor: pointer;
   z-index: 20;
 }
@@ -161,8 +208,9 @@
 }
 
 .emotion-image {
-  width: 72px;          /* match Figma later */
-  height: 72px;
+  width: 9cqh;
+  height: 9cqh;
+  flex: 0 0 auto;
   display: block;
   object-fit: contain;
   object-position: center;
@@ -175,16 +223,26 @@
 }
 
 .emotion-crying {
-  width: 118px;
-  height: 118px;
+  width: 15.8cqh;
+  height: 15.8cqh;
+  margin-left: -2cqh;
+  margin-right: -2cqh;
   aspect-ratio: 1 / 1;
   object-fit: contain;
   object-position: center;
-  transform: translateY(-20px) rotate(-2deg);
+  transform: translateY(-3.3cqh) rotate(-7deg);
 }
 
 .emotion-crying:hover {
-  transform: translateY(-20px) rotate(-2deg) scale(1.05);
+  transform: translateY(-3.3cqh) rotate(-7deg) scale(1);
+}
+
+.emotion-crying.emotion-active {
+  transform: translateY(-3.3cqh) rotate(0deg);
+}
+
+.emotion-crying.emotion-active:hover {
+  transform: translateY(-3.3cqh) rotate(0deg) scale(1);
 }
 
 .emotion-image,
@@ -195,29 +253,85 @@
 
 .lion {
   position: absolute;
-  width: 456px;
-  height: 379px;
-  top: 325px;
-  left: 985px;
+  width: 31.7cqw;
+  height: 51.9cqh;
+  top: 44.5cqh;
+  left: 65.2cqw;
   pointer-events: none;
-  z-index: 3;
+  z-index: 30;
+}
+
+.lion-shadow {
+  position: absolute;
+  width: 20.5cqw;
+  height: 5.6cqh;
+  left: 70.1cqw;
+  top: 71.4cqh;
+  border-radius: 50%;
+  background: #281F18;
+  filter: blur(1.8cqh);
+  opacity: 0.92;
+  pointer-events: none;
+  z-index: 29;
 }
 
 .lion-idle {
-  width: 420px;
-  height: 350px;
-  top: 313px;
+  width: 30.4cqw;
+  height: 47.9cqh;
+  top: 31.8cqh;
 }
 
 .lion-talking {
-  top: 305px;
-  width: 410px;
-  height: 341px;
+  top: 30.7cqh;
+  width: 29.7cqw;
+  height: 46.7cqh;
+}
+
+.lion-bubbles.lion-talking {
+  width: 30.4cqw;
+  height: 47.9cqh;
+  top: 31.8cqh;
+}
+
+.lion-mimmi.lion-talking {
+  top: 32.4cqh;
+}
+
+.narrator-controls-anchor {
+  position: absolute;
+  left: 65.2cqw;
+  top: 31.8cqh;
+  width: 30.4cqw;
+  height: 47.9cqh;
+  pointer-events: none;
+  z-index: 31;
+}
+
+@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 29/20) {
+  .lion-idle {
+    width: 33.1cqw;
+  }
+
+  .lion-talking {
+    width: 32.4cqw;
+  }
+
+  .lion-bubbles.lion-talking {
+    width: 33.1cqw;
+  }
+
+  .lion-mimmi.lion-talking {
+    top: 32.4cqh;
+  }
+
+  .narrator-controls-anchor {
+    width: 33.1cqw;
+  }
 }
 
 .final-score-layout {
   position: absolute;
-  top: 220px;
+  top: 30.1cqh;
   left: 0;
   right: 0;
   display: flex;
@@ -226,25 +340,42 @@
 }
 
 .final-lion img {
-  width: 520px;
+  width: 36.1cqw;
   height: auto;
-  transform: translate(-20px, 50px);
+  transform: translate(-1.4cqw, 6.8cqh);
 }
 
-.final-stars {
+.final-lion-mimmi img {
   position: absolute;
-  right: 140px;
-  transform: translateY(-40px);
+  left: 50cqw;
+  top: 4the eye.5cqh;
+  width: 36cqw;
+  height: 56.7cqh;
+  object-fit: contain;
+  transform: translateX(-50%);
+}
+
+@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 29/20) {
+  .final-lion-mimmi img {
+    width: 39cqw;
+  }
+}
+
+.final-actions {
+  position: absolute;
+  top: 10.5cqh;
+  right: 2cqw;
   display: flex;
-  gap: 16px;
-  font-size: 64px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8cqh;
+  z-index: 25;
 }
 
 .play-again-button {
-  position: absolute;
-  top: 520px;          /* below the stars */
-  right: 108px;        /* align with stars */
-  transform: none;
+  width: 15.1cqw;
+  height: auto;
+  flex: 0 0 auto;
   cursor: pointer;
 }
 
@@ -252,12 +383,12 @@
   position: absolute;
 
   /* Figma position */
-  top: 163px;
-  left: 274px;
+  top: 22.3cqh;
+  left: 19cqw;
 
   /* Figma size */
-  width: 349.17px;
-  height: 396.7px;
+  width: 24.25cqw;
+  height: 54.3cqh;
 
   /* Rotation */
   transform: rotate(-13.02deg);
@@ -273,25 +404,27 @@
 
 .audio-controls {
   position: absolute;
-  bottom: 80px;   /* adjust to match Figma */
-  right: 130px;   /* adjust horizontally */
+  left: 50%;
+  bottom: -8cqh;
+  transform: translateX(calc(-50% + 0.7cqw));
   display: flex;
-  gap: 14px;
+  gap: 1cqw;
   z-index: 6;
+  pointer-events: auto;
 }
 
 /* Default audio buttons (Stop + Replay) */
 .audio-btn {
-  width: 51.51px;
-  height: 51.51px;
+  width: 6.5cqh;
+  height: 6.5cqh;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
 
 /* Pause button is intentionally larger (from Figma) */
 .audio-btn.pause {
-  width: 84.4px;
-  height: 84.4px;
+  width: 10.6cqh;
+  height: 10.6cqh;
 }
 
 .audio-btn:hover {
@@ -304,23 +437,21 @@
 
 .top-right-controls {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 3cqh;
+  right: 1.7cqw;
   display: flex;
-  gap: 12px;
+  gap: 0.85cqw;
   z-index: 100;
 }
 
 .top-btn {
-  width: 52px;
-  height: 52px;
+  width: 6.5cqh;
+  height: 6.5cqh;
   cursor: pointer;
 }
 
 .final-star-image {
-  position: absolute;  
-  width: 279px;
+  width: 24.5cqw;
   height: auto;
-  top: -150px;            
-  right: -55px;              
+  flex: 0 0 auto;
 }

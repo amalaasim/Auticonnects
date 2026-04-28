@@ -89,12 +89,24 @@ const Signup: React.FC = () => {
       <BackSignpost to="/login" label="Back to Login" />
       
       {!emailSent && (
-        <WoodenBoard className="mt-10 lg:mt-24">
+        <WoodenBoard className="mt-[3cqh]" scrollable={false} contentClassName="justify-start">
           <div className="pt-[2%]">
-          <h2 className="mx-auto mb-2 w-[94%] font-['Chewy'] text-[clamp(1.25rem,1.9vw,2.15rem)] font-bold text-[#824D1F]">Sign Up</h2>
+          <h2
+            className="mx-auto mt-[0.5%] mb-[1.8cqh] w-[94%] font-['Chewy'] text-[3.4cqh] font-bold leading-tight"
+            style={{
+              color: '#824D1F',
+              fontFamily: "'Chewy', cursive",
+              fontStyle: 'normal',
+              fontWeight: 400,
+              mixBlendMode: 'multiply',
+              textShadow: '0px -1px 4px #FFCB8F',
+            }}
+          >
+            Sign Up
+          </h2>
           
           {step === 1 ? (
-            <form onSubmit={handleContinue} className="mx-auto flex w-[94%] flex-col gap-2">
+            <form onSubmit={handleContinue} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh]">
               <AuthInput
                 type="email"
                 label="Enter your email address"
@@ -113,12 +125,12 @@ const Signup: React.FC = () => {
                 required
               />
               
-              <AuthButton type="submit">
+              <AuthButton type="submit" className="mt-[2.2cqh]">
                 Continue
               </AuthButton>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="mx-auto -mt-1 flex w-[94%] flex-col gap-2">
+            <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh]">
               <AuthInput
                 type="password"
                 label="Enter your password"
@@ -143,12 +155,7 @@ const Signup: React.FC = () => {
             </form>
           )}
           
-          <div className="mt-2 flex gap-2">
-            <div className={`h-2 w-2 rounded-full ${step === 1 ? 'bg-[#824D1F]' : 'bg-[#E6C99A]'}`} />
-            <div className={`h-2 w-2 rounded-full ${step === 2 ? 'bg-[#824D1F]' : 'bg-[#E6C99A]'}`} />
-          </div>
-          
-          <p className="w-full -mt-1 font-['Chewy'] text-center text-[clamp(0.8rem,1vw,1rem)] text-[#824D1F]">
+          <p className="mt-[1.9cqh] w-full font-['Chewy'] text-center text-[1.6cqh] text-[#824D1F] leading-none">
             Already have an account?{' '}
             <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
               Login
@@ -160,7 +167,7 @@ const Signup: React.FC = () => {
       {emailSent && (
         <HangingBoard
           message="A verification email has been sent to your email address. Please check your inbox."
-          messageClassName="translate-x-[4px] translate-y-10 text-[#B9793E] md:translate-y-16 lg:translate-y-24"
+          messageClassName="translate-x-[4px] text-[#B9793E]"
         />
       )}
 

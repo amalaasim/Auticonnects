@@ -7,24 +7,62 @@ import bg from '../assests/language_bg.png';
 import reportNew from '../assests/report-new.png';
 import signoutNew from '../assests/signout-new.png';
 import settings from '../assests/settings.png';
-import blue_bg from '../assests/blue_bg.png';
-import select from '../assests/select_language.png';
-import text from '../assests/text.png';
+import languageBanner from '../assests/language-banner.svg';
 import click from '../assests/click.png';
 import English from '../assests/English.png';
 import Urdu from '../assests/urdu.png';
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Language() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const bubblesEnglishBg = "/assets/Bubbles/bubbles_bg_unified.png";
+  const mimmiUnifiedBg = "/assets/Mimmi/mimmi_bg_unified_extended.png";
+  const defaultLanguageBoard = "/assets/language-board.png";
+  const bubblesLanguageBoard = "/assets/language-board-bubbles.png";
+  const mimmiLanguageBoard = "/assets/Mimmi/language-board-mimmi.png";
+  const laptopWideLayout = "@media (min-aspect-ratio: 1.5)";
+  const [favoriteCharacter, setFavoriteCharacter] = React.useState(() => {
+    if (typeof window === "undefined") return "";
+    return window.sessionStorage.getItem("favoriteCharacter") || "";
+  });
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },
     { src: reportNew, onClick: () => navigate("/reports") },
     { src: settings, onClick: () => navigate("/settings") },
     { src: signoutNew, logoutMenu: true },
   ];
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    let ignore = false;
+
+    const loadFavoriteCharacter = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("favorite_character")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (ignore || !data?.favorite_character) return;
+
+      setFavoriteCharacter(data.favorite_character);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("favoriteCharacter", data.favorite_character);
+      }
+    };
+
+    loadFavoriteCharacter();
+
+    return () => {
+      ignore = true;
+    };
+  }, [user?.id]);
 
   const selectEnglish = () => {
     i18n.changeLanguage("en");
@@ -36,20 +74,71 @@ export default function Language() {
     navigate("/english");
   };
 
+  const isBubbles = favoriteCharacter === "bubbles";
+  const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
+  const languageBackground = isBubbles
+    ? bubblesEnglishBg
+    : isMimmi
+      ? mimmiUnifiedBg
+      : bg;
+  const languageBoard = isBubbles
+    ? bubblesLanguageBoard
+    : isMimmi
+      ? mimmiLanguageBoard
+      : defaultLanguageBoard;
+  const languageBackgroundPosition = isBubbles ? "center calc(100% + 4cqh)" : "bottom center";
+  const languageBackgroundPositionLaptop = isBubbles ? "center calc(100% + 7cqh)" : "bottom center";
+
   return (
     <Box sx={{ cursor: `url(${click}) 32 32, auto` }}>
       <Box
         sx={{
-          backgroundImage: `url(${bg})`,
-          width: "100%",
+          backgroundImage: `url(${languageBackground})`,
+          width: "100vw",
           height: "100vh",
           minHeight: "100vh",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+          backgroundPosition: languageBackgroundPosition,
           position: "relative",
+          overflow: "hidden",
+          containerType: "size",
+          [laptopWideLayout]: {
+            backgroundPosition: languageBackgroundPositionLaptop,
+          },
         }}
       >
+        {/* Gradient background behind SVG banner and top bar */}
+        <Box
+          sx={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "45%",
+            zIndex: 0,
+            pointerEvents: "none",
+            overflow: "hidden",
+            background: "linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%)",
+          }}
+        />
+        {/* SVG banner above gradient */}
+        <Box
+          sx={{
+            position: "absolute",
+            left: "-6%",
+            right: "-3%",
+            top: "70%",
+            width: "auto",
+            height: "23%",
+            zIndex: 1,
+            pointerEvents: "none",
+            overflow: "hidden",
+            containerType: "size",
+          }}
+        >
+        </Box>
         {/* TOP BAR */}
         <Paper
           sx={{
@@ -62,6 +151,8 @@ export default function Language() {
             borderRadius: 0,
             background: "transparent",
             boxShadow: "none",
+            zIndex: 2,
+            position: "relative",
           }}
         >
           <Box
@@ -121,57 +212,130 @@ export default function Language() {
           </Box>
         </Paper>
 
-        {/* BACKGROUNDS */}
-        <Box component="img" src={blue_bg} sx={{ width: "100%", height: "22%", mt: { lg: "1%", md: "4%", sm: "2%", xs: "7%" } }} />
-
+        {/* Gradient background behind SVG banner */}
         <Box
-          component="img"
-          src={text}
           sx={{
-            width: { lg: "80%", md: "85%", sm: "91%", xs: "95%" },
-            mt: { lg: "-11%", md: "-18%", sm: "-23.5%", xs: "-33%" },
-            ml: { lg: "9.3%", md: "7%", sm: "5%", xs: "2.5%" },
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "45%",
+            zIndex: 0,
+            pointerEvents: "none",
+            overflow: "hidden",
+            background: "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 0%, rgba(0, 0, 0, 0) 100%)",
           }}
         />
+        {/* SVG banner */}
+        <Box
+          sx={{
+            position: "absolute",
+            left: "-6%",
+            right: "-3%",
+            top: "15%",
+            width: "auto",
+            height: "23%",
+            zIndex: 1,
+            pointerEvents: "none",
+            overflow: "hidden",
+            containerType: "size",
+          }}
+        >
+          <Box
+            component="img"
+            src={languageBanner}
+            alt=""
+            aria-hidden="true"
+            sx={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              transform: "scaleY(-1)",
+            }}
+          />
+          <Box
+            component="p"
+            sx={{
+              position: "absolute",
+              left: "51%",
+              top: "49cqh",
+              width: "80cqw",
+              m: 0,
+              zIndex: 2,
+              transform: "translate(-50%, -50%) rotate(-2.2deg)",
+              color: "#FFFFFF",
+              fontFamily: '"Chewy", cursive',
+              fontStyle: "normal",
+              fontSize: "3.55cqw",
+              fontWeight: 400,
+              lineHeight: 0.95,
+              letterSpacing: "0.05em",
+              textAlign: "center",
+              textShadow: "0 0.243cqw 0.243cqw rgba(0, 0, 0, 0.25)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Pick the language that works best for your child
+          </Box>
+        </Box>
 
         <Box
-          component="img"
-          src={select}
           sx={{
-            width: { lg: "35.6%", md: "57%", sm: "61.8%", xs: "83.7%" },
-            ml: { lg: "33.3%", md: "25%", sm: "19%", xs: "12.5%" },
-            mt:{ lg: "4%", md: "4.5%", sm: "12.5%", xs: "20%" },
-            height: "auto",
+            position: "absolute",
+            left: "50%",
+            bottom: "0",
+            width: "clamp(360px, 67vmin, 920px)",
+            transform: "translateX(-50%)",
+            aspectRatio: "1721 / 1454",
+            containerType: "size",
+            zIndex: 2,
           }}
-        />
+        >
+          <Box
+            component="img"
+            src={languageBoard}
+            sx={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+          />
 
-        {/* ENGLISH */}
-        <Box
-          onClick={selectEnglish}
-          component="img"
-          src={English}
-          sx={{
-            width: { lg: "15%", md: "29%", sm: "31%", xs: "40%" },
-            ml: { lg: "43.3%", md: "39%", sm: "34.8%", xs: "32%" },
-            mt: { lg: "-44.5%", md: "-71%", sm: "-77.9%", xs: "-106%" },
-            "&:hover": { transform: "scale(1.08)" },
-            opacity: 0.9,
-          }}
-        />
+          <Box
+            onClick={selectEnglish}
+            component="img"
+            src={English}
+            sx={{
+              position: "absolute",
+              left: "50%",
+              top: "20%",
+              width: "42%",
+              transform: "translateX(-50%)",
+              transition: "transform 180ms ease",
+              "&:hover": { transform: "translateX(-50%) scale(1.08)" },
+              opacity: 0.9,
+              cursor: "pointer",
+            }}
+          />
 
-        {/* URDU */}
-        <Box
-          onClick={selectUrdu}
-          component="img"
-          src={Urdu}
-          sx={{
-            width: { lg: "10%", md: "19%", sm: "21%", xs: "27%" },
-            ml: { lg: "47%", md: "44%", sm: "41%", xs: "42%" },
-            mt: { lg: "-28%", md: "-45%", sm: "-50%", xs: "-70%" },
-            "&:hover": { transform: "scale(1.08)" },
-            opacity: 0.9,
-          }}
-        />
+          <Box
+            onClick={selectUrdu}
+            component="img"
+            src={Urdu}
+            sx={{
+              position: "absolute",
+              left: "50%",
+              top: "55%",
+              width: "28%",
+              transform: "translateX(-50%)",
+              transition: "transform 180ms ease",
+              "&:hover": { transform: "translateX(-50%) scale(1.08)" },
+              opacity: 0.9,
+              cursor: "pointer",
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   );

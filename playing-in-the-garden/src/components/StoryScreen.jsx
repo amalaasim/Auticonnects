@@ -9,8 +9,35 @@ import LoadingWheel from "../../../src/components/LoadingWheel";
 import "../styles/StoryScreen.css";
 import finalGif from "../final.gif";
 import playIcon from "../../../src/assests/play.png";
+import bannerSvg from "../assets/banner.svg";
 
-const StoryScreen = ({ initialLanguage = "en" }) => {
+const kidsPlayingGif = new URL(
+  "../../public/characters/animations/kids playing.gif",
+  import.meta.url
+).href;
+const pushGif = new URL(
+  "../../public/characters/animations/push.gif",
+  import.meta.url
+).href;
+const push2Gif = new URL(
+  "../../public/characters/animations/push2.gif",
+  import.meta.url
+).href;
+const settlementGif = new URL(
+  "../../public/characters/animations/settelment.gif",
+  import.meta.url
+).href;
+const dostiGif = new URL(
+  "../../public/characters/animations/dosti.gif",
+  import.meta.url
+).href;
+const sceneOneStaticImage = "/characters/AliAndFatima.png";
+
+const StoryScreen = ({
+  initialLanguage = "en",
+  gardenBackgroundSrc = "/backgrounds/garden.png",
+  favoriteCharacter = "",
+}) => {
   const navigate = useNavigate();
   const [currentSceneId, setCurrentSceneId] = useState(1);
   const [feedback, setFeedback] = useState(null);
@@ -22,7 +49,10 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const [isPaused, setIsPaused] = useState(false);
 
   const [isLionTalking, setIsLionTalking] = useState(false);
+  const [sceneNarrationCompleted, setSceneNarrationCompleted] = useState(false);
   const [finalLionGifVersion, setFinalLionGifVersion] = useState(0);
+  const [narratorGifVersion, setNarratorGifVersion] = useState(0);
+  const [sceneCharacterGifVersion, setSceneCharacterGifVersion] = useState(0);
   const [finalAssetsReady, setFinalAssetsReady] = useState(false);
   const audioRef = useRef(null);
 
@@ -32,7 +62,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const [attemptsByScene, setAttemptsByScene] = useState({});
 
   // Eye-gaze attention logic
-  const { isLooking, videoRef } = useWebEyeGaze();
+  const { isLooking, videoRef, cameraAvailable } = useWebEyeGaze();
   const attentionTimerRef = useRef(null);
   const focusTimeRef = useRef(0);        // total focused time (ms)
   const distractedTimeRef = useRef(0);   // total distracted time (ms)
@@ -45,14 +75,14 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
 
   // Helper: Check if camera is available (permission granted)
   const isCameraAvailable = () =>
-    videoRef.current && videoRef.current.srcObject;
+    cameraAvailable && videoRef.current && videoRef.current.srcObject;
 
   const {
     emotionCounts: modelEmotionCounts,
     currentEmotion,
     emotionConfidence,
   } = useEmotionModel({
-    enabled: hasInteracted,
+    enabled: hasInteracted && cameraAvailable,
     videoRef,
     currentSceneId,
   });
@@ -148,6 +178,9 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   const replayAudio = () => {
     if (!currentScene?.audio) return;
 
+    setNarratorGifVersion((current) => current + 1);
+    setSceneCharacterGifVersion((current) => current + 1);
+
     let audioSrc = null;
 
     if (typeof currentScene.audio === "string") {
@@ -158,7 +191,15 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
         currentScene.audio?.en;
     }
 
-    if (audioSrc) playAudioSafely(audioSrc);
+    if (audioSrc) {
+      playAudioSafely(audioSrc, {
+        onEnded: () => {
+          if (currentSceneId === 3 || currentSceneId === 4) {
+            setSceneNarrationCompleted(true);
+          }
+        },
+      });
+    }
   };
 
   const playRandomFeedbackAudio = (type, options) => {
@@ -173,14 +214,18 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
 
   const getCharacterImageForScene = (sceneId) => {
     switch (sceneId) {
+      case 1:
+        return kidsPlayingGif;
+      case 2:
+        return kidsPlayingGif;
       case 3:
-        return "/characters/AliAndFatima-Push.png";
+        return pushGif;
       case 4:
-        return "/characters/AliAndFatima-Cry.png";
+        return push2Gif;
       case 5:
-        return "/characters/AliAndFatima-Pick.png";
+        return settlementGif;
       case 6:
-        return "/characters/AliAndFatima-Reconcile.png";
+        return dostiGif;
       default:
         return "/characters/AliAndFatima.png";
     }
@@ -214,6 +259,71 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       ? "ہم کھیلتے وقت ایک دوسرے کا خیال رکھتے ہیں، پیار سے کھیلتے ہیں۔ اللہ حافظ"
       : "We take care of each other while playing in the garden!";
   const isScene6Urdu = currentSceneId === 6 && language === "ur";
+  const shouldUseCryingSheru =
+    (currentSceneId === 3 || currentSceneId === 4) &&
+    sceneNarrationCompleted &&
+    !isLionTalking;
+  const useBubblesNarrator = favoriteCharacter === "bubbles";
+  const useMimmiNarrator = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
+
+  // If Mimmi is selected, override background with Mimmi's garden background
+  const effectiveGardenBackgroundSrc = useMimmiNarrator
+    ? "/assets/Mimmi/mimmi_garden_bg.png"
+    : gardenBackgroundSrc;
+  const idleNarratorSrc = useBubblesNarrator
+    ? shouldUseCryingSheru
+      ? "/assets/Bubbles/bubbles_crying.gif"
+      : "/assets/Bubbles/standing-loop.gif"
+    : useMimmiNarrator
+      ? shouldUseCryingSheru
+        ? "/assets/Mimmi/crying_mimmi.gif"
+        : "/assets/Mimmi/standing_mimmi.gif"
+      : shouldUseCryingSheru
+        ? "/characters/crying_sheru.gif"
+        : "/characters/green-try.gif";
+  const talkingNarratorSrc = useBubblesNarrator
+    ? "/assets/Bubbles/talking.gif"
+    : useMimmiNarrator
+      ? "/assets/Mimmi/talking_mimmi.gif"
+      : "/characters/talking.gif";
+  const finalNarratorSrc = useBubblesNarrator
+    ? "/assets/Bubbles/bubbles_clapping.gif"
+    : useMimmiNarrator
+      ? "/assets/Mimmi/clapping_mimmi.gif"
+      : `${finalGif}?v=${finalLionGifVersion}`;
+  const lionImageSrc = isLionTalking ? talkingNarratorSrc : idleNarratorSrc;
+  const versionedNarratorSrc = lionImageSrc.endsWith(".gif")
+    ? `${lionImageSrc}${lionImageSrc.includes("?") ? "&" : "?"}v=${narratorGifVersion}`
+    : lionImageSrc;
+  const currentCharacterImageSrc = getCharacterImageForScene(currentSceneId);
+  const displayedCharacterImageSrc =
+    currentSceneId === 1 && !hasInteracted
+      ? sceneOneStaticImage
+      : currentCharacterImageSrc;
+  const versionedCharacterImageSrc =
+    displayedCharacterImageSrc && displayedCharacterImageSrc.endsWith(".gif")
+      ? `${displayedCharacterImageSrc}${displayedCharacterImageSrc.includes("?") ? "&" : "?"}v=${sceneCharacterGifVersion}`
+      : displayedCharacterImageSrc;
+
+  useEffect(() => {
+    setNarratorGifVersion((current) => current + 1);
+  }, [currentSceneId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    [idleNarratorSrc, talkingNarratorSrc].forEach((src) => {
+      if (!src) return;
+      const image = new Image();
+      image.src = src.endsWith(".gif")
+        ? `${src}${src.includes("?") ? "&" : "?"}v=${narratorGifVersion}`
+        : src;
+    });
+  }, [idleNarratorSrc, narratorGifVersion, talkingNarratorSrc]);
+
+  useEffect(() => {
+    setSceneCharacterGifVersion((current) => current + 1);
+  }, [currentCharacterImageSrc, currentSceneId]);
 
   useEffect(() => {
     setLanguage(initialLanguage);
@@ -279,7 +389,13 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     }
 
     if (audioSrc) {
-      playAudioSafely(audioSrc);
+      playAudioSafely(audioSrc, {
+        onEnded: () => {
+          if (currentSceneId === 3 || currentSceneId === 4) {
+            setSceneNarrationCompleted(true);
+          }
+        },
+      });
     }
 
     return () => {
@@ -363,6 +479,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
   useEffect(() => {
     setHoveredEmotion(null);
     setSelectedEmotion(null);
+    setSceneNarrationCompleted(false);
   }, [currentSceneId]);
 
   useEffect(() => {
@@ -398,13 +515,13 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     }
 
     const assetUrls = [
-      "/backgrounds/garden.png",
-      "/ui/text-banner.png",
+      gardenBackgroundSrc,
+      bannerSvg,
       "/ui/PlayAgain.png",
       "/ui/home.png",
       isMuted ? "/ui/volume-off.png" : "/ui/volume-on.png",
       `/ui/stars/star-${stars}.png`,
-      `${finalGif}?v=${finalLionGifVersion}`,
+      finalNarratorSrc,
     ];
 
     let cancelled = false;
@@ -426,7 +543,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
     return () => {
       cancelled = true;
     };
-  }, [currentScene, finalLionGifVersion, isMuted, responses]);
+  }, [currentScene, finalLionGifVersion, finalNarratorSrc, gardenBackgroundSrc, isMuted, responses]);
 
   if (!currentScene) {
     // PART 2: Build sessionData when story completes
@@ -521,6 +638,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       <div className="story-container">
         <div
           className="scene-wrapper"
+          style={{ backgroundImage: `url(${gardenBackgroundSrc})` }}
           onClick={() => {
             if (!hasInteracted) {
               setHasInteracted(true);
@@ -569,69 +687,71 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             />
           </div>
           <img
-            src="/backgrounds/garden.png"
+            src={gardenBackgroundSrc}
             alt="Garden background"
             className="scene-background"
           />
           {/* Lion centered */}
           {/* Removed the standalone lion image here as per instructions */}
           {/* Text banner */}
-          <img
-            src="/ui/text-banner.png"
-            alt="Text banner"
-            className="text-banner"
-          />
-          <div className="story-text-group">
-            <div className={`story-text ${language === "ur" ? "urdu" : ""}`}>
-              {(sceneText || finalSceneText).split("\n").map((line, index, arr) => (
-                <span
-                  key={`${line}-${index}`}
-                  style={{ display: "block", whiteSpace: "nowrap" }}
-                >
-                  {line}
-                </span>
-              ))}
+          <div className="story-banner-layer">
+            <img
+              src={bannerSvg}
+              alt="Text banner"
+              className="text-banner"
+            />
+            <div className="story-text-group">
+              <div className={`story-text ${language === "ur" ? "urdu" : ""}`}>
+                {(sceneText || finalSceneText).split("\n").map((line, index, arr) => (
+                  <span
+                    key={`${line}-${index}`}
+                    style={{ display: "block", whiteSpace: "nowrap" }}
+                  >
+                    {line}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           {/* New final score layout */}
           <div className="final-score-layout">
-            <div className="final-lion">
+            <div className={`final-lion ${useMimmiNarrator ? "final-lion-mimmi" : ""}`}>
               <img
-                src={`${finalGif}?v=${finalLionGifVersion}`}
+                src={finalNarratorSrc}
                 alt="Lion narrator"
               />
             </div>
-            <div className="final-stars">
+            <div className="final-actions">
               <img
                 src={`/ui/stars/star-${stars}.png`}
                 alt={`${stars} star rating`}
                 className="final-star-image"
               />
+              <img
+                src="/ui/PlayAgain.png"
+                alt="Play Again"
+                className="play-again-button"
+                onClick={() => {
+                  setCurrentSceneId(1);
+                  setResponses([]);
+                  setFeedback(null);
+                  setHasInteracted(false);
+                }}
+              />
             </div>
           </div>
-          <img
-            src="/ui/PlayAgain.png"
-            alt="Play Again"
-            className="play-again-button"
-            onClick={() => {
-              setCurrentSceneId(1);
-              setResponses([]);
-              setFeedback(null);
-              setHasInteracted(false);
-            }}
-          />
         </div>
         {/* DEBUG: Eye gaze status */}
         <div
           style={{
             position: "fixed",
-            bottom: 20,
-            left: 20,
+            bottom: "2cqh",
+            left: "1.4cqw",
             background: "rgba(0,0,0,0.6)",
             color: "white",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            fontSize: "14px",
+            padding: "1cqh 0.85cqw",
+            borderRadius: "1cqh",
+            fontSize: "1.75cqh",
             zIndex: 9999
           }}
         >
@@ -641,25 +761,25 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
         <div
           style={{
             position: "fixed",
-            bottom: 80,
-            left: 20,
+            bottom: "7.7cqh",
+            left: "1.4cqw",
             background: emotionColors.bg,
             border: `1px solid ${emotionColors.border}`,
             color: emotionColors.text,
-            padding: "10px 14px",
-            borderRadius: "16px",
-            fontSize: "14px",
-            backdropFilter: "blur(8px)",
+            padding: "1.25cqh 1cqw",
+            borderRadius: "2cqh",
+            fontSize: "1.75cqh",
+            backdropFilter: "blur(1cqh)",
             zIndex: 9999
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ fontSize: "26px", lineHeight: 1 }}>{emotionEmoji}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
+            <div style={{ fontSize: "3.25cqh", lineHeight: 1 }}>{emotionEmoji}</div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "14px", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+              <div style={{ fontSize: "1.75cqh", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
                 {currentEmotion}
               </div>
-              <div style={{ fontSize: "12px", opacity: 0.8, lineHeight: 1.1 }}>
+              <div style={{ fontSize: "1.5cqh", opacity: 0.8, lineHeight: 1.1 }}>
                 {Math.round((emotionConfidence || 0) * 100)}%
               </div>
             </div>
@@ -690,6 +810,7 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
 
       <div
         className="scene-wrapper"
+        style={{ backgroundImage: `url(${effectiveGardenBackgroundSrc})` }}
         onClick={() => {
           if (!hasInteracted) {
             setHasInteracted(true);
@@ -719,110 +840,133 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
             }}
           />
         </div>
-        <img
-          src="/backgrounds/garden.png"
-          alt="Garden background"
-          className="scene-background"
-        />
-
-        <div className="scene-characters">
           <img
-            src={getCharacterImageForScene(currentSceneId)}
+            src={effectiveGardenBackgroundSrc}
+            alt="Garden background"
+            className="scene-background"
+          />
+
+        <div
+          className={`scene-characters ${
+            currentSceneId === 3
+              ? "scene-characters-push"
+              : currentSceneId === 4
+                ? "scene-characters-push-2"
+                : currentSceneId === 5
+                  ? "scene-characters-settlement"
+                  : currentSceneId === 6
+                    ? "scene-characters-dosti"
+                : ""
+          }`}
+        >
+          <img
+            key={`${versionedCharacterImageSrc || "scene-character"}-${sceneCharacterGifVersion}`}
+            src={versionedCharacterImageSrc}
             alt="Ali and Fatima"
           />
         </div>
+        <div className="lion-shadow" aria-hidden="true" />
         <img
-          src={isLionTalking ? "/characters/talking.gif" : "/characters/green-try.gif"}
+          src={versionedNarratorSrc}
           alt="Lion narrator"
-          className={`lion ${isLionTalking ? "lion-talking" : "lion-idle"}`}
+          className={`lion ${isLionTalking ? "lion-talking" : "lion-idle"} ${
+            useBubblesNarrator ? "lion-bubbles" : ""
+          } ${useMimmiNarrator ? "lion-mimmi" : ""}`}
         />
-        <div className="audio-controls">
-          <img
-            src="/ui/audio-stop.png"
-            alt="Stop audio"
-            className="audio-btn"
-            onClick={stopAudio}
-          />
-          <img
-            src={isPaused ? playIcon : "/ui/audio-pause.png"}
-            alt={isPaused ? "Play audio" : "Pause audio"}
-            className="audio-btn pause"
-            onClick={pauseAudio}
-          />
-          <img
-            src="/ui/audio-replay.png"
-            alt="Replay audio"
-            className="audio-btn"
-            onClick={replayAudio}
-          />
+        <div
+          className={`narrator-controls-anchor ${
+            useBubblesNarrator ? "narrator-controls-anchor-bubbles" : ""
+          } ${useMimmiNarrator ? "narrator-controls-anchor-mimmi" : ""}`}
+        >
+          <div className="audio-controls">
+            <img
+              src="/ui/audio-stop.png"
+              alt="Stop audio"
+              className="audio-btn"
+              onClick={stopAudio}
+            />
+            <img
+              src={isPaused ? playIcon : "/ui/audio-pause.png"}
+              alt={isPaused ? "Play audio" : "Pause audio"}
+              className="audio-btn pause"
+              onClick={pauseAudio}
+            />
+            <img
+              src="/ui/audio-replay.png"
+              alt="Replay audio"
+              className="audio-btn"
+              onClick={replayAudio}
+            />
+          </div>
         </div>
 
-        <img
-          src="/ui/text-banner.png"
-          alt="Text banner"
-          className="text-banner"
-        />
+        <div className="story-banner-layer">
+          <img
+            src={bannerSvg}
+            alt="Text banner"
+            className="text-banner"
+          />
 
-        <div
-          className="story-text-group"
-          style={isScene6Urdu ? { left: "53%" } : undefined}
-        >
           <div
-            className="story-text"
-            style={isScene6Urdu ? { fontSize: "30px" } : undefined}
+            className="story-text-group"
+            style={isScene6Urdu ? { left: "54.2%" } : undefined}
           >
-            {sceneText.split("\n").map((line, lineIndex) => (
-              <span
-                key={`line-${lineIndex}`}
-                style={{
-                  display: "block",
-                  whiteSpace: "nowrap",
-                  marginBottom:
-                    lineIndex < sceneText.split("\n").length - 1 ? "0.22em" : "0",
-                }}
-              >
-                {line.split(" ").map((word, wordIndex) => {
-                  const cleanWord = word.replace(/[.,!?]/g, "");
-
-                  const englishHighlights = ["happily", "crying"];
-                  const urduHighlightsScene1 = ["خوشی", "خوشی"];
-                  const urduHighlightsScene3 = ["رونے"];
-
-                  let shouldHighlight = false;
-
-                  if (language === "en") {
-                    shouldHighlight = englishHighlights.includes(cleanWord.toLowerCase());
-                  }
-
-                  if (language === "ur") {
-                    if (currentSceneId === 1 && urduHighlightsScene1.includes(cleanWord)) {
-                      shouldHighlight = true;
-                    }
-                    if (currentSceneId === 3 && urduHighlightsScene3.includes(cleanWord)) {
-                      shouldHighlight = true;
-                    }
-                  }
-
-                  if (shouldHighlight) {
-                    return (
-                      <span key={`${lineIndex}-${wordIndex}`} className="highlight-word">
-                        {word + " "}
-                      </span>
-                    );
-                  }
-
-                  return <span key={`${lineIndex}-${wordIndex}`}>{word + " "}</span>;
-                })}
-              </span>
-            ))}
-          </div>
-
-          {currentScene.askEmotion && (
             <div
-              className="emotion-selector"
-              style={isScene6Urdu ? { marginTop: "12px" } : undefined}
+              className="story-text"
+              style={isScene6Urdu ? { fontSize: "1.85cqw" } : undefined}
             >
-              {currentScene.emotionOptions.map((emotion) => {
+              {sceneText.split("\n").map((line, lineIndex) => (
+                <span
+                  key={`line-${lineIndex}`}
+                  style={{
+                    display: "block",
+                    whiteSpace: "nowrap",
+                    marginBottom:
+                      lineIndex < sceneText.split("\n").length - 1 ? "0.22em" : "0",
+                  }}
+                >
+                  {line.split(" ").map((word, wordIndex) => {
+                    const cleanWord = word.replace(/[.,!?]/g, "");
+
+                    const englishHighlights = ["happily", "crying"];
+                    const urduHighlightsScene1 = ["خوشی", "خوشی"];
+                    const urduHighlightsScene3 = ["رونے"];
+
+                    let shouldHighlight = false;
+
+                    if (language === "en") {
+                      shouldHighlight = englishHighlights.includes(cleanWord.toLowerCase());
+                    }
+
+                    if (language === "ur") {
+                      if (currentSceneId === 1 && urduHighlightsScene1.includes(cleanWord)) {
+                        shouldHighlight = true;
+                      }
+                      if (currentSceneId === 3 && urduHighlightsScene3.includes(cleanWord)) {
+                        shouldHighlight = true;
+                      }
+                    }
+
+                    if (shouldHighlight) {
+                      return (
+                        <span key={`${lineIndex}-${wordIndex}`} className="highlight-word">
+                          {word + " "}
+                        </span>
+                      );
+                    }
+
+                    return <span key={`${lineIndex}-${wordIndex}`}>{word + " "}</span>;
+                  })}
+                </span>
+              ))}
+            </div>
+
+            {currentScene.askEmotion && (
+              <div
+                className="emotion-selector"
+                style={isScene6Urdu ? { marginTop: "4.4cqh" } : undefined}
+              >
+                {currentScene.emotionOptions.map((emotion) => {
                 const key = emotion.toLowerCase();
                 const isActive = selectedEmotion === emotion || hoveredEmotion === emotion;
                 const src = isActive
@@ -830,12 +974,12 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
                   : `/emotions/${key}-grey.png`;
 
                 return (
-                  <img
-                    key={emotion}
-                    src={src}
-                    alt={emotion}
-                    className={`emotion-image ${emotion === "Crying" ? "emotion-crying" : ""}`}
-                    onMouseEnter={() => setHoveredEmotion(emotion)}
+	                  <img
+	                    key={emotion}
+	                    src={src}
+	                    alt={emotion}
+	                    className={`emotion-image ${emotion === "Crying" ? "emotion-crying" : ""} ${isActive ? "emotion-active" : ""}`}
+	                    onMouseEnter={() => setHoveredEmotion(emotion)}
                     onMouseLeave={() => setHoveredEmotion(null)}
                     onClick={() => {
                       // Block only if narration audio is actively playing
@@ -890,33 +1034,33 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
                   />
                 );
               })}
-            </div>
+              </div>
+            )}
+          </div>
+          {!currentScene.askEmotion && currentScene.nextScene && (
+            <img
+              src="/ui/next-button.png"
+              alt="Next"
+              className="next-button"
+              onClick={() => {
+                if (audioRef.current) return;
+                setCurrentSceneId(currentScene.nextScene);
+              }}
+            />
+          )}
+          {previousSceneId && (
+            <img
+              src="/assets/arrow.png"
+              alt="Back"
+              className="prev-button"
+              onClick={() => {
+                stopAudio();
+                setFeedback(null);
+                setCurrentSceneId(previousSceneId);
+              }}
+            />
           )}
         </div>
-
-        {!currentScene.askEmotion && currentScene.nextScene && (
-          <img
-            src="/ui/next-button.png"
-            alt="Next"
-            className="next-button"
-            onClick={() => {
-              if (audioRef.current) return;
-              setCurrentSceneId(currentScene.nextScene);
-            }}
-          />
-        )}
-        {previousSceneId && (
-          <img
-            src="/assets/arrow.png"
-            alt="Back"
-            className="prev-button"
-            onClick={() => {
-              stopAudio();
-              setFeedback(null);
-              setCurrentSceneId(previousSceneId);
-            }}
-          />
-        )}
         {attemptsByScene[currentScene.id] >= 3 &&
           feedback !== "correct" && (
             <img
@@ -930,13 +1074,13 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       <div
         style={{
           position: "fixed",
-          bottom: 20,
-          left: 20,
+          bottom: "2cqh",
+          left: "1.4cqw",
           background: "rgba(0,0,0,0.6)",
           color: "white",
-          padding: "8px 12px",
-          borderRadius: "8px",
-          fontSize: "14px",
+          padding: "1cqh 0.85cqw",
+          borderRadius: "1cqh",
+          fontSize: "1.75cqh",
           zIndex: 9999
         }}
       >
@@ -946,25 +1090,25 @@ const StoryScreen = ({ initialLanguage = "en" }) => {
       <div
         style={{
           position: "fixed",
-          bottom: 80,
-          left: 20,
+          bottom: "7.7cqh",
+          left: "1.4cqw",
           background: emotionColors.bg,
           border: `1px solid ${emotionColors.border}`,
           color: emotionColors.text,
-          padding: "10px 14px",
-          borderRadius: "16px",
-          fontSize: "14px",
-          backdropFilter: "blur(8px)",
+          padding: "1.25cqh 1cqw",
+          borderRadius: "2cqh",
+          fontSize: "1.75cqh",
+          backdropFilter: "blur(1cqh)",
           zIndex: 9999
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ fontSize: "26px", lineHeight: 1 }}>{emotionEmoji}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
+          <div style={{ fontSize: "3.25cqh", lineHeight: 1 }}>{emotionEmoji}</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: "14px", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+            <div style={{ fontSize: "1.75cqh", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
               {currentEmotion}
             </div>
-            <div style={{ fontSize: "12px", opacity: 0.8, lineHeight: 1.1 }}>
+            <div style={{ fontSize: "1.5cqh", opacity: 0.8, lineHeight: 1.1 }}>
               {Math.round((emotionConfidence || 0) * 100)}%
             </div>
           </div>

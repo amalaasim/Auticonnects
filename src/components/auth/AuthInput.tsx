@@ -15,19 +15,46 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
   return (
     <div className="w-full">
       {label && (
-        <label className="mb-[0.45cqh] block font-['Chewy'] text-[2.1cqh] font-medium text-[#824D1F] leading-tight">
+        <label
+          className="mb-[0.45cqh] block font-['Chewy'] text-[1.9cqh] leading-tight"
+          style={{
+            fontFamily: "'Chewy', cursive",
+            fontStyle: 'normal',
+            fontWeight: 400,
+            color: '#B76D2D',
+            mixBlendMode: 'multiply',
+            textShadow: '0px -1.09611px 4.38444px #FFCB8F',
+          }}
+        >
           {label}
         </label>
       )}
       <div className="relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: '#824D1F',
+            mixBlendMode: 'multiply',
+            boxShadow: '0px -1.09611px 4.38444px #FFCB8F, inset 0px 4.38444px 4.38444px rgba(0, 0, 0, 0.25)',
+            borderRadius: '7.98462px',
+          }}
+        />
         <Input
           type={isPassword && showPassword ? 'text' : type}
           className={cn(
-            "h-[4.8cqh] w-full rounded-md border-[#824D1F]/60 bg-[#824D1F] pr-[5.2cqh] font-['Chewy'] text-[2.3cqh] text-[rgba(255,214,178,0.92)]",
-            "focus:border-[#824D1F] focus:ring-[#824D1F]",
-            "[&::placeholder]:text-[rgba(255,214,178,0.88)] [&::placeholder]:text-[1.9cqh]",
+            "relative h-[4.8cqh] w-full rounded-md border-0 bg-transparent pr-[5.2cqh] font-['Chewy'] text-[2.3cqh] text-[rgba(255,158,89,0.74)]",
+            "focus:border-0 focus:ring-0",
+            "[&::placeholder]:text-[rgba(255,158,89,0.5)] [&::placeholder]:text-[1.9cqh]",
             className
           )}
+          style={{
+            fontFamily: "'Chewy', cursive",
+            fontStyle: 'normal',
+            fontWeight: 400,
+            lineHeight: '90%',
+            color: 'rgba(255, 158, 89, 0.74)',
+          }}
           {...props}
         />
         {isPassword && (

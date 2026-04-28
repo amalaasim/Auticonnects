@@ -43,7 +43,7 @@ export const playingInTheGarden = [
   {
     id: 4,
     text: {
-      en: "How is Fatima feeling after being pushed by Ali?",
+      en: "How is Fatima feeling after being\npushed by Ali?",
       ur: "علی کے دھکا دینے کے بعد فاطمہ کو اب کیسا لگ رہا ہے؟",
     },
     askEmotion: true,

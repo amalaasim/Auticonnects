@@ -8,7 +8,6 @@ import board from '../assests/findbg.png';
 import ball from '../assests/orange.png';
 import shoe from '../assests/shoeo.png';
 import car from '../assests/carr.png';
-import newarrow from '../assests/newarr.png';
 import click from '../assests/click.png';
 import { useNavigate } from "react-router-dom";
 import backbg from '../assests/backbg.png';
@@ -29,6 +28,7 @@ import { useEmotionModel } from "../hooks/useEmotionModel";
 import { useAttentionMetrics } from "@/hooks/useAttentionMetrics";
 import { startSession } from "@/lib/analytics/client";
 import { preloadImageAsset } from "@/lib/preloadImageAsset";
+import { useFavoriteCharacter } from "@/hooks/useFavoriteCharacter";
 import {
   ensureWonderworldSessionState,
   updateWonderworldEmotionCounts,
@@ -39,6 +39,13 @@ import { useTranslation } from 'react-i18next';
 function Findshoe() {
   const navigate = useNavigate();
   const {t}=useTranslation();
+  const favoriteCharacter = useFavoriteCharacter();
+  const bubblesLearnBg = "/assets/Bubbles/bubbles_bg_unified.png";
+  const bubblesTalkingGif = "/assets/Bubbles/talking.gif";
+  const bubblesStandingGif = "/assets/Bubbles/standing-loop.gif";
+  const mimmiLearnBg = "/assets/Mimmi/mimmi_bg_unified_extended.png";
+  const mimmiTalkingGif = "/assets/Mimmi/talking_mimmi.gif";
+  const mimmiStandingGif = "/assets/Mimmi/standing_mimmi.gif";
   const [selectedImageSrc, setSelectedImageSrc] = React.useState(null);
   const [cameraAllowed, setCameraAllowed] = React.useState(true);
   const [cameraPermissionResolved, setCameraPermissionResolved] = React.useState(false);
@@ -76,7 +83,13 @@ const noAudioRef = useRef(null);
   useEffect(() => {
     preloadImageAsset(cartoon);
     preloadImageAsset(standinglion);
-  }, []);
+    preloadImageAsset(bubblesTalkingGif);
+    preloadImageAsset(bubblesStandingGif);
+    preloadImageAsset(bubblesLearnBg);
+    preloadImageAsset(mimmiTalkingGif);
+    preloadImageAsset(mimmiStandingGif);
+    preloadImageAsset(mimmiLearnBg);
+  }, [bubblesLearnBg, bubblesStandingGif, bubblesTalkingGif, mimmiLearnBg, mimmiStandingGif, mimmiTalkingGif]);
 
   const playTrackedAudio = React.useCallback((audio, options = {}) => {
     const { onEnded, onError, resetTime = false } = options;
@@ -247,7 +260,6 @@ useEffect(() => {
   if (cameraPermissionResolved && cameraAllowed) {
     sampleEmotion().catch(() => {});
   }
-  if (cameraPermissionResolved && cameraAllowed && !isLooking) return;
   if (!selectionRecorded) {
     recordSelectTry();
   }
@@ -281,375 +293,84 @@ useEffect(() => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ duration: 0.3 }}
-      style={{ minHeight: "100vh", width: "100vw", overflow: "hidden" }}
+      style={{ minHeight: "100vh", backgroundColor: "transparent" }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
+        <Box sx={{ backgroundColor: "#0B3D2E", width: "100vw", height: "100vh", opacity: "0.9", position: "absolute", backgroundAttachment: "fixed", pointerEvents: "none" }} />
 
-        {/* overlay */}
-        <Box
-          sx={{
-            backgroundColor: "#0B3D2E",
-            width: "100vw",
-            height: "100vh",
-            opacity: "0.9",
-            position: "absolute",
-            pointerEvents: "none",
-          }}
-        />
+        <Box sx={{ backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`, width: "100vw", minHeight: "100vh", backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundAttachment: "fixed", position: "relative", backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 10cqh)" : "bottom center", overflow: "hidden", containerType: "size", "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 12cqh)" : "bottom center" }, "@media (min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center" }, "@media (min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center" } }}>
+          {cameraAllowed && (
+            <Box sx={{ position: "absolute", top: "1.5cqh", right: "1.5cqw", display: "flex", flexDirection: "column", gap: "0.8cqh", zIndex: 50 }}>
+              <Box sx={{ backgroundColor: isLooking ? "rgba(0, 150, 0, 0.7)" : "rgba(150, 0, 0, 0.7)", padding: "0.7cqh 1cqw", borderRadius: "1.5cqh" }}>
+                <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: "#fff" }}>{isLooking ? "Looking" : "Not looking"}</Typography>
+              </Box>
+              <Box sx={{ backgroundColor: emotionColors.bg, border: `1px solid ${emotionColors.border}`, backdropFilter: "blur(8px)", padding: "1cqh 1cqw", borderRadius: "1.8cqh" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
+                  <Typography sx={{ fontSize: "max(1.8cqw, 2.7cqh)", lineHeight: 1 }}>{emotionEmoji}</Typography>
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: emotionColors.text, textTransform: "capitalize", lineHeight: 1.1 }}>{currentEmotion}</Typography>
+                    <Typography sx={{ fontSize: "max(0.8cqw, 1.2cqh)", fontFamily: "Chewy", color: emotionColors.text, opacity: 0.8, lineHeight: 1.1 }}>{Math.round((emotionConfidence || 0) * 100)}%</Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
 
-        {/* main bg */}
-        <Box
-          sx={{
-            backgroundImage: `url(${learnbg})`,
-            width: "100vw",
-            minHeight: "100vh",
-            height: "100vh",
-            borderRadius: "0px",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-            position: "relative",
-            backgroundPosition: "center",
-          }}
-        >
-
-          {/* gaze + emotion debug status */}
-{cameraAllowed && (
-  <Box
-    sx={{
-      position: "absolute",
-      top: "12px",
-      right: "16px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "6px",
-      zIndex: 50,
-    }}
-  >
-    <Box
-      sx={{
-        backgroundColor: isLooking
-          ? "rgba(0, 150, 0, 0.7)"
-          : "rgba(150, 0, 0, 0.7)",
-        padding: "6px 12px",
-        borderRadius: "12px",
-      }}
-    >
-      <Typography
-        sx={{
-          fontSize: "14px",
-          fontFamily: "Chewy",
-          color: "#fff",
-        }}
-      >
-        {isLooking ? "Looking 👀" : "Not looking 🙈"}
-      </Typography>
-    </Box>
-
-    <Box
-      sx={{
-        backgroundColor: emotionColors.bg,
-        border: `1px solid ${emotionColors.border}`,
-        backdropFilter: "blur(8px)",
-        padding: "10px 14px",
-        borderRadius: "16px",
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <Typography sx={{ fontSize: "26px", lineHeight: 1 }}>
-          {emotionEmoji}
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <Typography
-            sx={{
-              fontSize: "14px",
-              fontFamily: "Chewy",
-              color: emotionColors.text,
-              textTransform: "capitalize",
-              lineHeight: 1.1,
-            }}
-          >
-            {currentEmotion}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "12px",
-              fontFamily: "Chewy",
-              color: emotionColors.text,
-              opacity: 0.8,
-              lineHeight: 1.1,
-            }}
-          >
-            {Math.round((emotionConfidence || 0) * 100)}%
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
-  </Box>
-)}
-
-          {/* back */}
-          <Box sx={{ display: "flex", pl: "9%",   
- }}>
-            <Box
-              onClick={() => navigate("/yourShoe")}
-              component="img"
-              src={backbg}
-              sx={{
-                width: { lg: "9%", sm: "18%" },
-                height:{lg:"auto",sm:"18%"},
-                marginTop: { lg: "45px", sm: "10%" },
-                "&:hover": { transform: "scale(1.18)" }
-              }}
-            />
-
-            <Typography
-              onClick={() => navigate("/yourShoe")}
-              sx={{
-                fontSize: { lg: "35px", sm: "28px" },
-                marginTop: { lg: "3.05%", sm: "10%" },
-                marginLeft: { lg: "-8%", sm: "-16%" },
-                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
-                color: "rgba(255, 203, 143, 1)",
-              "&:hover": { transform: "scale(1.18)", boxShadow: "0 10px 25px rgba(0,0,0,0)" }
-
-              }}
-            >
-              <KeyboardArrowLeftIcon sx={{ fontSize: 25 }} />
+          <Box onClick={() => navigate("/yourShoe")} sx={{ position: "absolute", top: "5cqh", left: "5cqw", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", "&:hover": { transform: "scale(1.08)", transition: "0.2s" } }}>
+            <Box component="img" src={backbg} sx={{ width: "max(8cqw, 12cqh)", height: "max(5.5cqh, 3.5cqw)" }} />
+            <Typography sx={{ position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontSize: "max(1.8cqw, 2.7cqh)", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy", color: "#FFCB8F", letterSpacing: "1px", lineHeight: "1", marginTop: "-2%" }}>
+              <KeyboardArrowLeftIcon sx={{ fontSize: "max(2cqw, 3cqh)", mr: 0.5, stroke: "currentColor", strokeWidth: 0.5 }} />
               {t("back")}
             </Typography>
           </Box>
 
-          {/* question */}
-          <Box>
-            <Box
-              component="img"
-              src={bg}
-              sx={{
-                width: { lg: "264px", sm: "200px" },
-                height: { lg: "143px", sm: "110px" },
-                marginTop: { lg: "4%", sm: "20%" },
-                marginLeft: { lg: "390px", sm: "10%" },
-              }}
-            />
-
-            <Typography
-              sx={{
-                fontSize: {
-                  lg: i18n.language === "ur" ? "48px" : "34px",
-                  sm: i18n.language === "ur" ? "38px" : "26px",
-                },
-                marginTop: { lg: "-9%", sm: "-13.5%" },
-                marginLeft: { lg: "29%", sm: "13.5%" },
-                width: {
-                  lg: i18n.language === "ur" ? "22%" : "15%",
-                  sm: i18n.language === "ur" ? "38%" : "25%",
-                },
-                whiteSpace: i18n.language === "ur" ? "nowrap" : "normal",
-                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
-                color: "rgba(15,21,27,0.8)",
-              }}
-            >
-              {t("questionShoes")}
-            </Typography>
-
-            <Box
-              component="img"
-              src={voice}
-              sx={{
-                width: { lg: "40px", sm: "40px" },
-                marginLeft: { lg: "560px", sm: "26%" },
-                marginTop: {lg:i18n.language==="ur"?"0%":"-5%",sm:i18n.language==="ur"?"-2%":"-10%",}
-              }}
-            />
+          <Box sx={{ position: "absolute", bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "9cqh" : "16cqh", left: "3cqw", width: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "max(32cqw, 48cqh)" : "max(26cqw, 39cqh)", zIndex: 5, "@media (max-aspect-ratio: 1.55)": { left: "-1cqw" }, "@media (min-aspect-ratio: 1.55)": { bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "11cqh" : "16cqh" }, "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": { bottom: favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "10cqh" : "16cqh" } }}>
+            <Box sx={{ position: "absolute", width: "max(20cqw, 30cqh)", height: "auto", bottom: "88%", left: "50%", zIndex: 6, "@media (max-aspect-ratio: 4/3)": { width: "22cqw", left: "40%" } }}>
+              <Box component="img" src={bg} sx={{ width: "100%", height: "auto", display: "block", filter: favoriteCharacter === "bubbles" ? "hue-rotate(145deg) saturate(1.35) brightness(1.08)" : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "hue-rotate(65deg) saturate(1.18) brightness(1.05)" : "none" }} />
+              <Typography sx={{ fontSize: i18n.language === "ur" ? "max(3.2cqw, 4.8cqh)" : "max(2.2cqw, 3.3cqh)", position: "absolute", top: "54%", left: "52%", transform: "translate(-50%, -70%)", width: "75%", textAlign: "left", fontStyle: "normal", lineHeight: "1.35", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy", letterSpacing: "1px", color: "rgb(15, 21, 27,0.8)", opacity: "0.9" }}>
+                {t("questionShoes")}
+              </Typography>
+            </Box>
+            <Box sx={{ position: "relative", width: "100%" }}>
+              {!isLionSpeaking && <Box sx={{ position: "absolute", top: "39.5%", left: "30.5%", width: "39%", height: "12.5%", backgroundColor: "#000", borderRadius: "999px", opacity: 1, zIndex: 0, pointerEvents: "none" }} />}
+              <Box component="img" src={favoriteCharacter === "bubbles" ? (isLionSpeaking ? bubblesTalkingGif : bubblesStandingGif) : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? (isLionSpeaking ? mimmiTalkingGif : mimmiStandingGif) : (isLionSpeaking ? cartoon : standinglion)} loading="eager" decoding="async" sx={{ width: "100%", height: "auto", objectFit: "contain", display: "block", position: "relative", zIndex: 1, transform: isLionSpeaking ? (favoriteCharacter === "bubbles" || favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "translateY(2cqh) scaleX(1.03)" : "scaleX(1.03)") : "translateY(2cqh) scale(1.05, 1.02)", transformOrigin: "center" }} />
+            </Box>
           </Box>
 
-          {/* cartoon */}
-          <Box
-            component="img"
-            src={isLionSpeaking ? cartoon : standinglion}
-            loading="eager"
-            decoding="async"
-            sx={{
-              width: { lg: "402px", sm: "270px" },
-              height: { lg: "402px", sm: "290px" },
-              marginLeft: { lg: "190px", sm: "-3%" },
-              marginTop: { lg: "-40px", sm: "-28px" },
-              borderRadius: "200px",
-              objectFit: "contain",
-              transform: isLionSpeaking ? "translateY(-14px)" : "none",
-            }}
-          />
+          <Box sx={{ position: "absolute", right: "2cqw", bottom: "16cqh", width: "max(55cqw, 82cqh)", aspectRatio: "1024 / 796", "@media (max-aspect-ratio: 1.55)": { width: "max(65cqw, 92cqh)", right: "1cqw", bottom: "14cqh" }, "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": { bottom: "12cqh" }, "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": { bottom: "14cqh" }, "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": { width: "max(55cqw, 82cqh)", right: "2cqw", bottom: "12cqh" }, containerType: "size", zIndex: 4 }}>
+            <Box component="img" src={board} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", borderRadius: "44px" }} />
 
-          {/* board */}
-          <Box
-            component="img"
-            src={board}
-            sx={{
-              width: { lg: "659px", sm: "60%" },
-              height: { lg: "551px", sm: "auto" },
-              marginLeft: { lg: "663px", sm: "40%" },
-              marginTop: { lg: "-35.5%", sm: "-50%" },
-              borderRadius: "44px",
-            }}
-          />
+            <Box component="img" src={ball} onClick={() => handleSelect(ball)} sx={{ position: "absolute", left: "19%", top: "24%", width: "14.5%", height: "auto", cursor: "pointer", zIndex: 5, "&:hover": { transform: "scale(1.12)" } }} />
+            <Box component="img" src={shoe} onClick={() => handleSelect(shoe)} sx={{ position: "absolute", left: "41%", top: "20%", width: "22%", height: "auto", cursor: "pointer", zIndex: 5, "&:hover": { transform: "scale(1.12)" } }} />
+            <Box component="img" src={car} onClick={() => handleSelect(car)} sx={{ position: "absolute", left: "68.2%", top: "23%", width: "19.5%", height: "auto", cursor: "pointer", zIndex: 5, "&:hover": { transform: "scale(1.12)" } }} />
 
-          {/* options */}
-          <Box
-            component="img"
-            src={ball}
-            onClick={() => handleSelect(ball)}
-            sx={{
-              width: { lg: "112px", sm: "80px" },
-              height: { lg: "112px", sm: "80px" },
-              marginTop: { lg: "-48%", sm: "-72%" },
-              marginLeft: { lg: "calc(-36% - 25px)", sm: "50.5%" },
-                            "&:hover": { transform: "scale(1.18)", boxShadow: "0 10px 25px rgba(0,0,0,0)" }
+            {[
+              { text: t("ball"), left: "25%" },
+              { text: t("shoes"), left: "53.5%" },
+              { text: t("car"), left: "78%" },
+            ].map((item) => (
+              <Typography key={item.left} sx={{ position: "absolute", top: "50.5%", left: item.left, transform: "translateX(-50%)", fontSize: i18n.language === "ur" ? "6.8cqh" : "5.2cqh", fontStyle: "normal", lineHeight: "90%", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy", letterSpacing: "2px", color: "rgba(255, 236, 220, 1)", opacity: "0.9", zIndex: 5, pointerEvents: "none", whiteSpace: "nowrap" }}>
+                {item.text}
+              </Typography>
+            ))}
 
-            }}
-          />
+            {selectedImageSrc && (
+              <Box component="img" src={selectedImageSrc} sx={{ position: "absolute", left: "53%", top: "74%", width: selectedImageSrc === shoe ? "20%" : selectedImageSrc === ball ? "13%" : "16%", height: "auto", transform: "translate(-50%, -50%)", objectFit: "contain", zIndex: 6 }} />
+            )}
+          </Box>
 
-          <Box
-            component="img"
-            src={shoe}
-            onClick={() => handleSelect(shoe)}
-            sx={{
-              width: { lg: "152px", sm: "100px" },
-              height: { lg: "152px", sm: "100px" },
-              marginTop: { lg: "-47.5%", sm: "-72%" },
-              marginLeft: { lg: "calc(2.8%)", sm: "4%" },
-             "&:hover": { transform: "scale(1.18)", boxShadow: "0 10px 25px rgba(0,0,0,0)" }
-
-            }}
-          />
-
-          <Box
-            component="img"
-            src={car}
-            onClick={() => handleSelect(car)}
-            sx={{
-              width: { lg: "130px", sm: "100px" },
-              height: { lg: "130px", sm: "100px" },
-              marginTop: { lg: "-47.5%", sm: "-72%" },
-              marginLeft: { lg: "calc(1.8%)", sm: "2%" },
-                            "&:hover": { transform: "scale(1.18)", boxShadow: "0 10px 25px rgba(0,0,0,0)" }
-
-            }}
-          />
-        <Typography
-             sx={{
-               fontSize: {lg:i18n.language === "ur" ? "40px" :"35px",sm:i18n.language === "ur" ? "25px" : "25px"},
-               marginTop: {lg:i18n.language === "ur" ? "calc(-19%)" :"calc(-18.6% - 10px)",sm:i18n.language === "ur" ? "-30%" : "-30%"},
-               marginLeft: {lg:i18n.language === "ur" ? "calc(53.5% + 40px)" : "calc(53% + 40px)",sm:i18n.language === "ur" ? "53.5%" : "52.5%"}
-,               fontStyle:"normal",
-               lineHeight:"90%",
-               fontFamily:i18n.language === "ur" ? "JameelNooriNastaleeq" : 'Chewy',
-               letterSpacing:"2px",
-               color:"rgba(255, 236, 220, 1)",
-opacity:"0.9",
-             }}>
-             {t("ball")}
-              </Typography> 
-        <Typography
-             sx={{
-               fontSize: {lg:i18n.language === "ur" ? "40px" :"35px",sm:i18n.language === "ur" ? "25px" : "25px"},
-               marginTop: {lg:i18n.language === "ur" ? "-2.69%" :"-2.1%",sm:i18n.language === "ur" ? "-3.3%" : "-2.7%"},
-               marginLeft:{lg:i18n.language === "ur" ? "calc(65.5% + 35px)" : "calc(63.999% + 45px)",sm:i18n.language === "ur" ? "69.5%" : "67%"},
-               fontStyle:"normal",
-               lineHeight:"90%",
-               fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" :'Chewy',
-               letterSpacing:"2px",
-               color:"rgba(255, 236, 220, 1)",
-opacity:"0.9",
-             }}>
-            {t("shoes")}
-              </Typography> 
-               <Typography
-             sx={{
-               fontSize: {lg:i18n.language === "ur" ? "40px" :"35px",sm:i18n.language === "ur" ? "30px" : "23px"},
-              marginTop: {lg:i18n.language === "ur" ? "calc(-1.7% - 10px)" :"calc(-1.89% - 5px)",sm:i18n.language === "ur" ? "-2.9%" : "-2.7%"},
-               marginLeft:{lg:i18n.language === "ur" ? "calc(75.9% + 60px)" : "calc(74.9% + 70px)",sm:i18n.language === "ur" ? "83.9%" : "84.2%"},
-               fontStyle:"normal",
-               lineHeight:"90%",
-               fontFamily: i18n.language === "ur" ? "Jameelnoorinastaleeq" :'Chewy',
-               letterSpacing:"2px",
-               color:"rgba(255, 236, 220, 1)",
-opacity:"0.9",
-             }}>
-            {t("car")}
-              </Typography> 
-          {/* arrow */}
-          <Box
-            component="img"
-            src={newarrow}
-            sx={{
-              width: { lg: "200px", sm: "200px" },
-              height: { lg: "150px", sm: "150px" },
-              marginLeft: { lg: "calc(60% - 50px)", sm: "60%" },
-              marginTop: {lg:"calc(-4% + 40px)",sm:"-10%"}
-            }}
-          />
-
-          {selectedImageSrc && (
-            <Box
-              component="img"
-              src={selectedImageSrc}
-              sx={{
-                width: selectedImageSrc === ball
-                  ? { lg: "98px", sm: "66px" }
-                  : { lg: "160px", sm: "100px" },
-                height: selectedImageSrc === ball
-                  ? { lg: "92px", sm: "58px" }
-                  : { lg: "150px", sm: "90px" },
-                marginLeft: selectedImageSrc === ball
-                  ? { lg:i18n.language==="ur"?"calc(64.2% + 27px)":"calc(64.2% + 27px)", sm: "calc(68% + 7px)" }
-                  : { lg:i18n.language==="ur"?"calc(62.8% + 20px)":"calc(62.8% + 20px)", sm: "66%" },
-                marginTop: selectedImageSrc === ball
-                  ? {lg:i18n.language==="ur"?"calc(-3.2% - 56px)":"calc(-3% - 56px)",sm:"-5.5%"}
-                  : {lg:i18n.language==="ur"?"calc(-3.2% - 70px)":"calc(-3% - 70px)",sm:"-6.5%"},
-                objectFit: "contain",
-              }}
-            />
+          {cameraAllowed && !isLooking && (
+            <Box sx={{ position: "absolute", bottom: "2cqh", left: "50%", transform: "translateX(-50%)", backgroundColor: "rgba(0, 0, 0, 0.55)", padding: "max(0.8cqw, 1.2cqh) max(1.4cqw, 2.1cqh)", borderRadius: "max(1.2cqw, 1.8cqh)", zIndex: 20 }}>
+              <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>Let's look here together</Typography>
+            </Box>
           )}
 
-<audio
-  ref={audioRef}
-  src={i18n.language === "ur" ? findurdu : findshoe}
-  preload="auto"
-/>
+          <audio ref={audioRef} src={i18n.language === "ur" ? findurdu : findshoe} preload="auto" />
+          <audio ref={yesAudioRef} src={i18n.language === "ur" ? yesurdu : yes} preload="auto" />
+          <audio ref={noAudioRef} src={i18n.language === "ur" ? nourdu : no} preload="auto" />
+          <audio ref={lookHereAudioRef} src={lookHere} preload="auto" />
 
-<audio
-  ref={yesAudioRef}
-  src={i18n.language === "ur" ? yesurdu : yes}
-  preload="auto"
-/>
-
-<audio
-  ref={noAudioRef}
-  src={i18n.language === "ur" ? nourdu : no}
-  preload="auto"
-/>
-
-<audio
-  ref={lookHereAudioRef}
-  src={lookHere}
-  preload="auto"
-/>
-
-{cameraAllowed && (
-  <video
-    ref={videoRef}
-    autoPlay
-    muted
-    playsInline
-    style={{
-      position: "absolute",
-      width: "1px",
-      height: "1px",
-      opacity: 0,
-      pointerEvents: "none",
-    }}
-  />
-)}
+          {cameraAllowed && <video ref={videoRef} autoPlay muted playsInline style={{ position: "absolute", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" }} />}
         </Box>
       </Box>
     </motion.div>

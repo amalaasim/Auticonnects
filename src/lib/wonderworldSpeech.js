@@ -102,6 +102,7 @@ const ballVariants = [
 const shoeVariants = [
   "shoe",
   "shoes",
+  "choose",
   "sho",
   "show",
   "shoo",
@@ -191,7 +192,7 @@ export const WONDERWORLD_SPEECH_CONFIG = {
   },
   shoe: {
     targetWordByLanguage: {
-      en: "shoe",
+      en: "shoes",
       ur: "joota",
     },
     recognitionLang: "en-US",
@@ -201,6 +202,7 @@ export const WONDERWORLD_SPEECH_CONFIG = {
     controlMode: "allowCancel",
     matches: buildTranscriptMatcher(shoeVariants, (word) => {
       if (word.length > 8) return false;
+      if (word === "choose") return true;
       if (/^sho/.test(word)) return true;
       if (/^shu/.test(word)) return true;
       if (/^joo/.test(word)) return true;

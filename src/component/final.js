@@ -27,15 +27,21 @@ import {
   buildWonderworldResultMetrics,
   resolveWonderworldModuleFromRoute,
 } from "@/lib/analytics/mappers";
+import { useFavoriteCharacter } from "@/hooks/useFavoriteCharacter";
 
 function Final() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const favoriteCharacter = useFavoriteCharacter();
   const audioRef = useRef(null);
   const finalizedRef = useRef(false);
   const [starImg, setStarImg] = React.useState(star1);
   const [finalGifVersion, setFinalGifVersion] = React.useState(0);
+  const bubblesLearnBg = "/assets/Bubbles/bubbles_bg_unified.png";
+  const bubblesClappingGif = "/assets/Bubbles/bubbles_clapping.gif";
+  const mimmiLearnBg = "/assets/Mimmi/mimmi_bg_unified_extended.png";
+  const mimmiClappingGif = "/assets/Mimmi/clapping_mimmi.gif";
   const handleBack = () => navigate("/wonderworld");
   const starLayout = {
     width: { lg: "300px", sm: "200px" },
@@ -158,11 +164,9 @@ useEffect(() => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ duration: 0.3 }}
-      style={{ minHeight: "100vh", width: "100vw", overflow: "hidden" }}
+      style={{ minHeight: "100vh", backgroundColor: "transparent" }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
-
-        {/* overlay */}
         <Box
           sx={{
             backgroundColor: "#0B3D2E",
@@ -170,215 +174,298 @@ useEffect(() => {
             height: "100vh",
             opacity: "0.9",
             position: "absolute",
+            backgroundAttachment: "fixed",
             pointerEvents: "none",
           }}
         />
 
-        {/* main bg */}
         <Box
           sx={{
-            backgroundImage: `url(${learnbg})`,
+            backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
             width: "100vw",
             minHeight: "100vh",
-            height: "100vh",
-            borderRadius: "0px",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
+            backgroundAttachment: "fixed",
             position: "relative",
-            backgroundPosition: "center",
+            backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 10cqh)" : "bottom center",
+            overflow: "hidden",
+            containerType: "size",
+            "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)": {
+              backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 12cqh)" : "bottom center",
+            },
+            "@media (min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)": {
+              backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center",
+            },
+            "@media (min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)": {
+              backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center",
+            },
           }}
         >
-
-          {/* back */}
-          <Box sx={{ display: "flex", marginLeft: "-1.7%" }}>
-            <Box
-              component="img"
-              src={bg}
-              onClick={handleBack}
-              sx={{
-                width: { lg: "9%", sm: "18%" },
-                marginLeft: { lg: "12%", sm: "10%" },
-                height: "10%",
-                marginTop: { lg: "45px", sm: "10%" },
-                "&:hover": { transform: "scale(1.18)" },
-              }}
-            />
-
+          <Box
+            onClick={handleBack}
+            sx={{
+              position: "absolute",
+              top: "5cqh",
+              left: "5cqw",
+              zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              "&:hover": { transform: "scale(1.08)", transition: "0.2s" },
+            }}
+          >
+            <Box component="img" src={bg} sx={{ width: "max(8cqw, 12cqh)", height: "max(5.5cqh, 3.5cqw)" }} />
             <Typography
-              onClick={handleBack}
               sx={{
-                fontSize: {
-                  lg: i18n.language === "ur" ? "37px" : "35px",
-                  sm: i18n.language === "ur" ? "35px" : "40px",
-                },
-                marginTop: { lg: "2.7%", sm: 18n.language === "ur" ? "9.5%":"9.2%" },
-                marginLeft: { lg: "-7.95%", sm:18n.language === "ur" ?  "-14.5%":"-16.5%" },
+                position: "absolute",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                fontSize: "max(1.8cqw, 2.7cqh)",
                 fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
-                color: "rgba(255, 203, 143, 1)",
-                cursor: "pointer",
-                                "&:hover": { transform: "scale(1.18)" },
+                color: "#FFCB8F",
+                letterSpacing: "1px",
+                lineHeight: "1",
+                marginTop: "-2%",
               }}
             >
-              <KeyboardArrowLeftIcon sx={{ fontSize: 25 }} />
+              <KeyboardArrowLeftIcon sx={{ fontSize: "max(2cqw, 3cqh)", mr: 0.5, stroke: "currentColor", strokeWidth: 0.5 }} />
               {t("back")}
             </Typography>
           </Box>
 
-          {/* GOOD */}
-          <Box>
-            <Box
-              component="img"
-              src={greenbg}
-              sx={{
-                width: { lg: "264px", sm: "200px" },
-                height: { lg: "130px", sm: "100px" },
-                marginTop: { lg: "4%", sm: "20%" },
-                marginLeft: { lg: "390px", sm: "15%" },
-              }}
-            />
-
-            <Typography
-              dir={i18n.language === "ur" ? "rtl" : "ltr"}
-              sx={{
-                fontSize: {
-                  lg: i18n.language === "ur" ? "60px" : "35px",
-                  sm: i18n.language === "ur" ? "52px" : "30px",
-                },
-                marginTop: { lg: i18n.language==="ur"?"-8.5%":"-6.5%", sm:18n.language === "ur" ?  "-15.5%":"-10.5%" },
-                marginLeft: { lg: i18n.language === "ur" ? "29%" : "29%", sm: i18n.language === "ur" ? "24.5%" : "18%" },
-                marginRight: { lg: i18n.language==="ur"?"62%":"0%", sm:  i18n.language==="ur"?"65%":"0%" },
-                transform: {
-                  lg: i18n.language === "ur" ? "translate(44px, 8px)" : "none",
-                  sm: i18n.language === "ur" ? "translate(32px, 6px)" : "none",
-                },
-                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
-                fontWeight: i18n.language === "ur" ? "600" : "400",
-                color: "rgba(15,21,27,0.8)",
-              }}
-            >
-              {t("good")}
-            </Typography>
-          </Box>
-
-          {/* cartoon */}
           <Box
-            component="img"
-            src={`${cartoon}?v=${finalGifVersion}`}
             sx={{
-              width: { lg: "401px", sm: "290px" },
-              height: { lg: "405px", sm: "290px" },
-              marginLeft: { lg: "190px", sm: "%" },
-              marginTop: { lg: "2px", sm: "-1px" },
-            }}
-          />
-
-          {/* boards */}
-          <Box
-            component="img"
-            src={board}
-            sx={{
-              width: { lg: "658px", sm: "60%" },
-              height: { lg: "450px", sm: "auto" },
-              marginLeft: { lg: "693px", sm: "41%" },
-              marginTop: { lg: "-36%", sm: "-50%" },
-            }}
-          />
-
-          <Box
-            component="img"
-            src={brown}
-            sx={{
-              width: { lg: "518px", sm: "44%" },
-              height: { lg: "300px", sm: "25%" },
-              marginLeft: { lg: "752px", sm: "47.5%" },
-              marginTop: { lg: "-39.5%", sm: "-60%" },
-            }}
-          />
-
-          <Box
-            component="img"
-            src={starImg}
-            className="star-animate"
-            sx={{
-              width: starLayout.width,
-              height: starLayout.height,
-              objectFit: "contain",
-              marginLeft: starLayout.marginLeft,
-              marginTop: starLayout.marginTop,
-            }}
-          />
-
-          {/* try button */}
-          <Box
-            onClick={handleTry}
-            sx={{
-              position: "relative",
-              width: { lg: "180px", sm: "150px" },
-              height: { lg: "92px", sm: "72px" },
-              marginTop: { lg: "calc(-36.5% + 230px)", sm: "calc(-48% + 230px)" },
-              marginLeft: { lg: "calc(65.5% - 10px)", sm: "calc(66.2% - 10px)" },
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: `url(${click}) 12 12, auto`,
-              zIndex: 3,
+              position: "absolute",
+              bottom: "11cqh",
+              left: "2cqw",
+              width: "max(30cqw, 44cqh)",
+              zIndex: 5,
+              "@media (max-aspect-ratio: 1.55)": {
+                bottom: "9cqh",
+                left: "-1cqw",
+              },
+              "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
+                bottom: "11cqh",
+              },
             }}
           >
             <Box
-              component="img"
-              src={trybutton}
               sx={{
                 position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                pointerEvents: "none",
+                width: "max(18.5cqw, 27.75cqh)",
+                height: "auto",
+                bottom: "94%",
+                left: "50%",
+                zIndex: 6,
+                "@media (max-aspect-ratio: 4/3)": {
+                  width: "22cqw",
+                  left: "40%",
+                },
+              }}
+            >
+              <Box
+                component="img"
+                src={greenbg}
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                  filter:
+                    favoriteCharacter === "bubbles"
+                      ? "hue-rotate(145deg) saturate(1.35) brightness(1.08)"
+                      : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi"
+                        ? "hue-rotate(65deg) saturate(1.18) brightness(1.05)"
+                      : "none",
+                }}
+              />
+              <Typography
+                dir={i18n.language === "ur" ? "rtl" : "ltr"}
+                sx={{
+                  fontSize: i18n.language === "ur" ? "max(4cqw, 6cqh)" : "max(2.2cqw, 3.3cqh)",
+                  position: "absolute",
+                  top: "55%",
+                  left: "52%",
+                  transform: "translate(-50%, -70%)",
+                  width: "75%",
+                  textAlign: "left",
+                  fontStyle: "normal",
+                  lineHeight: "1.35",
+                  fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
+                  fontWeight: i18n.language === "ur" ? 600 : 400,
+                  letterSpacing: "1px",
+                  color: "rgb(15, 21, 27,0.8)",
+                  opacity: "0.9",
+                }}
+              >
+                {t("good")}
+              </Typography>
+            </Box>
+            <Box sx={{ position: "relative", width: "100%" }}>
+              <Box
+                component="img"
+                src={favoriteCharacter === "bubbles" ? bubblesClappingGif : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiClappingGif : `${cartoon}?v=${finalGifVersion}`}
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                  position: "relative",
+                  zIndex: 1,
+                  transform: "translateY(2cqh) scale(1.05, 1.02)",
+                  transformOrigin: "center",
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              position: "absolute",
+              right: "2cqw",
+              bottom: "16cqh",
+              width: "max(55cqw, 82cqh)",
+              aspectRatio: "658 / 481",
+              "@media (min-aspect-ratio: 1.5)": {
+                aspectRatio: "658 / 440",
+              },
+              "@media (max-aspect-ratio: 1.55)": {
+                width: "max(65cqw, 92cqh)",
+                right: "-2cqw",
+                bottom: "14cqh",
+              },
+              "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": {
+                bottom: "12cqh",
+              },
+              "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
+                bottom: "14cqh",
+              },
+              "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": {
+                width: "max(55cqw, 82cqh)",
+                right: "-1cqw",
+                bottom: "12cqh",
+              },
+              containerType: "size",
+              zIndex: 4,
+            }}
+          >
+            <Box component="img" src={board} sx={{ width: "100%", height: "100%", borderRadius: "44.5px", position: "absolute" }} />
+
+            <Box
+              sx={{
+                position: "absolute",
+                width: "78.6%",
+                height: "62.3%",
+                left: "8.6%",
+                top: "22.5%",
+                zIndex: 2,
+                background: "#863F2C",
+                mixBlendMode: "multiply",
+                boxShadow: "0px -1.30781px 5.23125px #FFCB8F, inset 0px 5.23125px 5.23125px rgba(0, 0, 0, 0.25)",
+                borderRadius: "25.056px",
               }}
             />
 
-            <Typography
+            <Box
               sx={{
-                position: "relative",
-                fontSize: {
-                  lg: i18n.language === "ur" ? "37px" : "27px",
-                  sm: i18n.language === "ur" ? "28px" : "24px",
-                },
-                fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
-                color: "rgba(255, 203, 143, 1)",
-                cursor: `url(${click}) 12 12, auto`,
-                userSelect: "none",
-                zIndex: 1,
+                position: "absolute",
+                left: "50%",
+                top: starImg === star1 ? "36%" : starImg === star3 ? "43%" : "39%",
+                transform: "translate(-50%, -50%)",
+                width: starImg === star3 ? "50%" : "45%",
+                height: "auto",
+                zIndex: 4,
               }}
             >
-              {t("try")}
-            </Typography>
+              <Box
+                component="img"
+                src={starImg}
+                className="star-animate"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
+            </Box>
+
+            <Box
+              onClick={handleTry}
+              sx={{
+                position: "absolute",
+                left: "50%",
+                top: "61%",
+                transform: "translateX(-50%)",
+                width: "30%",
+                height: "14%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: `url(${click}) 12 12, auto`,
+                containerType: "size",
+                zIndex: 6,
+                "&:hover": { transform: "translateX(-50%) scale(1.08)" },
+              }}
+            >
+              <Box
+                component="img"
+                src={trybutton}
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  pointerEvents: "none",
+                }}
+              />
+              <Typography
+                sx={{
+                  position: "relative",
+                  fontSize: i18n.language === "ur" ? "max(22px, 42cqh)" : "max(18px, 32cqh)",
+                  fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy",
+                  color: "#FFCB8F",
+                  cursor: `url(${click}) 12 12, auto`,
+                  userSelect: "none",
+                  lineHeight: 1,
+                  zIndex: 1,
+                }}
+              >
+                {t("try")}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                position: "absolute",
+                left: "50%",
+                top: "40%",
+                transform: "translate(-50%, -50%)",
+                width: "92%",
+                height: "auto",
+                pointerEvents: "none",
+                zIndex: 5,
+              }}
+            >
+              <Box
+                component="img"
+                src={party}
+                className="party-animate"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                }}
+              />
+            </Box>
           </Box>
-
-
-          <Box
-            component="img"
-            src={party}
-            className="party-animate"
-            sx={{
-              width: { lg: "600px", sm: "380px" },
-              height: { lg: "490px", sm: "310px" },
-              marginLeft: { lg: "700px", sm: "45%" },
-              marginTop: { lg: "calc(-41.5% + 110px)", sm: "calc(-69% + 110px)" },
-              pointerEvents: "none",
-              position: "relative",
-              zIndex: 1,
-
-            }}
-          />
-
         </Box>
 
-<audio
-  ref={audioRef}
-  src={i18n.language === "ur" ? finalurdu : amazing}
-  preload="auto"
-/>
+        <audio ref={audioRef} src={i18n.language === "ur" ? finalurdu : amazing} preload="auto" />
       </Box>
     </motion.div>
   );

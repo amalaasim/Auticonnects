@@ -48,6 +48,7 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
   const userSpeechActiveRef = useRef(false);
   const speechFramesRef = useRef(0);
   const silenceFramesRef = useRef(0);
+  const activeConnectionIdRef = useRef(0);
   
   // Animation frames
   const rafIdRef = useRef<number | null>(null);
@@ -85,13 +86,24 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     return topics[nextIndex];
   };
 
+  const getCompanionName = () => {
+    if (typeof window === "undefined") {
+      return "Sheru";
+    }
+
+    return window.sessionStorage.getItem("favoriteCharacter") === "bubbles"
+      ? "Bubbles"
+      : "Sheru";
+  };
+
   const getNextIntroVariation = () => {
+    const companionName = getCompanionName();
     const intros = [
-      "Hello, my name is Sheru.",
-      "Hello beta, I am Sheru.",
-      "Hello, mera naam Sheru hai.",
-      "Assalamualaikum beta, my name is Sheru.",
-      "Hello jaan, I am Sheru.",
+      `Hello, my name is ${companionName}.`,
+      `Hello beta, I am ${companionName}.`,
+      `Hello, mera naam ${companionName} hai.`,
+      `Assalamualaikum beta, my name is ${companionName}.`,
+      `Hello jaan, I am ${companionName}.`,
     ];
 
     if (typeof window === "undefined") {
@@ -126,7 +138,19 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
     silenceFramesRef.current = 0;
   };
 
-  const cleanup = useCallback(() => {
+  const cleanup = useCallback((closeSession = true) => {
+    activeConnectionIdRef.current += 1;
+    sessionOpenRef.current = false;
+    allowUserInputRef.current = false;
+
+    if (closeSession && liveSessionRef.current?.close) {
+      try {
+        liveSessionRef.current.close();
+      } catch (error) {
+        console.warn('Failed to close Gemini session cleanly:', error);
+      }
+    }
+
     if (processorRef.current) {
       processorRef.current.disconnect();
       processorRef.current = null;
@@ -147,10 +171,8 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
       sessionRef.current = null;
     }
     liveSessionRef.current = null;
-    sessionOpenRef.current = false;
     sessionReadyPromiseRef.current = null;
     resolveSessionReadyRef.current = null;
-    allowUserInputRef.current = false;
     introAudioStartedRef.current = false;
     introAudioFinishedRef.current = false;
     resetUserSpeechGate();
@@ -258,10 +280,17 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
       processor.connect(inCtx.destination); // Destination is mute in most browsers for script processor inputs, but needed for flow
 
       // --- Connect to Gemini Live ---
+      const connectionId = activeConnectionIdRef.current + 1;
+      activeConnectionIdRef.current = connectionId;
+      const companionName = getCompanionName();
+      const companionPossessive = companionName === "Bubbles" ? "Bubbles'" : "Sheru's";
+      const voiceName = companionName === "Bubbles" ? "Zephyr" : "Aoede";
+
       const sessionPromise = ai.live.connect({
         model: 'gemini-3.1-flash-live-preview',
         callbacks: {
           onopen: () => {
+            if (activeConnectionIdRef.current !== connectionId) return;
             console.log('Gemini Live Session Opened');
             sessionOpenRef.current = true;
             setIsConnected(true);
@@ -271,9 +300,17 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
             resolveSessionReadyRef.current = null;
           },
           onmessage: async (message) => {
+            if (activeConnectionIdRef.current !== connectionId || !sessionOpenRef.current) {
+              return;
+            }
+
             const modelTurn = message.serverContent?.modelTurn;
             if (modelTurn?.parts && audioContextRef.current) {
               for (const part of modelTurn.parts) {
+                if (activeConnectionIdRef.current !== connectionId || !sessionOpenRef.current) {
+                  return;
+                }
+
                 if (part.text) {
                   console.log('Sheru says (text):', part.text);
                 }
@@ -289,6 +326,10 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
 
                 const dataBytes = Uint8Array.from(atob(part.inlineData.data), c => c.charCodeAt(0));
                 const audioBuffer = await decodeAudioData(dataBytes, ctx, 24000, 1);
+
+                if (activeConnectionIdRef.current !== connectionId || !sessionOpenRef.current) {
+                  return;
+                }
 
                 const source = ctx.createBufferSource();
                 source.buffer = audioBuffer;
@@ -334,13 +375,15 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
             }
           },
           onclose: () => {
+            if (activeConnectionIdRef.current !== connectionId) return;
             console.log('Session closed');
-            cleanup();
+            cleanup(false);
           },
           onerror: (err) => {
+            if (activeConnectionIdRef.current !== connectionId) return;
             console.error('Session error:', err);
             setError("Connection error.");
-            cleanup();
+            cleanup(false);
           }
         },
         config: {
@@ -351,23 +394,21 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
           },
           mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
           speechConfig: {
-            // "Aoede" is the 'Expressive' voice, often female/child-like. 
-            // Fallback: "Kore" or "Zephyr".
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } }
+            voiceConfig: { prebuiltVoiceConfig: { voiceName } }
           },
           // Updated persona for a child-like/friendly bot
           systemInstruction: `
-You are Sheru, a warm bilingual robot companion for autistic children.
+You are ${companionName}, a warm bilingual robot companion for autistic children.
 Speak softly, gently, and briefly.
 Mainly respond in a natural mix of English and Urdu.
 Automatically detect the language the child is speaking.
 If the child speaks in Sindhi, Pashto, or another language, first understand and follow that language naturally instead of forcing Urdu.
-Do not guess based on a few familiar words only; listen for the overall language and respond in the detected language, while still keeping Sheru's warm style.
+Do not guess based on a few familiar words only; listen for the overall language and respond in the detected language, while still keeping ${companionPossessive} warm style.
 Use short simple sentences, one idea at a time.
 Ask only one small gentle question at the end.
 Be encouraging, calm, and playful.
 Never scold or overwhelm.
-Sheru should always start the conversation first with a short self-introduction before expecting the child to speak.
+${companionName} should always start the conversation first with a short self-introduction before expecting the child to speak.
 If the child seems sad, angry, scared, lonely, or hurt:
 first validate, then reassure, then offer one tiny coping step, then ask one gentle follow-up.
 Do not ignore emotional disclosures and do not switch topics too fast after a hurt feeling.
@@ -382,6 +423,12 @@ Always sound natural, caring, and child-friendly.
 
       sessionRef.current = sessionPromise;
       sessionPromise.then((session) => {
+        if (activeConnectionIdRef.current !== connectionId) {
+          try {
+            session.close?.();
+          } catch (_) {}
+          return;
+        }
         liveSessionRef.current = session;
       }).catch(() => {
         liveSessionRef.current = null;
@@ -512,6 +559,10 @@ Always sound natural, caring, and child-friendly.
     }
   }, [isConnected]);
 
+  const disconnect = useCallback(() => {
+    cleanup(true);
+  }, [cleanup]);
+
   return {
     isConnected,
     isConnecting,
@@ -520,7 +571,7 @@ Always sound natural, caring, and child-friendly.
     userVolume,
     connect,
     startConversation,
-    disconnect: cleanup,
+    disconnect,
     sendPrompt,
     error
   };

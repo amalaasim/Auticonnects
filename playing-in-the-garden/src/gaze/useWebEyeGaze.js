@@ -2,15 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { FaceMesh } from "@mediapipe/face_mesh";
 import { Camera } from "@mediapipe/camera_utils";
 
-export function useWebEyeGaze() {
+export function useWebEyeGaze({ enabled = true } = {}) {
   // We will expose this ref and attach it to a real <video> element
   const videoRef = useRef(null);
   const [isLooking, setIsLooking] = useState(false);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
+  const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
   const lastFaceTimeRef = useRef(null);
   const watchdogRef = useRef(null);
   const cameraRef = useRef(null);
 
   useEffect(() => {
+    if (!enabled) return;
     // 1. Safety check: If the user didn't attach the ref to a video, abort.
     if (!videoRef.current) return;
 
@@ -51,18 +54,31 @@ export function useWebEyeGaze() {
         height: 480,
       });
 
-      cameraRef.current.start();
+      cameraRef.current
+        .start()
+        .then(() => {
+          setCameraAvailable(true);
+          setCameraPermissionDenied(false);
+        })
+        .catch(() => {
+          setCameraAvailable(false);
+          setCameraPermissionDenied(true);
+          setIsLooking(false);
+        });
     }
 
     return () => {
       // Cleanup to prevent memory leaks or double-initialization
       if (cameraRef.current) cameraRef.current.stop();
       if (faceMesh) faceMesh.close();
+      setCameraAvailable(false);
     };
-  }, []); // Run once on mount
+  }, [enabled]); // Run once on mount
 
   // 3. Watchdog Timer (Heartbeat)
   useEffect(() => {
+    if (!enabled || !cameraAvailable) return;
+
     watchdogRef.current = setInterval(() => {
       const now = Date.now();
       const timeoutThreshold = 1000;
@@ -77,7 +93,7 @@ export function useWebEyeGaze() {
     }, 500);
 
     return () => clearInterval(watchdogRef.current);
-  }, []);
+  }, [cameraAvailable, enabled]);
 
-  return { isLooking, videoRef };
+  return { isLooking, videoRef, cameraAvailable, cameraPermissionDenied };
 }

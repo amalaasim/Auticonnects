@@ -66,17 +66,26 @@ const ChildNameSetup: React.FC = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
-      style={{ backgroundImage: 'url(/assets/child-profile-bg-1.png)' }}
-    >
+    <div className="min-h-screen w-full relative overflow-hidden [container-type:size]">
+      <img
+        src="/assets/child-profile-bg-1.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-fill object-center"
+      />
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-6 z-10">
-        <div className="flex flex-col">
-          <h1 className="text-white text-4xl font-bold" style={{ fontFamily: "'Chewy', cursive" }}>
+      <div
+        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-[3.5cqh]"
+        style={{
+          height: '10cqh',
+          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)',
+        }}
+      >
+        <div className="mt-[1.1cqh] flex flex-col">
+          <h1 className="text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '3.6cqh', lineHeight: '1' }}>
             Child Profile
           </h1>
-          <p className="text-white text-sm mt-1" style={{ fontFamily: "'Chewy', cursive" }}>
+          <p className="mt-[0.35cqh] text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '1.35cqh', lineHeight: '1' }}>
             Creation by Parent
           </p>
         </div>
@@ -97,42 +106,46 @@ const ChildNameSetup: React.FC = () => {
 
       {/* Rectangle Image */}
       <div
-        className="absolute z-10"
-        style={{ left: '-0.15%', right: '-0.08%', top: '43.08%', bottom: '38.3%' }}
+        className="absolute left-1/2 top-[43.08%] z-10 w-[200cqh] max-w-[100vw] -translate-x-1/2"
+        style={{ aspectRatio: '1440 / 214' }}
       >
         <img 
-          src="/assets/rectangle.png" 
+          src="/assets/child-profile-name-bar.svg" 
           alt="Rectangle" 
-          className="w-screen h-auto object-contain"
-          style={{ mixBlendMode: 'multiply', filter: 'brightness(0.1) saturate(1.5) contrast(1.2)', opacity: 0.5 }}
+          className="h-full w-full object-contain"
         />
-        
-        <form onSubmit={handleSubmit} className="absolute inset-0 flex flex-col items-center justify-start px-8 pt-8">
+      </div>
+
+      <div
+        className="absolute left-1/2 top-[43.08%] z-20 w-[200cqh] max-w-[100vw] -translate-x-1/2 [container-type:size]"
+        style={{ aspectRatio: '1440 / 214' }}
+      >
+        <form onSubmit={handleSubmit} className="absolute inset-0 flex flex-col items-center justify-start px-[2.2cqh] pt-[2.2cqh]">
           <h2
-            className="absolute left-20 -top-8 mb-8 text-center text-4xl font-bold text-white md:text-5xl rotate-3"
+            className="absolute left-[80cqh] -top-[10.2cqh] mb-[2cqh] text-center text-[20.8cqh] font-bold text-white rotate-[2.23deg]"
             style={{ fontFamily: "'Chewy', cursive" }}
           >
-            What is your kid's name?
+            What is your child's name?
           </h2>
           
-          <div className="absolute -bottom-8 right-12 flex items-center gap-12">
+          <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
             <input
               type="text"
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Enter your child's name"
-              className="flex-1 bg-transparent border-none text-white text-5xl placeholder:text-white/60 focus:outline-none"
-              style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-35px, -10px) rotate(2deg)' }}
+              className="flex-1 bg-transparent border-none text-[20.8cqh] text-[#D5EADC] placeholder:text-[#D5EADC]/60 focus:outline-none"
+              style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)' }}
               required
               autoFocus
             />
             <button
               type="submit"
               disabled={loading || !childName.trim()}
-              className="flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ transform: 'translateY(-20px)' }}
+              className="absolute right-[-40cqh] flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ transform: 'translateY(-3.2cqh) rotate(-6deg)' }}
             >
-              <img src="/ui/next-button.png" alt="Submit" className="w-20 h-20 object-contain" />
+              <img src="/ui/next-button.png" alt="Submit" className="h-[35cqh] w-[35cqh] object-contain" />
             </button>
           </div>
         </form>

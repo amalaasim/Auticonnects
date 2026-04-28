@@ -9,7 +9,6 @@ import AuthButton from '@/components/auth/AuthButton';
 import { useToast } from '@/hooks/use-toast';
 import layer1Board from '@/assests/layer1board.png';
 import layer2Board from '@/assests/layer2board.png';
-import blurLayerBoard from '@/assests/blurlayerboard.png';
 const logo = '/assets/logo.png';
 
 const ForgotPassword: React.FC = () => {
@@ -45,7 +44,7 @@ const ForgotPassword: React.FC = () => {
   return (
     <AuthBackground
       className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0"
-      assetUrls={[logo, '/assets/back.png', '/assets/hanging-board.png', layer1Board, layer2Board, blurLayerBoard]}
+      assetUrls={[logo, '/assets/back.png', '/assets/hanging-board.png', layer1Board, layer2Board]}
     >
       <img
         src={logo}
@@ -56,33 +55,55 @@ const ForgotPassword: React.FC = () => {
       <BackSignpost to="/login" label="Back to Login" />
       
       {!sent && (
-        <div className="relative mx-auto -mt-40 h-[min(70vh,38rem)] w-[min(92vw,38rem)] md:-mt-40 md:h-[min(72vh,40rem)] md:w-[min(72vw,34rem)] lg:-mt-48 lg:h-[min(78vh,44rem)] lg:w-[min(42vw,42rem)]">
-          <img
-            src={layer1Board}
-            alt="Forgot password board base"
-            className="absolute left-1/2 top-0 w-full -translate-x-1/2 object-contain"
-          />
-          <img
-            src={layer2Board}
-            alt="Forgot password board front"
-            className="pointer-events-none absolute left-[49%] top-[42%] w-full -translate-x-1/2 object-contain"
-          />
-          <img
-            src={blurLayerBoard}
-            alt="Forgot password board panel"
-            className="pointer-events-none absolute left-[49%] top-[49.5%] w-[71.5%] -translate-x-1/2 object-contain"
-          />
+        <>
+          <div className="absolute left-[50%] -translate-x-1/2 top-0 h-[70%] aspect-[794/536.26]">
+            <img
+              src={layer1Board}
+              alt="Forgot password board base"
+              className="absolute inset-0 h-full w-full object-contain"
+            />
+            
+            {/* We size a div to exact Layer 2 boundaries, so everything inside is relative to it! */}
+            <div className="absolute left-[7%] top-[43%] h-[86%] w-[86%]">
+              <img
+                src={layer2Board}
+                alt="Forgot password board front"
+                className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+              />
 
-          <div className="absolute left-[49%] top-[48%] w-[58%] -translate-x-1/2">
-            <h2 className="mb-2 text-center font-['Chewy'] text-[clamp(1.2rem,1.9vw,2rem)] font-bold text-[#824D1F]">
+              {/* Blur box positioned exactly relative to the front board, keeping colors clean */}
+              <div className="absolute left-[12%] top-[16%] h-[52%] w-[76%]">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-md"
+                  style={{
+                    background: 'rgba(186, 118, 43, 0.91)',
+                    filter: 'blur(11.2px)',
+                  }}
+                />
+
+                {/* Content starts exactly 2% down relative to the Blur box */}
+                <div className="absolute inset-x-0 top-[2%] w-full">
+                  <h2
+              className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[3.4cqh]"
+              style={{
+                color: '#824D1F',
+                fontFamily: "'Chewy', cursive",
+                fontStyle: 'normal',
+                fontWeight: 400,
+                lineHeight: '90%',
+                mixBlendMode: 'multiply',
+                textShadow: '0px -1px 4px #FFCB8F',
+              }}
+            >
               Forgot Password
             </h2>
 
-            <p className="mb-3 text-center font-['Chewy'] text-[clamp(0.72rem,0.9vw,0.92rem)] text-[#824D1F]">
+            <p className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F]">
               Enter your email address and we'll send you a link to reset your password.
             </p>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+            <form onSubmit={handleSubmit} className="mx-auto flex w-[84%] flex-col gap-[1.5cqh]">
               <AuthInput
                 type="email"
                 label="Enter your email address"
@@ -97,7 +118,7 @@ const ForgotPassword: React.FC = () => {
               </AuthButton>
             </form>
 
-            <p className="mt-2 text-center font-['Chewy'] text-[clamp(0.82rem,1vw,1rem)] text-[#824D1F]">
+            <p className="mx-auto mt-[1.9cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-none text-[#824D1F]">
               Remember your password?{' '}
               <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
                 Login
@@ -105,12 +126,15 @@ const ForgotPassword: React.FC = () => {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  </>
       )}
 
       {sent && (
         <HangingBoard
           message="A password reset link has been sent to your email. Please follow the instructions."
-          messageClassName="translate-x-[4px] translate-y-10 text-[#B9793E] md:translate-y-16 lg:translate-y-24"
+          messageClassName="text-[#B9793E]"
         />
       )}
     </AuthBackground>
