@@ -68,6 +68,10 @@ const App: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const favoriteCharacter =
     typeof window !== "undefined" ? window.sessionStorage.getItem("favoriteCharacter") : null;
+  const childName =
+    typeof window !== "undefined"
+      ? (window.sessionStorage.getItem("childName") || "").trim()
+      : "";
   const isBubbles = favoriteCharacter === "bubbles";
   const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
   const [mimmiBackgroundPosition, setMimmiBackgroundPosition] = useState("center calc(100% + 8cqh)");
@@ -328,7 +332,10 @@ const App: React.FC = () => {
         console.log('👁️❌ Child is not looking after AI finished. Sending gentle reminder...');
         
         // Send a gentle reminder to Sheru immediately
-        sendPrompt("The child is not looking at the screen. Gently and sweetly ask them to look at you, in a very friendly way. Keep it very short and caring.");
+        const childReference = childName || "the child";
+        sendPrompt(
+          `${childReference} is not looking at the screen. Gently and sweetly ask ${childReference} to look at you, in a very friendly way. Keep it very short and caring.`
+        );
         
         // Mark that we've sent the reminder
         gazeReminderSentRef.current = true;
