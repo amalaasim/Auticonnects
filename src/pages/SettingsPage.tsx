@@ -254,9 +254,9 @@ export default function SettingsPage() {
           aspectRatio: "986 / 821",
           containerType: "size",
           zIndex: 1,
-          [macbook14Media]: isBubbles || isMimmi ? {
-            bottom: "3cqh",
-          } : {},
+          [macbook14Media]: {
+            bottom: "6cqh",
+          },
         }}
       >
         <Box

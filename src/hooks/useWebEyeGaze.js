@@ -6,23 +6,56 @@ export function useWebEyeGaze({ enabled = true } = {}) {
   // We will expose this ref and attach it to a real <video> element
   const videoRef = useRef(null);
   const [isLooking, setIsLooking] = useState(false);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
   const lastFaceTimeRef = useRef(null);
   const watchdogRef = useRef(null);
   const cameraRef = useRef(null);
+  const cameraStateIntervalRef = useRef(null);
+
+  const updateCameraAvailability = () => {
+    const video = videoRef.current;
+    const stream = video?.srcObject;
+    const tracks =
+      stream && typeof stream.getVideoTracks === "function"
+        ? stream.getVideoTracks()
+        : [];
+    const hasLiveTrack = tracks.some(
+      (track) => track.readyState === "live" && !track.muted
+    );
+    const isVideoActive =
+      Boolean(video) &&
+      !video.paused &&
+      video.readyState >= 2 &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0;
+
+    const isAvailable = hasLiveTrack && isVideoActive;
+    setCameraAvailable(isAvailable);
+    if (!isAvailable) {
+      setIsLooking(false);
+    }
+
+    return isAvailable;
+  };
 
   useEffect(() => {
     if (!enabled) {
       setIsLooking(false);
+      setCameraAvailable(false);
       return;
     }
     // 1. Safety check: If the user didn't attach the ref to a video, abort.
     if (!videoRef.current) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraAvailable(false);
+      return;
+    }
 
     const faceMesh = new FaceMesh({
       locateFile: (file) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
     });
+    let removeTrackListeners = [];
 
     faceMesh.setOptions({
       maxNumFaces: 1,
@@ -56,13 +89,49 @@ export function useWebEyeGaze({ enabled = true } = {}) {
         height: 480,
       });
 
-      Promise.resolve(cameraRef.current.start()).catch(() => {});
+      Promise.resolve(cameraRef.current.start())
+        .then(() => {
+          const stream = videoRef.current?.srcObject;
+          const tracks =
+            stream && typeof stream.getVideoTracks === "function"
+              ? stream.getVideoTracks()
+              : [];
+
+          removeTrackListeners = tracks.flatMap((track) => {
+            const listener = () => updateCameraAvailability();
+            track.addEventListener("ended", listener);
+            track.addEventListener("mute", listener);
+            track.addEventListener("unmute", listener);
+            return [
+              () => track.removeEventListener("ended", listener),
+              () => track.removeEventListener("mute", listener),
+              () => track.removeEventListener("unmute", listener),
+            ];
+          });
+
+          updateCameraAvailability();
+          cameraStateIntervalRef.current = window.setInterval(
+            updateCameraAvailability,
+            1000
+          );
+        })
+        .catch(() => {
+          setCameraAvailable(false);
+          setIsLooking(false);
+        });
     }
 
     return () => {
       // Cleanup to prevent memory leaks or double-initialization
+      removeTrackListeners.forEach((remove) => remove());
+      if (cameraStateIntervalRef.current) {
+        clearInterval(cameraStateIntervalRef.current);
+        cameraStateIntervalRef.current = null;
+      }
       if (cameraRef.current) cameraRef.current.stop();
       if (faceMesh) faceMesh.close();
+      setCameraAvailable(false);
+      setIsLooking(false);
     };
   }, [enabled]);
 
@@ -88,5 +157,5 @@ export function useWebEyeGaze({ enabled = true } = {}) {
     return () => clearInterval(watchdogRef.current);
   }, [enabled]);
 
-  return { isLooking, videoRef };
+  return { isLooking, videoRef, cameraAvailable };
 }

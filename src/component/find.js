@@ -58,9 +58,10 @@ function Find() {
   const notLookingTimeoutRef = useRef(null);
   const notLookingIntervalRef = useRef(null);
   const navigateTimeoutRef = useRef(null);
-  const { isLooking, videoRef } = useWebEyeGaze({ enabled: cameraPermissionResolved && cameraAllowed });
+  const { isLooking, videoRef, cameraAvailable } = useWebEyeGaze({ enabled: cameraPermissionResolved && cameraAllowed });
+  const cameraActive = cameraPermissionResolved && cameraAllowed && cameraAvailable;
   const { emotionCounts, sampleEmotion, currentEmotion, emotionConfidence } = useEmotionModel({
-    enabled: cameraPermissionResolved && cameraAllowed,
+    enabled: cameraActive,
     videoRef,
     currentSceneId: "find-cookie",
   });
@@ -77,7 +78,7 @@ function Find() {
     neutral: { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" },
   }[currentEmotion] || { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" };
   const { getMetrics } = useAttentionMetrics({
-    enabled: cameraPermissionResolved && cameraAllowed,
+    enabled: cameraActive,
     isLooking,
   });
 
@@ -200,7 +201,7 @@ useEffect(() => {
   return () => {
     updateWonderworldFocusMetrics("cookie", getMetrics());
   };
-}, [cameraAllowed, isLooking, getMetrics]);
+}, [cameraActive, isLooking, getMetrics]);
 
   const recordSelectTry = () => {
   const current = parseInt(localStorage.getItem("cookie_select_tries") || "0", 10);
@@ -216,7 +217,7 @@ useEffect(() => {
     audio.play().catch(() => {});
   };
 
-  if (!cameraPermissionResolved || !cameraAllowed) return;
+  if (!cameraActive) return;
 
   if (isLooking) {
     if (notLookingTimeoutRef.current) {
@@ -233,11 +234,11 @@ useEffect(() => {
   if (notLookingTimeoutRef.current) return;
 
   notLookingTimeoutRef.current = setTimeout(() => {
-    if (!cameraAllowed || isLooking) return;
+    if (!cameraActive || isLooking) return;
     playLookHere();
     if (!notLookingIntervalRef.current) {
       notLookingIntervalRef.current = setInterval(() => {
-        if (!cameraAllowed || isLooking) {
+        if (!cameraActive || isLooking) {
           clearInterval(notLookingIntervalRef.current);
           notLookingIntervalRef.current = null;
           return;
@@ -257,11 +258,11 @@ useEffect(() => {
       notLookingIntervalRef.current = null;
     }
   };
-}, [isLooking, cameraAllowed]);
+}, [isLooking, cameraActive]);
 
 
   const handleSelect = async (img) => {
-  if (cameraPermissionResolved && cameraAllowed) {
+  if (cameraActive) {
     sampleEmotion().catch(() => {});
   }
   if (!selectionRecorded) {
@@ -359,7 +360,7 @@ useEffect(() => {
             },
           }}
         >
-          {cameraAllowed && (
+          {cameraActive && (
             <Box
               sx={{
                 position: "absolute",
@@ -653,7 +654,7 @@ useEffect(() => {
             )}
           </Box>
 
-          {cameraAllowed && !isLooking && (
+          {cameraActive && !isLooking && (
             <Box
               sx={{
                 position: "absolute",

@@ -11,6 +11,33 @@ export function useWebEyeGaze({ enabled = true } = {}) {
   const lastFaceTimeRef = useRef(null);
   const watchdogRef = useRef(null);
   const cameraRef = useRef(null);
+  const cameraStateIntervalRef = useRef(null);
+
+  const updateCameraAvailability = () => {
+    const video = videoRef.current;
+    const stream = video?.srcObject;
+    const tracks =
+      stream && typeof stream.getVideoTracks === "function"
+        ? stream.getVideoTracks()
+        : [];
+    const hasLiveTrack = tracks.some(
+      (track) => track.readyState === "live" && !track.muted
+    );
+    const isVideoActive =
+      Boolean(video) &&
+      !video.paused &&
+      video.readyState >= 2 &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0;
+
+    const isAvailable = hasLiveTrack && isVideoActive;
+    setCameraAvailable(isAvailable);
+    if (!isAvailable) {
+      setIsLooking(false);
+    }
+
+    return isAvailable;
+  };
 
   useEffect(() => {
     if (!enabled) return;
@@ -21,6 +48,7 @@ export function useWebEyeGaze({ enabled = true } = {}) {
       locateFile: (file) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
     });
+    let removeTrackListeners = [];
 
     faceMesh.setOptions({
       maxNumFaces: 1,
@@ -57,7 +85,29 @@ export function useWebEyeGaze({ enabled = true } = {}) {
       cameraRef.current
         .start()
         .then(() => {
-          setCameraAvailable(true);
+          const stream = videoRef.current?.srcObject;
+          const tracks =
+            stream && typeof stream.getVideoTracks === "function"
+              ? stream.getVideoTracks()
+              : [];
+
+          removeTrackListeners = tracks.flatMap((track) => {
+            const listener = () => updateCameraAvailability();
+            track.addEventListener("ended", listener);
+            track.addEventListener("mute", listener);
+            track.addEventListener("unmute", listener);
+            return [
+              () => track.removeEventListener("ended", listener),
+              () => track.removeEventListener("mute", listener),
+              () => track.removeEventListener("unmute", listener),
+            ];
+          });
+
+          updateCameraAvailability();
+          cameraStateIntervalRef.current = window.setInterval(
+            updateCameraAvailability,
+            1000
+          );
           setCameraPermissionDenied(false);
         })
         .catch(() => {
@@ -69,9 +119,15 @@ export function useWebEyeGaze({ enabled = true } = {}) {
 
     return () => {
       // Cleanup to prevent memory leaks or double-initialization
+      removeTrackListeners.forEach((remove) => remove());
+      if (cameraStateIntervalRef.current) {
+        clearInterval(cameraStateIntervalRef.current);
+        cameraStateIntervalRef.current = null;
+      }
       if (cameraRef.current) cameraRef.current.stop();
       if (faceMesh) faceMesh.close();
       setCameraAvailable(false);
+      setIsLooking(false);
     };
   }, [enabled]); // Run once on mount
 

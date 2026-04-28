@@ -53,12 +53,13 @@ function Findball() {
  const audioRef = useRef(null);
 const yesAudioRef = useRef(null);
 const noAudioRef = useRef(null);
-  const { isLooking, videoRef } = useWebEyeGaze({ enabled: cameraPermissionResolved && cameraAllowed });
+  const { isLooking, videoRef, cameraAvailable } = useWebEyeGaze({ enabled: cameraPermissionResolved && cameraAllowed });
+  const cameraActive = cameraPermissionResolved && cameraAllowed && cameraAvailable;
   const lookHereAudioRef = useRef(null);
   const notLookingTimeoutRef = useRef(null);
   const notLookingIntervalRef = useRef(null);
   const { emotionCounts, sampleEmotion, currentEmotion, emotionConfidence } = useEmotionModel({
-    enabled: cameraPermissionResolved && cameraAllowed,
+    enabled: cameraActive,
     videoRef,
     currentSceneId: "find-ball",
   });
@@ -75,7 +76,7 @@ const noAudioRef = useRef(null);
     neutral: { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" },
   }[currentEmotion] || { bg: "rgba(107, 114, 128, 0.2)", border: "rgba(107, 114, 128, 0.5)", text: "#e5e7eb" };
   const { getMetrics } = useAttentionMetrics({
-    enabled: cameraPermissionResolved && cameraAllowed,
+    enabled: cameraActive,
     isLooking,
   });
 
@@ -197,7 +198,7 @@ useEffect(() => {
   return () => {
     updateWonderworldFocusMetrics("ball", getMetrics());
   };
-}, [cameraAllowed, isLooking, getMetrics]);
+}, [cameraActive, isLooking, getMetrics]);
 
   const recordSelectTry = () => {
   const current = parseInt(localStorage.getItem("ball_select_tries") || "0", 10);
@@ -214,7 +215,7 @@ useEffect(() => {
     audio.play().catch(() => {});
   };
 
-  if (!cameraPermissionResolved || !cameraAllowed) return;
+  if (!cameraActive) return;
 
   if (isLooking) {
     if (notLookingTimeoutRef.current) {
@@ -231,11 +232,11 @@ useEffect(() => {
   if (notLookingTimeoutRef.current) return;
 
   notLookingTimeoutRef.current = setTimeout(() => {
-    if (!cameraAllowed || isLooking) return;
+    if (!cameraActive || isLooking) return;
     playLookHere();
     if (!notLookingIntervalRef.current) {
       notLookingIntervalRef.current = setInterval(() => {
-        if (!cameraAllowed || isLooking) {
+        if (!cameraActive || isLooking) {
           clearInterval(notLookingIntervalRef.current);
           notLookingIntervalRef.current = null;
           return;
@@ -255,9 +256,9 @@ useEffect(() => {
       notLookingIntervalRef.current = null;
     }
   };
-}, [isLooking, cameraAllowed]);
+}, [isLooking, cameraActive]);
   const handleSelect = async (img) => {
-  if (cameraPermissionResolved && cameraAllowed) {
+  if (cameraActive) {
     sampleEmotion().catch(() => {});
   }
   if (!selectionRecorded) {
@@ -298,7 +299,7 @@ useEffect(() => {
         <Box sx={{ backgroundColor: "#0B3D2E", width: "100vw", height: "100dvh", opacity: "0.9", position: "absolute", backgroundAttachment: "fixed", pointerEvents: "none" }} />
 
         <Box sx={{ backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`, width: "100vw", height: "100dvh", minHeight: "100dvh", backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundAttachment: "fixed", position: "relative", backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 10cqh)" : "bottom center", overflow: "hidden", containerType: "size", "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 12cqh)" : "bottom center" }, "@media (min-width: 1000px) and (max-width: 1100px) and (min-height: 1300px)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center" }, "@media (min-width: 1300px) and (max-width: 1400px) and (max-aspect-ratio: 1.4)": { backgroundPosition: favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? "center calc(100% + 09cqh)" : "bottom center" } }}>
-          {cameraAllowed && (
+          {cameraActive && (
             <Box sx={{ position: "absolute", top: "1.5cqh", right: "1.5cqw", display: "flex", flexDirection: "column", gap: "0.8cqh", zIndex: 50 }}>
               <Box sx={{ backgroundColor: isLooking ? "rgba(0, 150, 0, 0.7)" : "rgba(150, 0, 0, 0.7)", padding: "0.7cqh 1cqw", borderRadius: "1.5cqh" }}>
                 <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: "#fff" }}>{isLooking ? "Looking" : "Not looking"}</Typography>
@@ -358,7 +359,7 @@ useEffect(() => {
             )}
           </Box>
 
-          {cameraAllowed && !isLooking && (
+          {cameraActive && !isLooking && (
             <Box sx={{ position: "absolute", bottom: "2cqh", left: "50%", transform: "translateX(-50%)", backgroundColor: "rgba(0, 0, 0, 0.55)", padding: "max(0.8cqw, 1.2cqh) max(1.4cqw, 2.1cqh)", borderRadius: "max(1.2cqw, 1.8cqh)", zIndex: 20 }}>
               <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>Let's look here together</Typography>
             </Box>

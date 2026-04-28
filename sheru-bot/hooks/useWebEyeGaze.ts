@@ -5,7 +5,7 @@ import { assetUrl } from "../utils/assetUrls";
 export function useWebEyeGaze() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isLooking, setIsLooking] = useState(false);
-  const [cameraAvailable, setCameraAvailable] = useState(true);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const modelsLoadedRef = useRef(false);
   const detectionIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -68,12 +68,26 @@ export function useWebEyeGaze() {
           return;
         }
 
+        const [videoTrack] = stream.getVideoTracks();
+        const updateCameraState = () => {
+          if (!mountedRef.current) return;
+          const isLive = videoTrack?.readyState === "live" && !videoTrack.muted;
+          setCameraAvailable(Boolean(isLive));
+          if (!isLive) {
+            setIsLooking(false);
+          }
+        };
+
+        videoTrack?.addEventListener("ended", updateCameraState);
+        videoTrack?.addEventListener("mute", updateCameraState);
+        videoTrack?.addEventListener("unmute", updateCameraState);
+
         streamRef.current = stream;
-        setCameraAvailable(true);
         videoRef.current.srcObject = stream;
         videoRef.current.muted = true;
 
         await videoRef.current.play().catch(() => undefined);
+        updateCameraState();
       } catch (error) {
         console.error("[EyeGaze] Camera start failed:", error);
         if (mountedRef.current) {
@@ -90,6 +104,10 @@ export function useWebEyeGaze() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
+      }
+      if (mountedRef.current) {
+        setIsLooking(false);
+        setCameraAvailable(false);
       }
     };
   }, []);

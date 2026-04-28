@@ -496,7 +496,7 @@ const App: React.FC = () => {
           zIndex: 9999,
         }}
       >
-        Eye gaze: {!cameraAvailable ? "Look at me" : isLooking ? "👀 Looking" : "🙈 Not looking"}
+        Eye gaze: {!cameraAvailable ? "Camera off" : isLooking ? "👀 Looking" : "🙈 Not looking"}
       </div>
 
       <div

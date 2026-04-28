@@ -101,8 +101,27 @@ const StoryScreen = ({
   const analyticsFinalizedRef = useRef(false);
 
   // Helper: Check if camera is available (permission granted)
-  const isCameraAvailable = () =>
-    cameraAvailable && videoRef.current && videoRef.current.srcObject;
+  const isCameraAvailable = () => {
+    const video = videoRef.current;
+    const stream = video?.srcObject;
+    const tracks =
+      stream && typeof stream.getVideoTracks === "function"
+        ? stream.getVideoTracks()
+        : [];
+    const hasLiveTrack = tracks.some(
+      (track) => track.readyState === "live" && !track.muted
+    );
+
+    return (
+      cameraAvailable &&
+      Boolean(video) &&
+      hasLiveTrack &&
+      !video.paused &&
+      video.readyState >= 2 &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    );
+  };
 
   const {
     emotionCounts: modelEmotionCounts,
@@ -524,6 +543,10 @@ const StoryScreen = ({
     // First prompt after 20s, then repeat every 20s if still not looking
     const schedulePrompt = (delay) => {
       attentionTimerRef.current = setTimeout(() => {
+        if (!isCameraAvailable()) {
+          attentionTimerRef.current = null;
+          return;
+        }
         if (!isLooking && !audioRef.current) {
           playAudioSafely(
             language === "ur"
@@ -547,7 +570,7 @@ const StoryScreen = ({
         attentionTimerRef.current = null;
       }
     };
-  }, [isLooking, currentScene]);
+  }, [isLooking, currentScene, cameraAvailable]);
 
   // Aggregate focus/distracted time and count distractions
   useEffect(() => {
@@ -862,7 +885,7 @@ const StoryScreen = ({
             zIndex: 9999
           }}
         >
-          Eye gaze: {isLooking ? "👀 Looking" : "🙈 Not looking"}
+          Eye gaze: {!cameraAvailable ? "Camera off" : isLooking ? "👀 Looking" : "🙈 Not looking"}
         </div>
         {/* DEBUG: Emotion detection status */}
         <div
@@ -1200,7 +1223,7 @@ const StoryScreen = ({
           zIndex: 9999
         }}
       >
-        Eye gaze: {isLooking ? "👀 Looking" : "🙈 Not looking"}
+        Eye gaze: {!cameraAvailable ? "Camera off" : isLooking ? "👀 Looking" : "🙈 Not looking"}
       </div>
       {/* DEBUG: Emotion detection status */}
       <div
