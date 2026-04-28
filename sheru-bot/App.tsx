@@ -209,7 +209,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAiTalking && !currentAiText) {
-      setCurrentAiText(`Hello! I'm ${isBubbles ? "Bubbles" : isMimmi ? "Mimmi" : "Sheru"}.`);
+      if (isMimmi) {
+        setCurrentAiText("Hello! I'm Mimmi. Let's play and talk together!");
+      } else if (isBubbles) {
+        setCurrentAiText("Hello! I'm Bubbles.");
+      } else {
+        setCurrentAiText("Hello! I'm Sheru.");
+      }
     } else if (!isAiTalking) {
       setCurrentAiText("");
     }

@@ -164,14 +164,14 @@ useEffect(() => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ duration: 0.3 }}
-      style={{ minHeight: "100vh", backgroundColor: "transparent" }}
+      style={{ height: "100dvh", minHeight: "100dvh", backgroundColor: "transparent" }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
         <Box
           sx={{
             backgroundColor: "#0B3D2E",
             width: "100vw",
-            height: "100vh",
+            height: "100dvh",
             opacity: "0.9",
             position: "absolute",
             backgroundAttachment: "fixed",
@@ -183,7 +183,8 @@ useEffect(() => {
           sx={{
             backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
             width: "100vw",
-            minHeight: "100vh",
+            height: "100dvh",
+            minHeight: "100dvh",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",

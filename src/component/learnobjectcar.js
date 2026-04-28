@@ -134,10 +134,10 @@ export function UploadShoe({ onClose }) {
         sx={{
           cursor: `url(${click}) 122 122, auto`,
           position: "fixed",
-          top: "50vh",
+          top: "50dvh",
           left: "50vw",
           transform: "translate(-50%, -50%)",
-          width: "min(832px, 95vw, calc(95vh * 832 / 999))",
+          width: "min(832px, 95vw, calc(95dvh * 832 / 999))",
           aspectRatio: "832 / 999",
         }}
       >
@@ -206,10 +206,10 @@ function Verifyshoe({ closeModal, onVerified }) {
       <Box
         sx={{
           position: "fixed",
-          top: "50vh",
+          top: "50dvh",
           left: "50vw",
           transform: "translate(-50%, -50%)",
-          width: "min(832px, 95vw, calc(95vh * 832 / 999))",
+          width: "min(832px, 95vw, calc(95dvh * 832 / 999))",
           aspectRatio: "832 / 999",
         }}
       >
@@ -671,7 +671,8 @@ const handleRestart = () => {
      exit={{ opacity: 0, x: -60 }}
      transition={{ duration: 0.3 }}
      style={{
-       minHeight: "100vh",
+       height: "100dvh",
+       minHeight: "100dvh",
        backgroundColor: "transparent",
      }}
    >
@@ -686,7 +687,7 @@ const handleRestart = () => {
         sx={{
           backgroundColor: "#0B3D2E",
           width: "100vw",
-          height: "100vh",
+          height: "100dvh",
           opacity: "0.9",
           position: "absolute",
           backgroundAttachment: "fixed",
@@ -697,7 +698,8 @@ const handleRestart = () => {
         sx={{
           backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
           width: "100vw",
-          minHeight: "100vh",
+          height: "100dvh",
+          minHeight: "100dvh",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
           backgroundAttachment: "fixed",

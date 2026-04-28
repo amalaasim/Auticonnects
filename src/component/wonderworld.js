@@ -228,15 +228,15 @@ useEffect(() => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ duration: 0.3 }}
-      style={{ height: "100vh", minHeight: "100vh", backgroundColor: "transparent" }}
+      style={{ height: "100dvh", minHeight: "100dvh", backgroundColor: "transparent" }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
         <Box
           sx={{
             backgroundImage: `url(${isBubbles ? bubblesEnglishBg : isMimmi ? mimmiUnifiedBg : bg})`,
             width: "100vw",
-            height: "100vh",
-            minHeight: "100vh",
+            height: "100dvh",
+            minHeight: "100dvh",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",
@@ -256,7 +256,7 @@ useEffect(() => {
               paddingRight: "5%",
               paddingTop: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
               paddingBottom: "8px",
-              height: "10vh",
+              height: "10dvh",
               border: "none",
               background: "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 26.91%, rgba(0, 0, 0, 0) 100%)",
               boxShadow: "none",

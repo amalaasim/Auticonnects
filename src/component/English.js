@@ -125,8 +125,8 @@ export default function English() {
   exit={{ opacity: 0, x: -60 }}
   transition={{ duration: 0.3 }}
   style={{
-    height: "100vh",
-    minHeight: "100vh",
+    height: "100dvh",
+    minHeight: "100dvh",
     backgroundColor: "transparent",
   }}
 >
@@ -136,8 +136,8 @@ export default function English() {
           sx={{
             backgroundImage: `url(${isBubbles ? bubblesEnglishBg : isMimmi ? mimmiUnifiedBg : bg})`,
             width: "100vw",
-            height: "100vh",
-            minHeight: "100vh",
+            height: "100dvh",
+            minHeight: "100dvh",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",

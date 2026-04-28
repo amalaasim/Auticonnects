@@ -545,6 +545,11 @@ const StoryScreen = ({
     };
   }, [currentScene, finalLionGifVersion, finalNarratorSrc, gardenBackgroundSrc, isMuted, responses]);
 
+  // Use Mimmi's garden background for final scene if Mimmi is selected
+  const finalSceneBackgroundSrc = useMimmiNarrator
+    ? "/assets/Mimmi/mimmi_garden_bg.png"
+    : gardenBackgroundSrc;
+
   if (!currentScene) {
     // PART 2: Build sessionData when story completes
     const sessionEndTime = Date.now();
@@ -638,7 +643,7 @@ const StoryScreen = ({
       <div className="story-container">
         <div
           className="scene-wrapper"
-          style={{ backgroundImage: `url(${gardenBackgroundSrc})` }}
+          style={{ backgroundImage: `url(${finalSceneBackgroundSrc})` }}
           onClick={() => {
             if (!hasInteracted) {
               setHasInteracted(true);
@@ -687,7 +692,7 @@ const StoryScreen = ({
             />
           </div>
           <img
-            src={gardenBackgroundSrc}
+            src={finalSceneBackgroundSrc}
             alt="Garden background"
             className="scene-background"
           />
