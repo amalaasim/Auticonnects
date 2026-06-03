@@ -41,15 +41,19 @@ const ChildAgeSetup: React.FC = () => {
     if (authLoading) return;
 
     const focusInput = () => {
-      childAgeInputRef.current?.focus({ preventScroll: true });
+      const input = childAgeInputRef.current;
+      if (!input || document.activeElement === input) return;
+      input.focus({ preventScroll: true });
     };
 
     const frameId = window.requestAnimationFrame(focusInput);
-    const timeoutId = window.setTimeout(focusInput, 250);
+    const timeoutIds = [150, 400, 800, 1400, 2200].map((delay) =>
+      window.setTimeout(focusInput, delay)
+    );
 
     return () => {
       window.cancelAnimationFrame(frameId);
-      window.clearTimeout(timeoutId);
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
   }, [authLoading]);
 
@@ -169,6 +173,12 @@ const ChildAgeSetup: React.FC = () => {
           </h2>
 
           <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
+            {!childAge && (
+              <span
+                className="child-profile-fake-caret child-profile-age-caret"
+                aria-hidden="true"
+              />
+            )}
             <input
               ref={childAgeInputRef}
               type="number"
