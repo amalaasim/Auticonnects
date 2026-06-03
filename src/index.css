@@ -276,6 +276,17 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
+.child-profile-text-input {
+  caret-color: #ffffff;
+  text-shadow: 0 0 0.25cqh rgba(255, 255, 255, 0.35);
+}
+
+.child-profile-text-input:focus {
+  text-shadow:
+    0 0 0.25cqh rgba(255, 255, 255, 0.55),
+    0 0 0.9cqh rgba(255, 203, 143, 0.35);
+}
+
 @font-face {
   font-family: 'JameelNooriNastaleeq';
   src: url('./assests/fonts/JameelNooriNastaleeq.ttf.ttf') format('truetype');

@@ -115,6 +115,40 @@ export default function Language() {
   const languageBackgroundPositionLaptop = isBubbles ? "center calc(100% + 7cqh)" : "bottom center";
 
   React.useEffect(() => {
+    const englishPageAssets = [
+      englishBackground,
+      "/assets/Bubbles/Bubbles_bg_english.png",
+      "/assets/Mimmi/mimmi_bg_unified_extended.png",
+      chatBackground,
+      "/assets/Bubbles/bubbles_bot_bg.png",
+      "/assets/Mimmi/mimmi_bot_bg.png",
+      standingLionLoop,
+      "/assets/Bubbles/standing-loop.gif",
+      "/assets/Mimmi/hi_mimmi.gif",
+      wonderworldGame,
+      storyland,
+      reportNew,
+      settings,
+      signoutNew,
+      volumeOnNew,
+      volumeOffNew,
+      click,
+    ];
+
+    const warmEnglishPage = () => {
+      englishPageAssets.forEach((asset) => {
+        void preloadImageAsset(asset);
+      });
+    };
+
+    const timeoutId = window.setTimeout(warmEnglishPage, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [click, englishBackground, reportNew, settings, signoutNew, storyland, volumeOffNew, volumeOnNew, wonderworldGame]);
+
+  React.useEffect(() => {
     if (!hasResolvedFavoriteCharacter) return undefined;
 
     let cancelled = false;
@@ -132,12 +166,6 @@ export default function Language() {
       volumeOnNew,
       volumeOffNew,
       click,
-      englishBackground,
-      isBubbles ? "/assets/Bubbles/Bubbles_bg_english.png" : isMimmi ? "/assets/Mimmi/mimmi_bg_unified_extended.png" : englishBackground,
-      isBubbles ? "/assets/Bubbles/bubbles_bot_bg.png" : isMimmi ? "/assets/Mimmi/mimmi_bot_bg.png" : chatBackground,
-      isBubbles ? "/assets/Bubbles/standing-loop.gif" : isMimmi ? "/assets/Mimmi/hi_mimmi.gif" : standingLionLoop,
-      wonderworldGame,
-      storyland,
     ];
 
     Promise.all([

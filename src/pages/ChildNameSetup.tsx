@@ -14,6 +14,7 @@ const ChildNameSetup: React.FC = () => {
   const [childName, setChildName] = useState('');
   const [loading, setLoading] = useState(false);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+  const childNameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     clickSoundRef.current = new Audio('/assets/sounds/click.wav');
@@ -37,6 +38,22 @@ const ChildNameSetup: React.FC = () => {
       navigate('/child-profile/consent');
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    const focusInput = () => {
+      childNameInputRef.current?.focus({ preventScroll: true });
+    };
+
+    const frameId = window.requestAnimationFrame(focusInput);
+    const timeoutId = window.setTimeout(focusInput, 250);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,11 +147,12 @@ const ChildNameSetup: React.FC = () => {
           
           <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
             <input
+              ref={childNameInputRef}
               type="text"
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Enter your child's name"
-              className="flex-1 bg-transparent border-none text-[20.8cqh] text-[#D5EADC] placeholder:text-[#D5EADC]/60 focus:outline-none"
+              className="child-profile-text-input flex-1 bg-transparent border-none text-[20.8cqh] text-[#D5EADC] placeholder:text-[#D5EADC]/60 focus:outline-none"
               style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)' }}
               required
               autoFocus

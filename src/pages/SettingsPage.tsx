@@ -15,6 +15,7 @@ import backNew from "../assests/backnew.png";
 import TopBarLogoutIcon from "../components/TopBarLogoutIcon";
 import TopBarVolumeIcon from "../components/TopBarVolumeIcon";
 import AppGreetingHeader from "../components/AppGreetingHeader";
+import { useToast } from "@/hooks/use-toast";
 
 function normalizeLanguage(value: string | null | undefined) {
   if (value === "urdu") return "ur";
@@ -31,6 +32,7 @@ const characterOptions = [
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, childName: profileChildName, refreshProfile } = useAuth();
+  const { toast } = useToast();
   const storedLanguage = normalizeLanguage(
     typeof window !== "undefined"
       ? window.localStorage.getItem("app_language") || "en"
@@ -70,7 +72,7 @@ export default function SettingsPage() {
 
     if (!user?.id) return;
 
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .upsert(
         {
@@ -85,7 +87,21 @@ export default function SettingsPage() {
         }
       );
 
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Settings Not Saved",
+        description: error.message,
+      });
+      return;
+    }
+
     await refreshProfile();
+
+    toast({
+      title: "Settings Saved",
+      description: "Your changes have been saved.",
+    });
   };
 
   useEffect(() => {

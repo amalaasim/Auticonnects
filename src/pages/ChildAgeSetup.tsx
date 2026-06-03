@@ -13,6 +13,7 @@ const ChildAgeSetup: React.FC = () => {
   const [childAge, setChildAge] = useState('');
   const [loading, setLoading] = useState(false);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+  const childAgeInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     clickSoundRef.current = new Audio('/assets/sounds/click.wav');
@@ -35,6 +36,22 @@ const ChildAgeSetup: React.FC = () => {
       navigate('/child-profile/name');
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    const focusInput = () => {
+      childAgeInputRef.current?.focus({ preventScroll: true });
+    };
+
+    const frameId = window.requestAnimationFrame(focusInput);
+    const timeoutId = window.setTimeout(focusInput, 250);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +170,7 @@ const ChildAgeSetup: React.FC = () => {
 
           <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
             <input
+              ref={childAgeInputRef}
               type="number"
               value={childAge}
               onChange={(e) => {
@@ -169,7 +187,7 @@ const ChildAgeSetup: React.FC = () => {
               placeholder=""
               min="1"
               max="18"
-              className="bg-transparent border-none text-[20.8cqh] text-white text-right focus:outline-none w-[26cqh] mr-4"
+              className="child-profile-text-input bg-transparent border-none text-[20.8cqh] text-white text-right focus:outline-none w-[26cqh] mr-4"
               style={{ 
                 fontFamily: "'Chewy', cursive", 
                 transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)',
