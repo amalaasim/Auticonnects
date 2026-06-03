@@ -312,7 +312,13 @@ const handleRestart = () => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ duration: 0.3 }}
-      style={{ height: "100dvh", minHeight: "100dvh", backgroundColor: "transparent" }}
+      style={{
+        height: "100dvh",
+        minHeight: "100dvh",
+        backgroundColor: "transparent",
+        width: "100vw",
+        overflow: "hidden",
+      }}
     >
       <Box sx={{ cursor: `url(${click}) 122 122, auto` }}>
         <Box
@@ -320,6 +326,7 @@ const handleRestart = () => {
             backgroundColor: "#0B3D2E",
             width: "100vw",
             height: "100dvh",
+            minHeight: "100dvh",
             opacity: "0.9",
             position: "absolute",
             backgroundAttachment: "fixed",

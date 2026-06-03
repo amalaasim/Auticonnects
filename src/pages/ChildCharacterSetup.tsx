@@ -156,7 +156,7 @@ const ChildCharacterSetup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
       <div
         className="child-character-bg absolute inset-0 flex items-end justify-center overflow-hidden"
         style={{

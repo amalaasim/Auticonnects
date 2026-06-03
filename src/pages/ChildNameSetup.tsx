@@ -66,7 +66,7 @@ const ChildNameSetup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
       <img
         src="/assets/child-profile-bg-1.png"
         alt=""

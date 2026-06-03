@@ -157,7 +157,7 @@ const ChildLanguageSetup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
       <div className="absolute inset-0 flex items-end justify-center overflow-hidden">
         <div className="relative" style={backgroundFrameStyle}>
           <img
