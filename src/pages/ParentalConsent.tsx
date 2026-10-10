@@ -117,6 +117,8 @@ export default function ParentalConsent() {
           left: "50%",
           transform: "translateX(-50%)",
           bottom: "5%",
+          [PHONE_LANDSCAPE]: { bottom: "2dvh" },
+          [PHONE_PORTRAIT]: { bottom: "auto", top: "50%", transform: "translate(-50%, -45%)" },
         }}
       >
         <Box
@@ -125,6 +127,8 @@ export default function ParentalConsent() {
             width: "min(92vw, calc(80vh * 986 / 821))",
             aspectRatio: "986 / 821",
             containerType: "size",
+            [PHONE_LANDSCAPE]: { width: "min(96vw, calc(94dvh * 986 / 821))" },
+            [PHONE_PORTRAIT]: { width: "104vw" },
           }}
         >
           <Box
@@ -147,6 +151,7 @@ export default function ParentalConsent() {
               transform: "translateX(-50%)",
               fontFamily: "Chewy",
               fontSize: "4.6cqh",
+              [PHONE]: { fontSize: "5.4cqh" },
               lineHeight: "90%",
               color: "#5f2506",
               zIndex: 1,
@@ -166,6 +171,28 @@ export default function ParentalConsent() {
               display: "flex",
               flexDirection: "column",
               gap: "1.75cqh",
+              // Phones: wider text column bounded by the paper; the notice scrolls while the
+              // checkbox and Continue button stay visible at the bottom.
+              [PHONE]: { top: "26%", bottom: "11.5%", left: "21%", width: "59%", gap: "1.4cqh" },
+            }}
+          >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.75cqh",
+              [PHONE]: {
+                flex: "1 1 auto",
+                minHeight: 0,
+                overflowY: "auto",
+                pr: "1.2cqh",
+                gap: "1.4cqh",
+                WebkitOverflowScrolling: "touch",
+                // Fade the last line so it reads as "scroll for more" rather than cut off.
+                maskImage: "linear-gradient(to bottom, #000 80%, transparent)",
+                WebkitMaskImage: "linear-gradient(to bottom, #000 80%, transparent)",
+                pb: "2cqh",
+              },
             }}
           >
           <Typography sx={bodyTextSx}>
@@ -182,6 +209,7 @@ export default function ParentalConsent() {
           <Typography sx={bodyTextSx}>
             Your child's privacy and safety are our priority. All data is handled securely.
           </Typography>
+          </Box>
 
           <Box
             onClick={() => setAccepted((current) => !current)}
@@ -192,6 +220,8 @@ export default function ParentalConsent() {
               mt: "1.8cqh",
               cursor: "pointer",
               userSelect: "none",
+              flexShrink: 0,
+              [PHONE]: { mt: "0.6cqh" },
             }}
           >
             <Box
@@ -222,6 +252,8 @@ export default function ParentalConsent() {
               fontFamily: "Chewy",
               fontSize: "3.1cqh",
               minHeight: "7.2cqh",
+              flexShrink: 0,
+              [PHONE]: { mt: "0.4cqh", minHeight: "9cqh", fontSize: "3.8cqh" },
               textTransform: "none",
               boxShadow: "0 8px 18px rgba(117, 55, 0, 0.28)",
               "&:hover": {
@@ -238,9 +270,15 @@ export default function ParentalConsent() {
   );
 }
 
+// Same breakpoints as the Tailwind `mland` / `mport` / `phone` screens.
+const PHONE_LANDSCAPE = "@media (orientation: landscape) and (max-height: 500px)";
+const PHONE_PORTRAIT = "@media (orientation: portrait) and (max-width: 600px)";
+const PHONE = `${PHONE_LANDSCAPE}, (orientation: portrait) and (max-width: 600px)`;
+
 const bodyTextSx = {
   fontFamily: "Chewy",
   fontSize: "2.45cqh",
   color: "#6c340c",
   lineHeight: 1.55,
+  [PHONE]: { fontSize: "3.4cqh", lineHeight: 1.4 },
 };

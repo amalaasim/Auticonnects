@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import ChildProfileHeader from '@/components/ChildProfileHeader';
 import LoadingWheel from '@/components/LoadingWheel';
-import signoutNew from '../assests/signout-new.png';
 
 const ChildAgeSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -92,7 +91,7 @@ const ChildAgeSetup: React.FC = () => {
   }
 
   return (
-    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-[100dvh] min-h-[100dvh] w-full relative overflow-hidden [container-type:size]">
       <img
         src="/assets/child-profile-bg-2.png"
         alt=""
@@ -100,37 +99,7 @@ const ChildAgeSetup: React.FC = () => {
         className="pointer-events-none absolute inset-0 h-full w-full object-fill object-center"
       />
       {/* Header */}
-      <div
-        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-[3.5cqh]"
-        style={{
-          height: '10cqh',
-          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)',
-        }}
-      >
-        {/* Left side - Title */}
-        <div className="mt-[1.1cqh] flex flex-col">
-          <h1 className="text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '3.6cqh', lineHeight: '1' }}>
-            Child Profile
-          </h1>
-          <p className="mt-[0.35cqh] text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '1.35cqh', lineHeight: '1' }}>
-            Creation by Parent
-          </p>
-        </div>
-
-        {/* Right side - Sign out only */}
-        <div className="flex">
-          <TopBarLogoutIcon
-            src={signoutNew}
-            sx={{
-              width: '45.23px',
-              height: '45.23px',
-              objectFit: 'contain',
-              opacity: 1,
-              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
-            }}
-          />
-        </div>
-      </div>
+      <ChildProfileHeader />
 
       {/* Rectangle Image */}
       <div
@@ -173,6 +142,12 @@ const ChildAgeSetup: React.FC = () => {
           </h2>
 
           <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
+            <div
+              className="relative mr-4"
+              style={{ transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)' }}
+            >
+            {/* Our own blinking caret stands in for the native one until an age is typed,
+                so only one caret is ever visible. */}
             {!childAge && (
               <span
                 className="child-profile-fake-caret child-profile-age-caret"
@@ -197,15 +172,17 @@ const ChildAgeSetup: React.FC = () => {
               placeholder=""
               min="1"
               max="18"
-              className="child-profile-text-input bg-transparent border-none text-[20.8cqh] text-white text-right focus:outline-none w-[26cqh] mr-4"
-              style={{ 
-                fontFamily: "'Chewy', cursive", 
-                transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)',
-                MozAppearance: 'textfield'
+              className={`child-profile-text-input bg-transparent border-none text-[max(16px,20.8cqh)] text-white text-right focus:outline-none w-[26cqh]`}
+              style={{
+                fontFamily: "'Chewy', cursive",
+                MozAppearance: 'textfield',
+                // Inline so it beats the .child-profile-text-input caret-color rule in index.css.
+                caretColor: childAge ? undefined : 'transparent',
               }}
               required
               autoFocus
             />
+            </div>
             <span
               className="text-[20.8cqh] text-white whitespace-nowrap"
               style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)' }}
@@ -225,8 +202,8 @@ const ChildAgeSetup: React.FC = () => {
       </div>
 
       {/* Footer - Logo */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 z-10">
-        <img src="/assets/logo.png" alt="Auti-Connects Logo" className="w-64 h-auto" />
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 z-10 mland:pb-3">
+        <img src="/assets/logo.png" alt="Auti-Connects Logo" className="w-64 h-auto mland:w-44" />
       </div>
     </div>
   );

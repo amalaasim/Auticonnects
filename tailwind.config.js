@@ -9,6 +9,16 @@ export default {
   },
   theme: {
     extend: {
+      screens: {
+        // Phones held sideways: short viewport in landscape. The app's primary mobile layout.
+        mland: { raw: "(orientation: landscape) and (max-height: 500px)" },
+        // Phones held upright.
+        mport: { raw: "(orientation: portrait) and (max-width: 600px)" },
+        // Any phone, either orientation (sizing that applies to both).
+        phone: {
+          raw: "(orientation: landscape) and (max-height: 500px), (orientation: portrait) and (max-width: 600px)",
+        },
+      },
       keyframes: {
         "bounce-in": {
           "0%": { transform: "scale(0.3)", opacity: "0" },

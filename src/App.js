@@ -61,6 +61,7 @@ import standingLionLoop from "./assests/standinglion-loop.gif";
 import talkingLion from "./assests/talking.gif";
 import LoadingWheel from "./components/LoadingWheel";
 import PageReadyGate from "./components/PageReadyGate";
+import RotateDeviceOverlay from "./components/RotateDeviceOverlay";
 import { preloadImageAsset } from "./lib/preloadImageAsset";
 
 const MUSIC_MUTED_STORAGE_KEY = "app_music_muted";
@@ -465,6 +466,8 @@ function App() {
           </BrowserRouter>
         )}
       </div>
+      {/* Outside .App so taps on it don't start the splash or background music. */}
+      <RotateDeviceOverlay />
     </AuthProvider>
   );
 }

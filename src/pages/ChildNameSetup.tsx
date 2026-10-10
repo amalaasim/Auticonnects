@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { hasParentalConsent } from '@/utils/onboarding';
-import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import ChildProfileHeader from '@/components/ChildProfileHeader';
 import LoadingWheel from '@/components/LoadingWheel';
-import signoutNew from '../assests/signout-new.png';
 
 const ChildNameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -87,7 +86,7 @@ const ChildNameSetup: React.FC = () => {
   }
 
   return (
-    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-[100dvh] min-h-[100dvh] w-full relative overflow-x-hidden overflow-y-visible [container-type:size]">
       <img
         src="/assets/child-profile-bg-1.png"
         alt=""
@@ -95,35 +94,7 @@ const ChildNameSetup: React.FC = () => {
         className="pointer-events-none absolute inset-0 h-full w-full object-fill object-center"
       />
       {/* Header */}
-      <div
-        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-[3.5cqh]"
-        style={{
-          height: '10cqh',
-          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)',
-        }}
-      >
-        <div className="mt-[1.1cqh] flex flex-col">
-          <h1 className="text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '3.6cqh', lineHeight: '1' }}>
-            Child Profile
-          </h1>
-          <p className="mt-[0.35cqh] text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '1.35cqh', lineHeight: '1' }}>
-            Creation by Parent
-          </p>
-        </div>
-
-        <div className="flex">
-          <TopBarLogoutIcon
-            src={signoutNew}
-            sx={{
-              width: '45.23px',
-              height: '45.23px',
-              objectFit: 'contain',
-              opacity: 1,
-              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
-            }}
-          />
-        </div>
-      </div>
+      <ChildProfileHeader />
 
       {/* Rectangle Image */}
       <div
@@ -149,12 +120,15 @@ const ChildNameSetup: React.FC = () => {
             What is your child's name?
           </h2>
           
-          <div className="absolute -top-[-47cqh] right-[70cqh] flex items-center pr-[34cqh]">
+          {/* Name field: sits in the right half of the bar (original design), ending before the next button. */}
+          <div
+            className="absolute left-[53%] right-[13%] top-[47cqh] flex items-center mport:left-[38%]"
+            style={{ transform: 'translateY(-1.2cqh) rotate(2deg)' }}
+          >
+            {/* Our own blinking caret stands in for the native one until the parent starts typing,
+                so only one caret is ever visible. */}
             {!childName && (
-              <span
-                className="child-profile-fake-caret child-profile-name-caret"
-                aria-hidden="true"
-              />
+              <span className="child-profile-fake-caret child-profile-name-caret" aria-hidden="true" />
             )}
             <input
               ref={childNameInputRef}
@@ -162,26 +136,31 @@ const ChildNameSetup: React.FC = () => {
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Enter your child's name"
-              className="child-profile-text-input flex-1 bg-transparent border-none text-[20.8cqh] text-[#D5EADC] placeholder:text-[#D5EADC]/60 focus:outline-none"
-              style={{ fontFamily: "'Chewy', cursive", transform: 'translate(-4.1cqh, -1.2cqh) rotate(2deg)' }}
+              className={`child-profile-text-input w-full min-w-0 border-none bg-transparent pl-[1.6cqh] text-[max(16px,20.8cqh)] leading-[1.2] text-[#D5EADC] placeholder:text-[#D5EADC]/60 focus:outline-none`}
+              style={{
+                fontFamily: "'Chewy', cursive",
+                // Inline so it beats the .child-profile-text-input caret-color rule in index.css.
+                caretColor: childName ? undefined : "transparent",
+              }}
+              autoComplete="off"
               required
               autoFocus
             />
-            <button
-              type="submit"
-              disabled={loading || !childName.trim()}
-              className="absolute right-[-40cqh] flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ transform: 'translateY(-3.2cqh) rotate(-6deg)' }}
-            >
-              <img src="/ui/next-button.png" alt="Submit" className="h-[35cqh] w-[35cqh] object-contain" />
-            </button>
           </div>
+          <button
+            type="submit"
+            disabled={loading || !childName.trim()}
+            className="absolute right-[5%] top-[47cqh] flex-shrink-0 appearance-none border-0 bg-transparent p-0 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ transform: 'translateY(-3.2cqh) rotate(-6deg)' }}
+          >
+            <img src="/ui/next-button.png" alt="Submit" className="h-[35cqh] w-[35cqh] object-contain" />
+          </button>
         </form>
       </div>
 
       {/* Footer - Logo */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 z-10">
-        <img src="/assets/logo.png" alt="Auti-Connects Logo" className="w-64 h-auto" />
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 z-10 mland:pb-3">
+        <img src="/assets/logo.png" alt="Auti-Connects Logo" className="w-64 h-auto mland:w-44" />
       </div>
     </div>
   );

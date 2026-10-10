@@ -32,7 +32,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     <button
       type={props.type ?? 'button'}
       className={cn(
-        "inline-flex h-[4.4cqh] w-full items-center justify-center whitespace-nowrap border-0 px-[2.4cqh] py-[0.45cqh] font-['Chewy'] text-[2.1cqh] text-white outline-none appearance-none",
+        "inline-flex h-[4.4cqh] w-full items-center justify-center whitespace-nowrap border-0 px-[2.4cqh] py-[0.45cqh] font-['Chewy'] text-[2.1cqh] text-white outline-none appearance-none phone:text-[2.5cqh]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         className
       )}

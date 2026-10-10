@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import TopBarLogoutIcon from '@/components/TopBarLogoutIcon';
+import ChildProfileHeader from '@/components/ChildProfileHeader';
 import LoadingWheel from '@/components/LoadingWheel';
-import signoutNew from '../assests/signout-new.png';
 import languageBanner from '../assests/language-banner.svg';
 
 const ChildCharacterSetup: React.FC = () => {
@@ -156,7 +155,7 @@ const ChildCharacterSetup: React.FC = () => {
   }
 
   return (
-    <div className="h-screen min-h-screen w-full relative overflow-hidden [container-type:size]">
+    <div className="h-[100dvh] min-h-[100dvh] w-full relative overflow-hidden [container-type:size]">
       <div
         className="child-character-bg absolute inset-0 flex items-end justify-center overflow-hidden"
         style={{
@@ -176,8 +175,8 @@ const ChildCharacterSetup: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            width: '1458px',
-            height: '378px',
+            width: 'calc(100% + 24px)',
+            height: '42cqh',
             left: '-12px',
             top: 0,
             background: 'linear-gradient(180.3deg, rgba(0, 0, 0, 0.656) 28.39%, rgba(0, 0, 0, 0) 106.06%)',
@@ -388,35 +387,7 @@ const ChildCharacterSetup: React.FC = () => {
         className="child-character-logo absolute pointer-events-none"
       />
 
-      <div
-        className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-[3.5cqh]"
-        style={{
-          height: '10cqh',
-          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)',
-        }}
-      >
-        <div className="mt-[1.1cqh] flex flex-col">
-          <h1 className="text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '3.6cqh', lineHeight: '1' }}>
-            Child Profile
-          </h1>
-          <p className="mt-[0.35cqh] text-white" style={{ fontFamily: "'Chewy', cursive", fontSize: '1.35cqh', lineHeight: '1' }}>
-            Creation by Parent
-          </p>
-        </div>
-
-        <div className="flex">
-          <TopBarLogoutIcon
-            src={signoutNew}
-            sx={{
-              width: '45.23px',
-              height: '45.23px',
-              objectFit: 'contain',
-              opacity: 1,
-              filter: 'brightness(1.12) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.22))',
-            }}
-          />
-        </div>
-      </div>
+      <ChildProfileHeader />
 
       <div
         className="absolute left-0 right-0 top-[12%] z-20 flex justify-center"

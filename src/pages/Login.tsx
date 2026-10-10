@@ -52,12 +52,12 @@ const Login: React.FC = () => {
         alt="Auti-Connects Logo" 
         loading="eager"
         decoding="async"
-        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)] mland:left-3 mland:top-3 mland:w-[clamp(5.5rem,14vw,12rem)]"
       />
       
       <WoodenBoard scrollable={false} contentClassName="justify-start">
         <h2
-          className="mx-auto mt-[1.8%] mb-[1%] w-[94%] font-['Chewy'] text-[3.4cqh] font-bold leading-tight"
+          className="mx-auto mt-[1.8%] mb-[1%] w-[94%] phone:mt-0 font-['Chewy'] text-[3.4cqh] font-bold leading-tight"
           style={{
             color: '#824D1F',
             fontFamily: "'Chewy', cursive",
@@ -70,8 +70,8 @@ const Login: React.FC = () => {
           Log In
         </h2>
         
-        <form onSubmit={handleSubmit} className="mx-auto mt-[0.8cqh] flex w-[94%] flex-col gap-[1.4cqh]">
-          <div className="mt-[0.7cqh] flex flex-col gap-[1.4cqh]">
+        <form onSubmit={handleSubmit} className="mx-auto mt-[0.8cqh] flex w-[94%] flex-col gap-[1.4cqh] phone:mt-0 phone:gap-[1cqh]">
+          <div className="mt-[0.7cqh] flex flex-col gap-[1.4cqh] phone:mt-0 phone:gap-[1cqh]">
             <AuthInput
               type="email"
               label="Enter your email address"
@@ -94,7 +94,7 @@ const Login: React.FC = () => {
             <div className="-mt-[0.8cqh] text-right">
               <Link 
                 to="/forgot-password" 
-                className="inline-flex items-center font-['Chewy'] text-[1.6cqh] leading-[125%] hover:opacity-80"
+                className="inline-flex items-center font-['Chewy'] text-[1.6cqh] leading-[125%] hover:opacity-80 phone:text-[2.2cqh]"
                 style={{
                   fontFamily: "'Chewy', cursive",
                   fontStyle: 'normal',
@@ -107,12 +107,12 @@ const Login: React.FC = () => {
             </div>
           </div>
           
-          <AuthButton type="submit" loading={loading} className="mt-[1.2cqh]">
+          <AuthButton type="submit" loading={loading} className="mt-[1.2cqh] phone:mt-[0.6cqh]">
             Log In
           </AuthButton>
         </form>
         
-        <p className="mt-[1.1cqh] flex w-full items-center justify-center gap-[0.67cqh] font-['Chewy'] text-[1.6cqh] text-[#824D1F] leading-none">
+        <p className="mt-[1.1cqh] phone:mt-[0.8cqh] flex w-full items-center justify-center gap-[0.67cqh] font-['Chewy'] text-[1.6cqh] text-[#824D1F] leading-none phone:text-[2.2cqh]">
           <span>Don't have an account?</span>
           <Link
             to="/signup"

@@ -16,7 +16,7 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
     <div className="w-full">
       {label && (
         <label
-          className="mb-[0.45cqh] block font-['Chewy'] text-[1.9cqh] leading-tight"
+          className="mb-[0.45cqh] block font-['Chewy'] text-[1.9cqh] leading-tight phone:text-[2.1cqh]"
           style={{
             fontFamily: "'Chewy', cursive",
             fontStyle: 'normal',
@@ -46,6 +46,8 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
             "relative h-[4.8cqh] w-full rounded-md border-0 bg-transparent pr-[5.2cqh] font-['Chewy'] text-[2.3cqh] text-[rgba(255,158,89,0.74)]",
             "focus:border-0 focus:ring-0",
             "[&::placeholder]:text-[rgba(255,158,89,0.5)] [&::placeholder]:text-[1.9cqh]",
+            // 16px keeps iOS from zooming the page when the field is focused.
+            "phone:h-[5.2cqh] phone:text-[16px] phone:[&::placeholder]:text-[2.5cqh]",
             className
           )}
           style={{

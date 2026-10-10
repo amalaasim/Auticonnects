@@ -17,6 +17,8 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(process.cwd(), "./src"),
       },
+      // sheru-bot has its own node_modules; always use the root React copy.
+      dedupe: ["react", "react-dom"],
     },
     assetsInclude: ["**/*.mpeg"],
     define: {
@@ -39,6 +41,9 @@ export default defineConfig(({ mode }) => {
       react(),
     ],
     optimizeDeps: {
+      // Only scan the root app. Without this Vite also crawls sheru-bot/index.html
+      // and pre-bundles a second React from sheru-bot/node_modules.
+      entries: ["index.html"],
       esbuildOptions: {
         loader: {
           ".js": "jsx",

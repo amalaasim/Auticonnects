@@ -1,44 +1,51 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const SocialLoginButtons: React.FC = () => {
   const { signInWithGoogle, signInWithFacebook } = useAuth();
+  const { toast } = useToast();
+
+  const showError = (provider: string, error: Error) => {
+    console.error(`${provider} login error:`, error.message);
+    toast({
+      variant: 'destructive',
+      title: `${provider} sign-in failed`,
+      description: error.message,
+    });
+  };
 
   const handleGoogleLogin = async () => {
     const { error } = await signInWithGoogle();
-    if (error) {
-      console.error('Google login error:', error.message);
-    }
+    if (error) showError('Google', error);
   };
 
   const handleFacebookLogin = async () => {
     const { error } = await signInWithFacebook();
-    if (error) {
-      console.error('Facebook login error:', error.message);
-    }
+    if (error) showError('Facebook', error);
   };
 
   return (
-    <div className="mt-[2.8vh] w-fit max-w-[98vw] px-[1.4vh] lg:absolute lg:bottom-[4%] lg:right-[1%] lg:mt-0 lg:px-0">
-      <div 
-        className="flex items-center justify-center gap-[1.4vh] rounded-[1.8vh] border-2 px-[1.8vh] py-[1.25vh] shadow-lg"
+    <div className="relative z-10 mt-[2.8vh] w-fit max-w-[98vw] px-[1.4vh] mport:absolute mport:left-1/2 mport:bottom-[3dvh] mport:mt-0 mport:-translate-x-1/2 mport:px-0 lg:absolute lg:bottom-[4%] lg:right-[1%] lg:mt-0 lg:px-0 mland:absolute mland:bottom-[5dvh] mland:right-[2vw] mland:z-10 mland:mt-0 mland:px-0">
+      <div
+        className="flex items-center justify-center gap-[1.4vh] rounded-[1.8vh] border-2 px-[1.8vh] py-[1.25vh] shadow-lg mland:flex-col mland:gap-[2dvh] mland:rounded-[3.5dvh] mland:px-[3dvh] mland:py-[2.5dvh] mport:gap-3 mport:rounded-2xl mport:px-4 mport:py-2.5"
         style={{ 
           backgroundColor: '#6B8E3D',
           backgroundImage: 'linear-gradient(to bottom, rgba(107, 142, 61, 0.9), rgba(85, 112, 48, 1))',
           borderColor: '#556930'
         }}
       >
-        <span className="flex shrink-0 items-center whitespace-nowrap font-['Chewy'] text-[2.45vh] font-medium text-black/60 leading-none">
+        <span className="flex shrink-0 items-center whitespace-nowrap font-['Chewy'] text-[2.45vh] font-medium text-black/60 leading-none mland:text-[4.2dvh] mport:text-[18px]">
           Continue with
         </span>
-        
-        <div className="flex items-center gap-[1.4vh] shrink-0">
+
+        <div className="flex items-center gap-[1.4vh] shrink-0 mland:gap-[3dvh]">
           <button
             onClick={handleGoogleLogin}
-            className="rounded-full border border-white bg-white p-[1.15vh] shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#6B8E3D]"
+            className="rounded-full border border-white bg-white p-[1.15vh] shadow-md mland:p-[2.2dvh] mport:p-[9px] transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#6B8E3D]"
             aria-label="Sign in with Google"
           >
-            <svg viewBox="0 0 24 24" className="h-[2.8vh] w-[2.8vh]">
+            <svg viewBox="0 0 24 24" className="h-[2.8vh] w-[2.8vh] mland:h-[6dvh] mland:w-[6dvh] mport:h-[22px] mport:w-[22px]">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -47,10 +54,10 @@ const SocialLoginButtons: React.FC = () => {
           </button>
           <button
             onClick={handleFacebookLogin}
-            className="rounded-full border border-white bg-[#1877F2] p-[1.15vh] shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#6B8E3D]"
+            className="rounded-full border border-white bg-[#1877F2] p-[1.15vh] shadow-md mland:p-[2.2dvh] mport:p-[9px] transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#6B8E3D]"
             aria-label="Sign in with Facebook"
           >
-            <svg viewBox="0 0 24 24" className="h-[2.8vh] w-[2.8vh] fill-white">
+            <svg viewBox="0 0 24 24" className="h-[2.8vh] w-[2.8vh] fill-white mland:h-[6dvh] mland:w-[6dvh] mport:h-[22px] mport:w-[22px]">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
           </button>
