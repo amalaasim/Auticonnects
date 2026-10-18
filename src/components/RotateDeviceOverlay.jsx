@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
-// Temporarily off so both orientations can be designed and tested. Flip back to true to re-enable.
-const ROTATE_PROMPT_ENABLED = false;
+// Touch devices in portrait get a full-screen prompt; desktop and landscape are unaffected (see index.css).
+const ROTATE_PROMPT_ENABLED = true;
 
 // Full-screen prompt asking touch-device users to turn the device sideways.
 // Visibility is driven purely by CSS (see .rotate-device-overlay in index.css),

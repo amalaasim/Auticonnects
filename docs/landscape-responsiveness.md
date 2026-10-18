@@ -142,6 +142,10 @@ Desktop and tablet layouts are untouched by these rules.
 - The banner SVG now stretches to fill its box (`preserveAspectRatio="none"`), so the dark strip reaches both screen edges and the next arrow sits on it, as on desktop.
 - Fixed a broken CSS value (`top: 4the eye.5cqh`) that stopped Mimmi's mascot positioning on the final score screen.
 
+### Rotate-your-phone prompt
+
+- `src/components/RotateDeviceOverlay.jsx` + `.rotate-device-overlay` in `src/index.css`: on a touch device held upright, a full-screen prompt asks the user to turn the phone sideways. It is CSS-driven by `(orientation: portrait) and (hover: none) and (pointer: coarse)`, so desktops and laptops never see it, and it disappears the moment the phone is rotated. The same prompt is duplicated as static HTML in `sheru-bot/index.html` because the bot is a separate build. To test on desktop: DevTools device mode, pick a phone, leave it in portrait.
+
 ### Reports
 
 - On landscape phones the dashboard scrolls instead of squeezing all eight cards into the screen. Stat tiles go two per row, chart cards get a fixed 210px plot area, text has pixel minimums, and the top bar matches the other pages.

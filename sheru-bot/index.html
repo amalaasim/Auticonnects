@@ -51,6 +51,23 @@
         }
       }
 
+      /* Rotate-device prompt: touch devices held in portrait (mirrors .rotate-device-overlay in the main app). */
+      .rotate-device-overlay { display: none; }
+      @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+        .rotate-device-overlay {
+          position: fixed; inset: 0; z-index: 2147483647;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 16px; padding: 24px; text-align: center;
+          background: linear-gradient(180deg, #4fb3e8 0%, #9edcf5 55%, #6fb33a 55%, #3f8a22 100%);
+          font-family: "Chewy", cursive; touch-action: none;
+        }
+        .rotate-device-overlay__phone { width: 88px; height: auto; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25)); animation: rotate-device-hint 2.4s ease-in-out infinite; }
+        .rotate-device-overlay__title { margin: 12px 0 0; font-size: 30px; line-height: 1.1; color: #fff; text-shadow: 0 2px 0 #824d1f, 0 4px 10px rgba(0,0,0,0.3); }
+        .rotate-device-overlay__text { max-width: 280px; margin: 0; padding: 10px 16px; font-size: 18px; line-height: 1.3; color: #824d1f; background: #fff8e7; border: 3px solid #824d1f; border-radius: 14px; }
+      }
+      @keyframes rotate-device-hint { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+      @media (prefers-reduced-motion: reduce) { .rotate-device-overlay__phone { animation: none; transform: rotate(-90deg); } }
+
       .animate-fade-in {
         animation: fade-in 0.3s ease-out;
       }
@@ -68,6 +85,15 @@
     </script>
   </head>
   <body class="bg-gray-900 text-white overflow-hidden">
+    <div class="rotate-device-overlay" role="alertdialog" aria-live="polite" aria-label="Please rotate your device">
+      <svg class="rotate-device-overlay__phone" viewBox="0 0 64 100" aria-hidden="true">
+        <rect x="4" y="4" width="56" height="92" rx="10" fill="#fff8e7" stroke="#824D1F" stroke-width="5" />
+        <rect x="11" y="15" width="42" height="64" rx="3" fill="#8fd3f4" />
+        <circle cx="32" cy="87" r="3.5" fill="#824D1F" />
+      </svg>
+      <p class="rotate-device-overlay__title">Please rotate your phone</p>
+      <p class="rotate-device-overlay__text">Auti-Connects plays best sideways, in landscape mode.</p>
+    </div>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
