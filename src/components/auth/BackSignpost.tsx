@@ -13,7 +13,7 @@ const BackSignpost: React.FC<BackSignpostProps> = ({ to, label = 'Back' }) => {
   return (
     <button
       onClick={() => navigate(to)}
-      className="absolute -bottom-3 left-2 bg-transparent border-none transition-transform duration-200 hover:scale-110 md:-bottom-5 md:left-4 lg:-bottom-8"
+      className="absolute -bottom-3 left-2 bg-transparent border-none transition-transform duration-200 hover:scale-110 md:-bottom-5 md:left-4 lg:-bottom-8 mland:-bottom-2 mland:left-2"
       aria-label={label}
     >
       <img 
@@ -21,7 +21,7 @@ const BackSignpost: React.FC<BackSignpostProps> = ({ to, label = 'Back' }) => {
         alt={label}
         loading="eager"
         decoding="async"
-        className="h-36 w-auto md:h-44 lg:h-56"
+        className="h-36 w-auto md:h-44 lg:h-56 mland:h-32"
       />
     </button>
   );

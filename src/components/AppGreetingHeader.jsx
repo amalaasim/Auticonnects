@@ -2,6 +2,9 @@ import * as React from "react";
 import { Box, Typography } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const PHONE_LANDSCAPE = "@media (orientation: landscape) and (max-height: 500px)";
+
 const LETTER_COLORS = [
   "#66d9ff",
   "#8ae45f",
@@ -20,6 +23,7 @@ function renderColoredText(text) {
       sx={{
         color: char === " " ? "#fff" : LETTER_COLORS[index % LETTER_COLORS.length],
         WebkitTextStroke: "3.13px #ffffff",
+        [PHONE_LANDSCAPE]: { WebkitTextStroke: "1.6px #ffffff" },
         paintOrder: "stroke fill",
         textShadow: "0px 1.14px 1.14px rgba(0,0,0,0.25)",
         display: "inline-block",
@@ -60,6 +64,7 @@ export default function AppGreetingHeader({ sx = {} }) {
             sm: trimmedName ? "24px" : "22px",
             xs: trimmedName ? "16px" : "15px",
           },
+          [PHONE_LANDSCAPE]: { fontSize: trimmedName ? "20px" : "18px" },
           lineHeight: 1,
           letterSpacing: "0.12em",
           whiteSpace: "nowrap",
@@ -78,6 +83,7 @@ export default function AppGreetingHeader({ sx = {} }) {
           fontWeight: 400,
           fontStyle: "normal",
           fontSize: { lg: "12.12px", md: "10.5px", sm: "9px", xs: "7px" },
+          [PHONE_LANDSCAPE]: { fontSize: "8px" },
           lineHeight: 1,
           color: "#ffffff",
           letterSpacing: "0.12em",

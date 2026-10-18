@@ -69,6 +69,10 @@ type FocusMetricRow = {
 
 const MODULE_TOTAL = 5;
 
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen. The dashboard scrolls there instead of
+// squeezing all eight cards into ~430px of height.
+const PHONE_LANDSCAPE = "@media (orientation: landscape) and (max-height: 500px)";
+
 function formatDuration(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -133,6 +137,7 @@ function StatCard({
         borderRadius: "1.5cqh",
         px: "1cqw",
         py: "1.2cqh",
+        [PHONE_LANDSCAPE]: { px: "12px", py: "10px", gap: "10px", borderRadius: "12px" },
         height: "100%",
         display: "flex",
         alignItems: "center",
@@ -148,6 +153,7 @@ function StatCard({
           width: "4cqh",
           height: "4cqh",
           borderRadius: "1.2cqh",
+          [PHONE_LANDSCAPE]: { width: "32px", height: "32px", borderRadius: "10px", "& svg": { width: "18px", height: "18px" } },
           display: "grid",
           placeItems: "center",
           color: "#fff",
@@ -168,6 +174,7 @@ function StatCard({
           sx={{
             color: "#ffffff",
             fontSize: "1.45cqh",
+            [PHONE_LANDSCAPE]: { fontSize: "11px" },
             lineHeight: 1.2,
             opacity: 0.8,
             fontFamily: "'Chewy', cursive",
@@ -179,6 +186,7 @@ function StatCard({
           sx={{
             color: "#fff",
             fontSize: "2.5cqh",
+            [PHONE_LANDSCAPE]: { fontSize: "18px" },
             lineHeight: 1.1,
             fontWeight: 700,
           }}
@@ -191,6 +199,7 @@ function StatCard({
         sx={{
           color: "#79ffb5",
           fontSize: "1.25cqh",
+          [PHONE_LANDSCAPE]: { fontSize: "11px" },
           fontWeight: 700,
           whiteSpace: "nowrap",
         }}
@@ -222,6 +231,7 @@ function ChartCard({
         borderRadius: "1.7cqh",
         height: "100%",
         minHeight: 0,
+        [PHONE_LANDSCAPE]: { p: "12px", borderRadius: "14px", height: "auto" },
         display: "flex",
         flexDirection: "column",
         background: "linear-gradient(180deg, rgba(247,250,255,0.95) 0%, rgba(240,247,255,0.9) 100%)",
@@ -235,6 +245,7 @@ function ChartCard({
             width: "3.6cqh",
             height: "3.6cqh",
             borderRadius: "1.1cqh",
+            [PHONE_LANDSCAPE]: { width: "30px", height: "30px", borderRadius: "9px", "& svg": { width: "16px", height: "16px" } },
             display: "grid",
             placeItems: "center",
             color: "#fff",
@@ -249,16 +260,16 @@ function ChartCard({
           {icon}
         </Box>
         <Box>
-          <Typography sx={{ color: "#223249", fontSize: "1.65cqh", fontWeight: 700, lineHeight: 1.15 }}>
+          <Typography sx={{ color: "#223249", fontSize: "1.65cqh", [PHONE_LANDSCAPE]: { fontSize: "14px" }, fontWeight: 700, lineHeight: 1.15 }}>
             {title}
           </Typography>
-          <Typography sx={{ color: "#617189", fontSize: "1.25cqh", lineHeight: 1.15 }}>
+          <Typography sx={{ color: "#617189", fontSize: "1.25cqh", [PHONE_LANDSCAPE]: { fontSize: "11px" }, lineHeight: 1.15 }}>
             {subtitle}
           </Typography>
         </Box>
       </Box>
 
-      <Box sx={{ flex: 1, minHeight: 0 }}>{children}</Box>
+      <Box sx={{ flex: 1, minHeight: 0, [PHONE_LANDSCAPE]: { flex: "none", height: "210px" } }}>{children}</Box>
     </Paper>
   );
 }
@@ -482,6 +493,7 @@ export default function ReportsPage() {
           position: "relative",
           overflowX: "hidden",
           overflowY: "hidden",
+          [PHONE_LANDSCAPE]: { overflowY: "auto", WebkitOverflowScrolling: "touch" },
           width: "100%",
           height: "100vh",
           background:
@@ -506,6 +518,7 @@ export default function ReportsPage() {
             height: "7cqh",
             paddingLeft: "2.5cqw",
             paddingRight: "2.5cqw",
+            [PHONE_LANDSCAPE]: { height: "auto", minHeight: "46px", py: "6px", paddingLeft: "3%", paddingRight: "3%" },
             mb: 0,
             borderRadius: 0,
             border: "none",
@@ -518,6 +531,7 @@ export default function ReportsPage() {
             component={AppGreetingHeader}
             sx={{
               width: "17cqw",
+              [PHONE_LANDSCAPE]: { width: "auto" },
               marginTop: 0,
             }}
           />
@@ -530,6 +544,7 @@ export default function ReportsPage() {
                   sx={{
                     width: "5cqh",
                     height: "5cqh",
+                    [PHONE_LANDSCAPE]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -543,6 +558,7 @@ export default function ReportsPage() {
                   sx={{
                     width: "5cqh",
                     height: "5cqh",
+                    [PHONE_LANDSCAPE]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -557,6 +573,7 @@ export default function ReportsPage() {
                   sx={{
                     width: "5cqh",
                     height: "5cqh",
+                    [PHONE_LANDSCAPE]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     marginTop: 0,
                     opacity: 1,
@@ -580,6 +597,7 @@ export default function ReportsPage() {
             pb: "1cqh",
             boxSizing: "border-box",
             overflow: "hidden",
+            [PHONE_LANDSCAPE]: { width: "94%", height: "auto", pt: "14px", pb: "20px", overflow: "visible" },
           }}
         >
           {error && (
@@ -604,7 +622,7 @@ export default function ReportsPage() {
               No report data yet. Complete a few game sessions and this dashboard will populate.
             </Paper>
           ) : (
-            <Box sx={{ position: "relative", zIndex: 1, height: "100%", display: "grid", gridTemplateRows: "10.5cqh 1fr", gap: "2.6cqh" }}>
+            <Box sx={{ position: "relative", zIndex: 1, height: "100%", display: "grid", gridTemplateRows: "10.5cqh 1fr", gap: "2.6cqh", [PHONE_LANDSCAPE]: { height: "auto", gridTemplateRows: "auto auto", gap: "14px" } }}>
             <Box
               sx={{
                 display: "grid",
@@ -612,6 +630,7 @@ export default function ReportsPage() {
                 columnGap: "1.2cqw",
                 rowGap: "2.4cqh",
                 minHeight: 0,
+                [PHONE_LANDSCAPE]: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "12px", rowGap: "12px" },
               }}
             >
               <StatCard
@@ -651,6 +670,7 @@ export default function ReportsPage() {
                 gridTemplateRows: "repeat(2, minmax(0, 1fr))",
                 gap: "1.2cqw",
                 minHeight: 0,
+                [PHONE_LANDSCAPE]: { gridTemplateRows: "auto", gap: "12px" },
               }}
             >
               <ChartCard
@@ -710,7 +730,7 @@ export default function ReportsPage() {
                 title="Module Progress"
                 subtitle="Completion status by module"
               >
-                <Box sx={{ display: "grid", gap: "1cqh" }}>
+                <Box sx={{ display: "grid", gap: "1cqh", [PHONE_LANDSCAPE]: { gap: "8px" } }}>
                   {sortedModuleProgress.map((row) => {
                     const percent = getModulePercent(row);
 
@@ -725,10 +745,10 @@ export default function ReportsPage() {
                             gap: "1cqw",
                           }}
                         >
-                          <Typography sx={{ color: "#2a3850", fontSize: "1.45cqh", fontWeight: 600 }}>
+                          <Typography sx={{ color: "#2a3850", fontSize: "1.45cqh", [PHONE_LANDSCAPE]: { fontSize: "12px" }, fontWeight: 600 }}>
                             {prettifyLabel(row.moduleKey)}
                           </Typography>
-                          <Typography sx={{ color: "#5c6b81", fontSize: "1.3cqh" }}>
+                          <Typography sx={{ color: "#5c6b81", fontSize: "1.3cqh", [PHONE_LANDSCAPE]: { fontSize: "11px" } }}>
                             {formatPercent(percent)}
                           </Typography>
                         </Box>
@@ -736,6 +756,7 @@ export default function ReportsPage() {
                           sx={{
                             width: "100%",
                             height: "0.8cqh",
+                            [PHONE_LANDSCAPE]: { height: "6px" },
                             borderRadius: "999px",
                             background: "rgba(161, 175, 191, 0.28)",
                             overflow: "hidden",

@@ -29,6 +29,9 @@ import {
 } from "@/lib/analytics/mappers";
 import { useFavoriteCharacter } from "@/hooks/useFavoriteCharacter";
 
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
+
 function Final() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -155,7 +158,7 @@ useEffect(() => {
     else if (location.state?.from === "findcar") navigate("/learnobjectcar");
     else if (location.state?.from === "findball") navigate("/learnobjball");
     else if (location.state?.from === "findshoe") navigate("/learnobjshoe");
-    else navigate("/gameselection");
+    else navigate("/wonderworld"); // /gameselection is not a route; fall back to the game picker
   };
 
   return (
@@ -207,7 +210,7 @@ useEffect(() => {
             onClick={handleBack}
             sx={{
               position: "absolute",
-              top: "5cqh",
+              top: "7cqh",
               left: "5cqw",
               zIndex: 10,
               display: "flex",
@@ -349,6 +352,8 @@ useEffect(() => {
                 right: "-1cqw",
                 bottom: "12cqh",
               },
+              // Phones held sideways: 55cqw makes the board taller than the screen, so cap it and lift it off the ground line.
+              [phoneLandscape]: { width: "max(44cqw, 62cqh)", right: "2cqw", bottom: "12cqh" },
               containerType: "size",
               zIndex: 4,
             }}

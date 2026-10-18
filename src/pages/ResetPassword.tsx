@@ -87,21 +87,39 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <AuthBackground>
-      <img 
-        src={logo} 
-        alt="Auti-Connects Logo" 
-        className="absolute top-4 left-4 w-64 h-auto"
+    <AuthBackground
+      backgroundUrl="/assets/mascot.png"
+      className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0"
+      assetUrls={[logo, '/assets/board.png']}
+    >
+      <img
+        src={logo}
+        alt="Auti-Connects Logo"
+        loading="eager"
+        decoding="async"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)] mland:left-3 mland:top-3 mland:w-[clamp(5.5rem,14vw,12rem)]"
       />
-      
-      <WoodenBoard>
-        <h2 className="text-4xl font-bold mb-4 text-yellow-800">Reset Password</h2>
-        
-        <p className="text-md mb-4 text-center px-4 text-yellow-700">
+
+      <WoodenBoard scrollable={false} contentClassName="justify-start">
+        <h2
+          className="mx-auto mt-[1.8%] mb-[1%] w-[94%] phone:mt-0 font-['Chewy'] text-[3.4cqh] font-bold leading-tight"
+          style={{
+            color: '#824D1F',
+            fontFamily: "'Chewy', cursive",
+            fontStyle: 'normal',
+            fontWeight: 400,
+            mixBlendMode: 'multiply',
+            textShadow: '0px -1px 4px #FFCB8F',
+          }}
+        >
+          Reset Password
+        </h2>
+
+        <p className="mx-auto mb-[1.2cqh] w-[94%] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F] phone:mb-[0.8cqh] phone:text-[2.2cqh]">
           Enter your new password below.
         </p>
-        
-        <form onSubmit={handleSubmit} className="w-full space-y-1 px-4">
+
+        <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-[1.4cqh] phone:gap-[1cqh]">
           <AuthInput
             type="password"
             label="Enter your new password"
@@ -110,7 +128,7 @@ const ResetPassword: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          
+
           <AuthInput
             type="password"
             label="Confirm your new password"
@@ -119,8 +137,8 @@ const ResetPassword: React.FC = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          
-          <AuthButton type="submit" loading={loading}>
+
+          <AuthButton type="submit" loading={loading} className="mt-[1.2cqh] phone:mt-[0.6cqh]">
             Reset Password
           </AuthButton>
         </form>

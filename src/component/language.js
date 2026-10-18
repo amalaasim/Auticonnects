@@ -35,6 +35,8 @@ export default function Language() {
   const bubblesLanguageBoard = "/assets/language-board-bubbles.png";
   const mimmiLanguageBoard = "/assets/Mimmi/language-board-mimmi.png";
   const laptopWideLayout = "@media (min-aspect-ratio: 1.5)";
+  // Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+  const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
   const [favoriteCharacter, setFavoriteCharacter] = React.useState(() => {
     if (typeof window === "undefined") return "";
     return window.sessionStorage.getItem("favoriteCharacter") || "";
@@ -259,6 +261,8 @@ export default function Language() {
             px: { lg: "5%", md: "5%", sm: "4%", xs: "3%" },
             pt: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
             pb: { lg: "8px", md: "8px", sm: "8px", xs: "8px" },
+            // Keep the whole bar above the banner (top: 15%) on short screens.
+            [phoneLandscape]: { pt: "8px", pb: "4px", px: "3%" },
             borderRadius: 0,
             background: "transparent",
             boxShadow: "none",
@@ -270,6 +274,7 @@ export default function Language() {
             component={AppGreetingHeader}
             sx={{
               width: { lg: "17%", md: "22%", sm: "30%", xs: "38%" },
+              [phoneLandscape]: { width: "auto" },
               mt: 0,
             }}
           />
@@ -283,6 +288,7 @@ export default function Language() {
                   sx={{
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    [phoneLandscape]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     mt: 0,
                     opacity: 1,
@@ -296,6 +302,7 @@ export default function Language() {
                   sx={{
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    [phoneLandscape]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     mt: 0,
                     opacity: 1,
@@ -311,6 +318,7 @@ export default function Language() {
                   sx={{
                     width: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
                     height: { lg: "45px", md: "40px", sm: "35px", xs: "30px" },
+                    [phoneLandscape]: { width: "30px", height: "30px" },
                     objectFit: "contain",
                     mt: 0,
                     opacity: 1,

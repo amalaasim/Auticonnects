@@ -35,6 +35,9 @@ import {
   updateWonderworldEmotionCounts,
   updateWonderworldFocusMetrics,
 } from "@/lib/analytics/sessionState";
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
+
 function Find() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -379,7 +382,7 @@ useEffect(() => {
                   borderRadius: "1.5cqh",
                 }}
               >
-                <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: "#fff" }}>
+                <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", [phoneLandscape]: { fontSize: "11px" }, fontFamily: "Chewy", color: "#fff" }}>
                   {isLooking ? "Looking" : "Not looking"}
                 </Typography>
               </Box>
@@ -396,10 +399,10 @@ useEffect(() => {
                 <Box sx={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
                   <Typography sx={{ fontSize: "max(1.8cqw, 2.7cqh)", lineHeight: 1 }}>{emotionEmoji}</Typography>
                   <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: emotionColors.text, textTransform: "capitalize", lineHeight: 1.1 }}>
+                    <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", [phoneLandscape]: { fontSize: "11px" }, fontFamily: "Chewy", color: emotionColors.text, textTransform: "capitalize", lineHeight: 1.1 }}>
                       {currentEmotion}
                     </Typography>
-                    <Typography sx={{ fontSize: "max(0.8cqw, 1.2cqh)", fontFamily: "Chewy", color: emotionColors.text, opacity: 0.8, lineHeight: 1.1 }}>
+                    <Typography sx={{ fontSize: "max(0.8cqw, 1.2cqh)", [phoneLandscape]: { fontSize: "10px" }, fontFamily: "Chewy", color: emotionColors.text, opacity: 0.8, lineHeight: 1.1 }}>
                       {Math.round((emotionConfidence || 0) * 100)}%
                     </Typography>
                   </Box>
@@ -412,7 +415,7 @@ useEffect(() => {
             onClick={() => navigate("/learnobject")}
             sx={{
               position: "absolute",
-              top: "5cqh",
+              top: "7cqh",
               left: "5cqw",
               zIndex: 10,
               display: "flex",
@@ -557,6 +560,8 @@ useEffect(() => {
                 right: "2cqw",
                 bottom: "12cqh",
               },
+              // Phones held sideways: 55cqw makes the board taller than the screen, so cap it and lift it clear of the caption.
+              [phoneLandscape]: { width: "max(40cqw, 57cqh)", right: "2cqw", bottom: "12cqh" },
               containerType: "size",
               zIndex: 4,
             }}
@@ -667,7 +672,7 @@ useEffect(() => {
                 zIndex: 20,
               }}
             >
-              <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>
+              <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", [phoneLandscape]: { fontSize: "14px" }, fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>
                 Let's look here together
               </Typography>
             </Box>

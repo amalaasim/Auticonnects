@@ -44,6 +44,9 @@ import pegion from '../assests/pegion.png';
 import gradient from '../assests/gradient.png';
 import CloseIcon from '@mui/icons-material/Close';
 //upload popup
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
+
 export function UploadShoe({ onClose }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -880,7 +883,7 @@ useEffect(() => {
           onClick={() => navigate("/wonderworld")}
           sx={{ 
             position: "absolute", 
-            top: "5cqh", 
+            top: "7cqh", 
             left: "5cqw", 
             zIndex: 10, 
             display: "flex", 
@@ -913,7 +916,7 @@ useEffect(() => {
           onClick={() => setShowPopup(true)}
           sx={{ 
             position: "absolute", 
-            top: "5cqh", 
+            top: "7cqh", 
             right: "5cqw", 
             zIndex: 10, 
             display: "flex", 
@@ -1070,6 +1073,9 @@ useEffect(() => {
               right: "-1cqw", // Brings it back in slightly to match
               bottom: "12cqh",
             },
+            // Phones held sideways: 55cqw would make the board taller than the screen allows, so cap it
+            // and lift it clear of the caption. Listed last so it wins over the queries above.
+            [phoneLandscape]: { width: "max(44cqw, 62cqh)", right: "2cqw", bottom: "12cqh" },
             zIndex: 4,
           }}
         >
@@ -1158,6 +1164,7 @@ useEffect(() => {
                     <Typography
                       sx={{
                         fontSize: "max(1.2cqw, 1.8cqh)",
+                        [phoneLandscape]: { fontSize: "14px" },
                         fontFamily: "Chewy",
                         color: speechVerified ? "#B9FFB3" : "#FFE1B3",
                       }}
@@ -1174,6 +1181,7 @@ useEffect(() => {
                       <Typography
                         sx={{
                           fontSize: "max(0.9cqw, 1.35cqh)",
+                          [phoneLandscape]: { fontSize: "11px" },
                           fontFamily: "Chewy",
                           color: "#fff",
                           opacity: 0.9,

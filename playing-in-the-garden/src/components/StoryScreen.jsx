@@ -881,7 +881,7 @@ const StoryScreen = ({
             color: "white",
             padding: "1cqh 0.85cqw",
             borderRadius: "1cqh",
-            fontSize: "1.75cqh",
+            fontSize: "max(1.75cqh, 11px)",
             zIndex: 9999
           }}
         >
@@ -898,18 +898,18 @@ const StoryScreen = ({
             color: emotionColors.text,
             padding: "1.25cqh 1cqw",
             borderRadius: "2cqh",
-            fontSize: "1.75cqh",
+            fontSize: "max(1.75cqh, 11px)",
             backdropFilter: "blur(1cqh)",
             zIndex: 9999
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
-            <div style={{ fontSize: "3.25cqh", lineHeight: 1 }}>{emotionEmoji}</div>
+            <div style={{ fontSize: "max(3.25cqh, 18px)", lineHeight: 1 }}>{emotionEmoji}</div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "1.75cqh", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+              <div style={{ fontSize: "max(1.75cqh, 11px)", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
                 {currentEmotion}
               </div>
-              <div style={{ fontSize: "1.5cqh", opacity: 0.8, lineHeight: 1.1 }}>
+              <div style={{ fontSize: "max(1.5cqh, 10px)", opacity: 0.8, lineHeight: 1.1 }}>
                 {Math.round((emotionConfidence || 0) * 100)}%
               </div>
             </div>
@@ -1219,7 +1219,7 @@ const StoryScreen = ({
           color: "white",
           padding: "1cqh 0.85cqw",
           borderRadius: "1cqh",
-          fontSize: "1.75cqh",
+          fontSize: "max(1.75cqh, 11px)",
           zIndex: 9999
         }}
       >
@@ -1236,18 +1236,18 @@ const StoryScreen = ({
           color: emotionColors.text,
           padding: "1.25cqh 1cqw",
           borderRadius: "2cqh",
-          fontSize: "1.75cqh",
+          fontSize: "max(1.75cqh, 11px)",
           backdropFilter: "blur(1cqh)",
           zIndex: 9999
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
-          <div style={{ fontSize: "3.25cqh", lineHeight: 1 }}>{emotionEmoji}</div>
+          <div style={{ fontSize: "max(3.25cqh, 18px)", lineHeight: 1 }}>{emotionEmoji}</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: "1.75cqh", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
+            <div style={{ fontSize: "max(1.75cqh, 11px)", fontWeight: 600, textTransform: "capitalize", lineHeight: 1.1 }}>
               {currentEmotion}
             </div>
-            <div style={{ fontSize: "1.5cqh", opacity: 0.8, lineHeight: 1.1 }}>
+            <div style={{ fontSize: "max(1.5cqh, 10px)", opacity: 0.8, lineHeight: 1.1 }}>
               {Math.round((emotionConfidence || 0) * 100)}%
             </div>
           </div>

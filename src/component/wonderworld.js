@@ -54,6 +54,8 @@ function Wonderworld() {
     return window.innerWidth / window.innerHeight;
   });
   const wideLaptopLayout = "@media (min-aspect-ratio: 3/2)";
+  // Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+  const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
   const isBubbles = favoriteCharacter === "bubbles";
   const isMimmi = favoriteCharacter === "mimmi" || favoriteCharacter === "mimi";
   const topBarIcons = [
@@ -257,12 +259,14 @@ useEffect(() => {
               paddingTop: { lg: "28px", md: "28px", sm: "32px", xs: "40px" },
               paddingBottom: "8px",
               height: "10dvh",
+              // Short screens: 10dvh is ~41px, so drop the desktop padding and let the bar size to its content.
+              [phoneLandscape]: { paddingTop: "6px", paddingBottom: "4px", paddingLeft: "3%", paddingRight: "3%", height: "auto", minHeight: "10dvh" },
               border: "none",
               background: "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 26.91%, rgba(0, 0, 0, 0) 100%)",
               boxShadow: "none",
             }}
           >
-            <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, marginTop: 0 }} />
+            <Box component={AppGreetingHeader} sx={{ width: { lg: "17%", md: "25%", sm: "29%", xs: "27%" }, [phoneLandscape]: { width: "auto" }, marginTop: 0 }} />
             <Box sx={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
@@ -272,6 +276,7 @@ useEffect(() => {
                     sx={{
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       marginTop: 0,
                       opacity: 1,
@@ -285,6 +290,7 @@ useEffect(() => {
                     sx={{
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       marginTop: 0,
                       opacity: 1,
@@ -299,6 +305,7 @@ useEffect(() => {
                     sx={{
                       width: { lg: "45.23px", md: "25%", sm: "29%", xs: "40px" },
                       height: "45.23px",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       marginTop: 0,
                       opacity: 1,
@@ -321,6 +328,9 @@ useEffect(() => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              // Short screens: the object circles start around 20cqh, so sit the sign just under the
+              // top bar and above the circles in stacking order.
+              [phoneLandscape]: { top: "11.5cqh", zIndex: 3 },
             }}
           >
             <Box sx={{ position: "relative", width: "27cqw", height: "7cqh", [wideLaptopLayout]: { width: "24cqw" } }}>
@@ -332,6 +342,7 @@ useEffect(() => {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: i18n.language === "ur" ? "3.8cqh" : "3.3cqh",
+                [phoneLandscape]: { fontSize: i18n.language === "ur" ? "4.4cqh" : "4cqh" },
                 fontStyle: "normal",
                 fontWeight: 400,
                 lineHeight: "147%",

@@ -27,6 +27,9 @@ import { cacheGameImage, getCachedGameImage, loadSavedGameImage } from "@/lib/ga
 import { listenForWonderworldWord, stopWonderworldListening } from "@/lib/wonderworldSpeech";
 import { preloadImageAsset } from "@/lib/preloadImageAsset";
 import { useFavoriteCharacter } from "@/hooks/useFavoriteCharacter";
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
+
 export default function Car() {
   const navigate = useNavigate();
   const {t}=useTranslation();
@@ -337,7 +340,9 @@ useEffect(() => {
           sx={{
             backgroundImage: `url(${favoriteCharacter === "bubbles" ? bubblesLearnBg : favoriteCharacter === "mimmi" || favoriteCharacter === "mimi" ? mimmiLearnBg : learnbg})`,
             width: "100vw",
-            minHeight: "100vh",
+            // Explicit height is required: with only min-height, container-type:size makes every cqh unit resolve to 0.
+            height: "100dvh",
+            minHeight: "100dvh",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",
@@ -360,7 +365,7 @@ useEffect(() => {
             onClick={() => navigate("/learnobjectcar")}
             sx={{
               position: "absolute",
-              top: "5cqh",
+              top: "7cqh",
               left: "5cqw",
               zIndex: 10,
               display: "flex",
@@ -397,7 +402,7 @@ useEffect(() => {
             }}
             sx={{
               position: "absolute",
-              top: "5cqh",
+              top: "7cqh",
               right: "5cqw",
               zIndex: 10,
               display: "flex",
@@ -547,6 +552,8 @@ useEffect(() => {
                 right: "-1cqw",
                 bottom: "12cqh",
               },
+              // Phones held sideways: 55cqw makes the board taller than the screen, so cap it and lift it clear of the caption.
+              [phoneLandscape]: { width: "max(44cqw, 62cqh)", right: "2cqw", bottom: "12cqh" },
               zIndex: 4,
             }}
           >
@@ -641,6 +648,7 @@ useEffect(() => {
             <Typography
               sx={{
                 fontSize: "max(1.2cqw, 1.8cqh)",
+                [phoneLandscape]: { fontSize: "14px" },
                 fontFamily: "Chewy",
                 color: speechVerified ? "#B9FFB3" : "#FFE1B3",
               }}
@@ -657,6 +665,7 @@ useEffect(() => {
               <Typography
                 sx={{
                   fontSize: "max(0.9cqw, 1.35cqh)",
+                  [phoneLandscape]: { fontSize: "11px" },
                   fontFamily: "Chewy",
                   color: "#fff",
                   opacity: 0.9,

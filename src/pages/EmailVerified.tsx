@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthBackground from '@/components/auth/AuthBackground';
 import WoodenBoard from '@/components/auth/WoodenBoard';
+const logo = '/assets/logo.png';
 
 const EmailVerified: React.FC = () => {
   const navigate = useNavigate();
@@ -39,31 +40,54 @@ const EmailVerified: React.FC = () => {
   }, [navigate, signOut, toast]);
 
   return (
-    <AuthBackground>
-      <WoodenBoard>
-        <div className="text-center py-8">
-          <div className="mb-4">
-            <svg
-              className="w-16 h-16 mx-auto text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-4xl font-bold mb-4 text-yellow-800">
+    <AuthBackground
+      backgroundUrl="/assets/mascot.png"
+      className="justify-start px-4 pb-6 pt-24 md:px-6 md:pt-28 lg:justify-end lg:px-0 lg:pb-0 lg:pt-0"
+      assetUrls={[logo, '/assets/board.png']}
+    >
+      <img
+        src={logo}
+        alt="Auti-Connects Logo"
+        loading="eager"
+        decoding="async"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)] mland:left-3 mland:top-3 mland:w-[clamp(5.5rem,14vw,12rem)]"
+      />
+
+      <WoodenBoard scrollable={false} contentClassName="justify-start">
+        <div className="mx-auto flex w-[94%] flex-col items-center pt-[2.5cqh] text-center phone:pt-[1cqh]">
+          <svg
+            className="h-[9cqh] w-[9cqh] text-green-600 phone:h-[max(8cqh,36px)] phone:w-[max(8cqh,36px)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+
+          <h2
+            className="mt-[2cqh] mb-[1.8cqh] font-['Chewy'] text-[3.4cqh] font-bold leading-tight phone:mt-[1cqh] phone:mb-[1cqh]"
+            style={{
+              color: '#824D1F',
+              fontFamily: "'Chewy', cursive",
+              fontStyle: 'normal',
+              fontWeight: 400,
+              mixBlendMode: 'multiply',
+              textShadow: '0px -1px 4px #FFCB8F',
+            }}
+          >
             Email Verified!
           </h2>
-          <p className="mb-2 text-yellow-700 text-md">
+
+          <p className="mb-[1cqh] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F] phone:text-[2.2cqh]">
             Your email has been successfully verified.
           </p>
-          <p className="text-md text-yellow-700">
+          <p className="font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F] phone:text-[2.2cqh]">
             Redirecting you to login...
           </p>
         </div>

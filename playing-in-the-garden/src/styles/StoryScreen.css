@@ -348,7 +348,7 @@
 .final-lion-mimmi img {
   position: absolute;
   left: 50cqw;
-  top: 4the eye.5cqh;
+  top: 4.5cqh;
   width: 36cqw;
   height: 56.7cqh;
   object-fit: contain;
@@ -413,18 +413,18 @@
   pointer-events: auto;
 }
 
-/* Default audio buttons (Stop + Replay) */
+/* Default audio buttons (Stop + Replay). Pixel floors keep them tappable on short phone screens. */
 .audio-btn {
-  width: 6.5cqh;
-  height: 6.5cqh;
+  width: max(6.5cqh, 36px);
+  height: max(6.5cqh, 36px);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
 
 /* Pause button is intentionally larger (from Figma) */
 .audio-btn.pause {
-  width: 10.6cqh;
-  height: 10.6cqh;
+  width: max(10.6cqh, 52px);
+  height: max(10.6cqh, 52px);
 }
 
 .audio-btn:hover {
@@ -445,8 +445,8 @@
 }
 
 .top-btn {
-  width: 6.5cqh;
-  height: 6.5cqh;
+  width: max(6.5cqh, 30px);
+  height: max(6.5cqh, 30px);
   cursor: pointer;
 }
 

@@ -35,6 +35,9 @@ import {
   updateWonderworldEmotionCounts,
   updateWonderworldFocusMetrics,
 } from "@/lib/analytics/sessionState";
+// Phones held sideways: same breakpoint as the Tailwind `mland` screen.
+const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
+
 function Findball() {
   const navigate = useNavigate();
     const {t}=useTranslation();
@@ -302,21 +305,21 @@ useEffect(() => {
           {cameraActive && (
             <Box sx={{ position: "absolute", top: "1.5cqh", right: "1.5cqw", display: "flex", flexDirection: "column", gap: "0.8cqh", zIndex: 50 }}>
               <Box sx={{ backgroundColor: isLooking ? "rgba(0, 150, 0, 0.7)" : "rgba(150, 0, 0, 0.7)", padding: "0.7cqh 1cqw", borderRadius: "1.5cqh" }}>
-                <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: "#fff" }}>{isLooking ? "Looking" : "Not looking"}</Typography>
+                <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", [phoneLandscape]: { fontSize: "11px" }, fontFamily: "Chewy", color: "#fff" }}>{isLooking ? "Looking" : "Not looking"}</Typography>
               </Box>
               <Box sx={{ backgroundColor: emotionColors.bg, border: `1px solid ${emotionColors.border}`, backdropFilter: "blur(8px)", padding: "1cqh 1cqw", borderRadius: "1.8cqh" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: "0.7cqw" }}>
                   <Typography sx={{ fontSize: "max(1.8cqw, 2.7cqh)", lineHeight: 1 }}>{emotionEmoji}</Typography>
                   <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", fontFamily: "Chewy", color: emotionColors.text, textTransform: "capitalize", lineHeight: 1.1 }}>{currentEmotion}</Typography>
-                    <Typography sx={{ fontSize: "max(0.8cqw, 1.2cqh)", fontFamily: "Chewy", color: emotionColors.text, opacity: 0.8, lineHeight: 1.1 }}>{Math.round((emotionConfidence || 0) * 100)}%</Typography>
+                    <Typography sx={{ fontSize: "max(1cqw, 1.5cqh)", [phoneLandscape]: { fontSize: "11px" }, fontFamily: "Chewy", color: emotionColors.text, textTransform: "capitalize", lineHeight: 1.1 }}>{currentEmotion}</Typography>
+                    <Typography sx={{ fontSize: "max(0.8cqw, 1.2cqh)", [phoneLandscape]: { fontSize: "10px" }, fontFamily: "Chewy", color: emotionColors.text, opacity: 0.8, lineHeight: 1.1 }}>{Math.round((emotionConfidence || 0) * 100)}%</Typography>
                   </Box>
                 </Box>
               </Box>
             </Box>
           )}
 
-          <Box onClick={() => navigate("/showball")} sx={{ position: "absolute", top: "5cqh", left: "5cqw", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", "&:hover": { transform: "scale(1.08)", transition: "0.2s" } }}>
+          <Box onClick={() => navigate("/showball")} sx={{ position: "absolute", top: "7cqh", left: "5cqw", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", "&:hover": { transform: "scale(1.08)", transition: "0.2s" } }}>
             <Box component="img" src={backbg} sx={{ width: "max(8cqw, 12cqh)", height: "max(5.5cqh, 3.5cqw)" }} />
             <Typography sx={{ position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontSize: "max(1.8cqw, 2.7cqh)", fontFamily: i18n.language === "ur" ? "JameelNooriNastaleeq" : "Chewy", color: "#FFCB8F", letterSpacing: "1px", lineHeight: "1", marginTop: "-2%" }}>
               <KeyboardArrowLeftIcon sx={{ fontSize: "max(2cqw, 3cqh)", mr: 0.5, stroke: "currentColor", strokeWidth: 0.5 }} />
@@ -337,7 +340,7 @@ useEffect(() => {
             </Box>
           </Box>
 
-          <Box sx={{ position: "absolute", right: "2cqw", bottom: "16cqh", width: "max(55cqw, 82cqh)", aspectRatio: "1024 / 796", "@media (max-aspect-ratio: 1.55)": { width: "max(65cqw, 92cqh)", right: "1cqw", bottom: "14cqh" }, "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": { bottom: "12cqh" }, "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": { bottom: "14cqh" }, "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": { width: "max(55cqw, 82cqh)", right: "2cqw", bottom: "12cqh" }, containerType: "size", zIndex: 4 }}>
+          <Box sx={{ position: "absolute", right: "2cqw", bottom: "16cqh", width: "max(55cqw, 82cqh)", aspectRatio: "1024 / 796", "@media (max-aspect-ratio: 1.55)": { width: "max(65cqw, 92cqh)", right: "1cqw", bottom: "14cqh" }, "@media (min-width: 1160px) and (max-width: 1250px) and (min-height: 800px) and (max-height: 900px)": { bottom: "12cqh" }, "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": { bottom: "14cqh" }, "@media (min-width: 1300px) and (max-aspect-ratio: 1.4)": { width: "max(55cqw, 82cqh)", right: "2cqw", bottom: "12cqh" }, /* phones held sideways: cap the board so it fits under the badges and above the caption */ [phoneLandscape]: { width: "max(40cqw, 57cqh)", right: "2cqw", bottom: "12cqh" }, containerType: "size", zIndex: 4 }}>
             <Box component="img" src={board} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", borderRadius: "44px" }} />
 
             <Box component="img" src={ball} onClick={() => handleSelect(ball)} sx={{ position: "absolute", left: "16.5%", top: "21%", width: "20%", height: "auto", cursor: "pointer", zIndex: 5, "&:hover": { transform: "scale(1.12)" } }} />
@@ -361,7 +364,7 @@ useEffect(() => {
 
           {cameraActive && !isLooking && (
             <Box sx={{ position: "absolute", bottom: "2cqh", left: "50%", transform: "translateX(-50%)", backgroundColor: "rgba(0, 0, 0, 0.55)", padding: "max(0.8cqw, 1.2cqh) max(1.4cqw, 2.1cqh)", borderRadius: "max(1.2cqw, 1.8cqh)", zIndex: 20 }}>
-              <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>Let's look here together</Typography>
+              <Typography sx={{ fontSize: "max(1.3cqw, 2cqh)", [phoneLandscape]: { fontSize: "14px" }, fontFamily: "Chewy", color: "#FFE1B3", textAlign: "center" }}>Let's look here together</Typography>
             </Box>
           )}
 

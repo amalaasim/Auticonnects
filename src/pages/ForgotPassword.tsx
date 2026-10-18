@@ -49,14 +49,15 @@ const ForgotPassword: React.FC = () => {
       <img
         src={logo}
         alt="Auti-Connects Logo"
-        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)] mland:left-3 mland:top-3 mland:w-[clamp(5.5rem,14vw,12rem)]"
       />
 
       <BackSignpost to="/login" label="Back to Login" />
       
       {!sent && (
         <>
-          <div className="absolute left-[50%] -translate-x-1/2 top-0 h-[70%] aspect-[794/536.26]">
+          {/* Phones held sideways: the front layer hangs 29% below this box, so 76% is the most that fits without scrolling. */}
+          <div className="absolute left-[50%] -translate-x-1/2 top-0 h-[70%] aspect-[794/536.26] mland:h-[76%]">
             <img
               src={layer1Board}
               alt="Forgot password board base"
@@ -72,7 +73,7 @@ const ForgotPassword: React.FC = () => {
               />
 
               {/* Blur box positioned exactly relative to the front board, keeping colors clean */}
-              <div className="absolute left-[12%] top-[16%] h-[52%] w-[76%]">
+              <div className="absolute left-[12%] top-[16%] h-[52%] w-[76%] mland:top-[13%] mland:h-[64%]">
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0 rounded-md"
@@ -85,7 +86,7 @@ const ForgotPassword: React.FC = () => {
                 {/* Content starts exactly 2% down relative to the Blur box */}
                 <div className="absolute inset-x-0 top-[2%] w-full">
                   <h2
-              className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[3.4cqh]"
+              className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[3.4cqh] mland:mb-[1.2cqh] mland:text-[20px]"
               style={{
                 color: '#824D1F',
                 fontFamily: "'Chewy', cursive",
@@ -99,11 +100,11 @@ const ForgotPassword: React.FC = () => {
               Forgot Password
             </h2>
 
-            <p className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F]">
+            <p className="mx-auto mb-[1.8cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F] mland:mb-[1.2cqh] mland:text-[12px]">
               Enter your email address and we'll send you a link to reset your password.
             </p>
 
-            <form onSubmit={handleSubmit} className="mx-auto flex w-[84%] flex-col gap-[1.5cqh]">
+            <form onSubmit={handleSubmit} className="mx-auto flex w-[84%] flex-col gap-[1.5cqh] mland:gap-[1cqh]">
               <AuthInput
                 type="email"
                 label="Enter your email address"
@@ -118,7 +119,7 @@ const ForgotPassword: React.FC = () => {
               </AuthButton>
             </form>
 
-            <p className="mx-auto mt-[1.9cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-none text-[#824D1F]">
+            <p className="mx-auto mt-[1.9cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-none text-[#824D1F] mland:mt-[1.2cqh] mland:text-[12px]">
               Remember your password?{' '}
               <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
                 Login

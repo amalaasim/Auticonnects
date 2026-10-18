@@ -48,6 +48,8 @@ export default function English() {
   const stackedLayout = "@media (max-aspect-ratio: 4/3)";
   const tabletLandscapeLayout = "@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 3/2)";
   const laptopWideLayout = "@media (min-width: 1200px) and (min-aspect-ratio: 3/2)";
+  // Phones held sideways: same breakpoint and top-bar sizing as the language and wonderworld pages.
+  const phoneLandscape = "@media (orientation: landscape) and (max-height: 500px)";
   const contentCardWidth = "45cqw";
   const contentCardHeight = "45cqh";
   const contentCardRadius = "2.07cqh";
@@ -281,6 +283,7 @@ export default function English() {
               paddingLeft: "3.5cqh",
               paddingRight: "3.5cqh",
               height: "10cqh",
+              [phoneLandscape]: { paddingLeft: "3%", paddingRight: "3%", paddingTop: "6px", paddingBottom: "4px", height: "auto", minHeight: "10cqh" },
               border: "none",
               background:
                 "linear-gradient(180deg, rgba(0, 0, 0, 0.656) 6.88%, rgba(0, 0, 0, 0) 94.56%)",
@@ -301,10 +304,11 @@ export default function English() {
                 [tabletLandscapeLayout]: {
                   width: "22cqw",
                 },
+                [phoneLandscape]: { width: "auto", marginTop: 0 },
               }}
             />
 
-            <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "row", gap: "1cqh", direction: "ltr" }}>
+            <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "row", gap: "1cqh", direction: "ltr", [phoneLandscape]: { gap: "0.5rem" } }}>
               {topBarIcons.map((item, i) => (
                 item.volumeToggle ? (
                   <TopBarVolumeIcon
@@ -313,6 +317,7 @@ export default function English() {
                     sx={{
                       width: "4.6cqh",
                       height: "4.6cqh",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       paddingBottom: 0,
                       marginTop: 0,
@@ -332,6 +337,7 @@ export default function English() {
                     sx={{
                       width: "4.6cqh",
                       height: "4.6cqh",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       paddingBottom: 0,
                       marginTop: 0,
@@ -351,6 +357,7 @@ export default function English() {
                     sx={{
                       width: "4.6cqh",
                       height: "4.6cqh",
+                      [phoneLandscape]: { width: "30px", height: "30px" },
                       objectFit: "contain",
                       paddingBottom: 0,
                       marginTop: 0,

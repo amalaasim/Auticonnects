@@ -18,13 +18,13 @@ const HangingBoard: React.FC<HangingBoardProps> = ({ message, className = '', me
         <img 
           src={hangingBoard} 
           alt="Hanging wooden board" 
-          className="block h-[80vh] w-auto max-w-none"
+          className="block h-[80vh] w-auto max-w-none mland:h-[96dvh]"
         />
 	        <div className="absolute inset-0">
 	          <div
 	            className={`absolute left-[19%] top-[60%] h-[18%] w-[62%] [container-type:size] ${messageClassName}`}
 	          >
-	            <p className="w-full font-['Chewy'] text-center text-[22cqh] font-semibold leading-tight text-inherit">
+	            <p className="w-full font-['Chewy'] text-center text-[22cqh] mland:text-[max(22cqh,14px)] font-semibold leading-tight text-inherit">
 	              {message}
 	            </p>
 	          </div>

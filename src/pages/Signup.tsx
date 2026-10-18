@@ -83,7 +83,7 @@ const Signup: React.FC = () => {
         alt="Auti-Connects Logo" 
         loading="eager"
         decoding="async"
-        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)]"
+        className="absolute left-4 top-4 h-auto w-[clamp(7rem,16vw,16rem)] mland:left-3 mland:top-3 mland:w-[clamp(5.5rem,14vw,12rem)]"
       />
 
       <BackSignpost to="/login" label="Back to Login" />
@@ -92,7 +92,7 @@ const Signup: React.FC = () => {
         <WoodenBoard className="mt-[3cqh]" scrollable={false} contentClassName="justify-start">
           <div className="pt-[2%]">
           <h2
-            className="mx-auto mt-[0.5%] mb-[1.8cqh] w-[94%] font-['Chewy'] text-[3.4cqh] font-bold leading-tight"
+            className="mx-auto mt-[0.5%] mb-[1.8cqh] w-[94%] font-['Chewy'] text-[3.4cqh] font-bold leading-tight phone:mt-0 phone:mb-[1cqh]"
             style={{
               color: '#824D1F',
               fontFamily: "'Chewy', cursive",
@@ -106,7 +106,7 @@ const Signup: React.FC = () => {
           </h2>
           
           {step === 1 ? (
-            <form onSubmit={handleContinue} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh]">
+            <form onSubmit={handleContinue} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh] phone:gap-[1cqh]">
               <AuthInput
                 type="email"
                 label="Enter your email address"
@@ -130,7 +130,7 @@ const Signup: React.FC = () => {
               </AuthButton>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh]">
+            <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-[1.5cqh] phone:gap-[1cqh]">
               <AuthInput
                 type="password"
                 label="Enter your password"
@@ -155,7 +155,7 @@ const Signup: React.FC = () => {
             </form>
           )}
           
-          <p className="mt-[1.9cqh] w-full font-['Chewy'] text-center text-[1.6cqh] text-[#824D1F] leading-none">
+          <p className="mt-[1.9cqh] w-full font-['Chewy'] text-center text-[1.6cqh] text-[#824D1F] leading-none phone:mt-[1cqh] phone:text-[2.2cqh]">
             Already have an account?{' '}
             <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
               Login
