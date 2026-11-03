@@ -423,7 +423,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .child-character-banner-text {
     top: 55%;
     left: 51.33%;
-    width: 73.9cqw !important;
+    width: 62cqw !important;
     display: flex;
     justify-content: space-between;
     column-gap: 0 !important;
@@ -434,7 +434,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .child-character-text-item:first-child,
   .child-character-text-item:nth-child(2),
   .child-character-text-item:last-child {
-    width: 14.8cqw !important;
+    width: 13cqw !important;
     transform: none !important;
   }
 
@@ -448,22 +448,26 @@ input[type="number"]::-webkit-inner-spin-button {
     white-space: normal;
   }
 
+  /* Smaller, closer together, and standing on the ground line. */
   .child-character-row {
-    bottom: 13cqh !important;
-    width: 80cqw !important;
+    bottom: 16cqh !important;
+    width: 64cqw !important;
   }
 
   .child-character-row > button {
-    flex: 0 0 18.5cqw !important;
-    max-width: 42cqh;
+    flex: 0 0 15cqw !important;
+    max-width: 34cqh;
   }
 
+  /* Scale from the feet so enlarging never pushes them below the ground. */
   .child-character-img {
-    transform: scale(1.12) !important;
+    transform: scale(1) !important;
+    transform-origin: center bottom !important;
   }
 
   .child-character-img-rocco {
-    transform: scale(1.24) translateY(2%) !important;
+    transform: scale(1.1) !important;
+    transform-origin: center bottom !important;
   }
 
   .child-character-back-button,

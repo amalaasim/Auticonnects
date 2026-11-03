@@ -115,9 +115,6 @@ const ResetPassword: React.FC = () => {
           Reset Password
         </h2>
 
-        <p className="mx-auto mb-[1.2cqh] w-[94%] font-['Chewy'] text-[1.6cqh] leading-tight text-[#824D1F] phone:mb-[0.8cqh] phone:text-[2.2cqh]">
-          Enter your new password below.
-        </p>
 
         <form onSubmit={handleSubmit} className="mx-auto flex w-[94%] flex-col gap-[1.4cqh] phone:gap-[1cqh]">
           <AuthInput

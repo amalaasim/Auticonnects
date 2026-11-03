@@ -255,6 +255,8 @@ useEffect(() => {
               "@media (min-width: 1000px) and (max-width: 1160px) and (max-height: 780px)": {
                 bottom: "11cqh",
               },
+              // Phones held sideways: smaller mascot standing higher, so its feet clear the ground and the bubble stays on screen.
+              [phoneLandscape]: { width: "max(22cqw, 34cqh)", bottom: "15cqh" },
             }}
           >
             <Box

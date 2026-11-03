@@ -52,7 +52,8 @@ export default function SettingsPage() {
 
   const email = useMemo(() => user?.email || "nimrahkamran620@gmail.com", [user?.email]);
   const authProvider = user?.app_metadata?.provider;
-  const canChangePassword = authProvider !== "google" && authProvider !== "facebook";
+  // Only email/password accounts have a password to change; OAuth (Google) accounts do not.
+  const canChangePassword = !authProvider || authProvider === "email";
 
   const topBarIcons = [
     { volumeToggle: true, alt: "Volume" },

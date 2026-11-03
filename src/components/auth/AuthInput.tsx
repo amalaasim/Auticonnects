@@ -44,7 +44,8 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, className, type, toggleIco
           type={isPassword && showPassword ? 'text' : type}
           className={cn(
             "relative h-[4.8cqh] w-full rounded-md border-0 bg-transparent pr-[5.2cqh] font-['Chewy'] text-[2.3cqh] text-[rgba(255,158,89,0.74)]",
-            "focus:border-0 focus:ring-0",
+            // Warm amber focus ring to match the wooden-board theme (replaces the default dark/white ring).
+            "focus:border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A15C] focus-visible:ring-offset-0",
             "[&::placeholder]:text-[rgba(255,158,89,0.5)] [&::placeholder]:text-[1.9cqh]",
             // 16px keeps iOS from zooming the page when the field is focused.
             // Pixel floors: on pages where cqh tracks the whole screen (not a tall board) these would otherwise shrink to ~8px.

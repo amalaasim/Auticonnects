@@ -107,7 +107,6 @@ const ForgotPassword: React.FC = () => {
             <form onSubmit={handleSubmit} className="mx-auto flex w-[84%] flex-col gap-[1.5cqh] mland:gap-[1cqh]">
               <AuthInput
                 type="email"
-                label="Enter your email address"
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -119,7 +118,7 @@ const ForgotPassword: React.FC = () => {
               </AuthButton>
             </form>
 
-            <p className="mx-auto mt-[1.9cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-none text-[#824D1F] mland:mt-[1.2cqh] mland:text-[12px]">
+            <p className="mx-auto mt-[3cqh] w-[84%] font-['Chewy'] text-[1.6cqh] leading-none text-[#824D1F] mland:mt-[2.4cqh] mland:text-[12px]">
               Remember your password?{' '}
               <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
                 Login

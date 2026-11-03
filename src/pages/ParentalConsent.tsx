@@ -233,6 +233,7 @@ export default function ParentalConsent() {
                 height: "7.2cqh",
                 flexShrink: 0,
                 transform: "translateY(-0.4cqh)",
+                [PHONE_LANDSCAPE]: { width: "5.2cqh", height: "5.2cqh" },
               }}
             />
             <Typography sx={{ ...bodyTextSx, flex: 1 }}>

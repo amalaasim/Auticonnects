@@ -370,88 +370,68 @@ useEffect(() => {
             }}
           >
 
-            {/* Object selection */}
+            {/* Object selection: the whole circle (picture + stars) is one tap/hover target. */}
             <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "85cqw", transform: "translateY(-10cqh)" }}>
-            <Box sx={{ position: "relative", width: "18cqw", height: "18cqw", overflow: "visible", "&:hover": { transform: "scale(1.08)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }}>
-              <Box component='img' onClick={() => navigate("/learnobject")} sx={{ width: "18cqw", height: "18cqw", borderRadius: "20%" }} src={cookie} />
-              {starFor(recentStars.cookie) && (
+              {[
+                { key: "cookie", src: cookie, route: "/learnobject", label: "Cookie", rounded: true },
+                { key: "car", src: car, route: "/learnobjectcar", label: "Car", rounded: true },
+                { key: "shoe", src: shoe, route: "/learnobjshoe", label: "Shoes", rounded: true },
+                { key: "ball", src: ball, route: "/learnobjball", label: "Ball", rounded: false },
+              ].map((item) => (
                 <Box
-                  component='img'
+                  key={item.key}
+                  component="button"
+                  type="button"
+                  aria-label={`Learn ${item.label}`}
+                  onClick={() => navigate(item.route)}
                   sx={{
-                    position: "absolute",
-                    left: 0,
-                    top: starClusterTop,
+                    position: "relative",
                     width: "18cqw",
                     height: "18cqw",
-                    borderRadius: "20%",
-                    objectFit: "contain",
-                    transform: `translateY(${starOffsetY(recentStars.cookie)})`,
+                    p: 0,
+                    m: 0,
+                    border: 0,
+                    background: "transparent",
+                    overflow: "visible",
+                    cursor: "pointer",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                    transformOrigin: "center center",
+                    transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease",
+                    // Zoom on mouse hover only; touch screens get the press feedback below instead.
+                    "@media (hover: hover) and (pointer: fine)": {
+                      "&:hover": { transform: "scale(1.15)", filter: "drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35)) brightness(1.06)", zIndex: 2 },
+                    },
+                    "&:focus-visible": { transform: "scale(1.15)", zIndex: 2 },
+                    "&:active": { transform: "scale(0.95)" },
+                    "&:focus-visible": { outline: "3px solid #FFCB8F", outlineOffset: "4px", borderRadius: "50%" },
+                    // Stars hang below the circle; extend the tap area to cover them too.
+                    "&::after": { content: '""', position: "absolute", left: 0, right: 0, top: 0, bottom: "-6cqh" },
                   }}
-                  src={starFor(recentStars.cookie)}
-                />
-              )}
+                >
+                  <Box component="img" src={item.src} alt="" draggable={false} sx={{ display: "block", width: "18cqw", height: "18cqw", borderRadius: item.rounded ? "20%" : 0, pointerEvents: "none" }} />
+                  {starFor(recentStars[item.key]) && (
+                    <Box
+                      component="img"
+                      alt=""
+                      draggable={false}
+                      sx={{
+                        position: "absolute",
+                        left: 0,
+                        top: starClusterTop,
+                        width: "18cqw",
+                        height: "18cqw",
+                        borderRadius: "20%",
+                        objectFit: "contain",
+                        pointerEvents: "none",
+                        transform: `translateY(${starOffsetY(recentStars[item.key])})`,
+                      }}
+                      src={starFor(recentStars[item.key])}
+                    />
+                  )}
+                </Box>
+              ))}
             </Box>
-
-            <Box sx={{ position: "relative", width: "18cqw", height: "18cqw", overflow: "visible" }}>
-              <Box component='img' onClick={() => navigate("/learnobjectcar")} sx={{ width: "18cqw", height:"18cqw", borderRadius: "20%", "&:hover": { transform: "scale(1.12)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={car} />
-              {starFor(recentStars.car) && (
-                <Box
-                  component='img'
-                  sx={{
-                    position: "absolute",
-                    left: 0,
-                    top: starClusterTop,
-                    width: "18cqw",
-                    height: "18cqw",
-                    borderRadius: "20%",
-                    objectFit: "contain",
-                    transform: `translateY(${starOffsetY(recentStars.car)})`,
-                  }}
-                  src={starFor(recentStars.car)}
-                />
-              )}
-            </Box>
-
-            <Box sx={{ position: "relative", width: "18cqw", height: "18cqw", overflow: "visible" }}>
-              <Box component='img' onClick={() => navigate("/learnobjshoe")} sx={{ width: "18cqw", height: "18cqw", borderRadius: "20%", transition: "transform 0.3s ease, box-shadow 0.3s ease", "&:hover": { transform: "scale(1.12)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={shoe} />
-              {starFor(recentStars.shoe) && (
-                <Box
-                  component='img'
-                  sx={{
-                    position: "absolute",
-                    left: 0,
-                    top: starClusterTop,
-                    width: "18cqw",
-                    height: "18cqw",
-                    borderRadius: "20%",
-                    objectFit: "contain",
-                    transform: `translateY(${starOffsetY(recentStars.shoe)})`,
-                  }}
-                  src={starFor(recentStars.shoe)}
-                />
-              )}
-            </Box>
-
-            <Box sx={{ position: "relative", width: "18cqw", height: "18cqw", overflow: "visible" }}>
-              <Box component='img' onClick={() => navigate("/learnobjball")} sx={{ width: "18cqw", height: "18cqw", "&:hover": { transform: "scale(1.12)", boxShadow: "0 10px 25px rgba(0,0,0,0)" } }} src={ball} />
-              {starFor(recentStars.ball) && (
-                <Box
-                  component='img'
-                  sx={{
-                    position: "absolute",
-                    left: 0,
-                    top: starClusterTop,
-                    width: "18cqw",
-                    height: "18cqw",
-                    borderRadius: "20%",
-                    objectFit: "contain",
-                    transform: `translateY(${starOffsetY(recentStars.ball)})`,
-                  }}
-                  src={starFor(recentStars.ball)}
-                />
-              )}
-            </Box>
-          </Box>
           </Box>
 
           {/* Bottom section */}

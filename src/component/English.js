@@ -535,6 +535,17 @@ paddingTop:"1.5cqh",paddingLeft:"2.1cqh",minHeight:contentCardOverlayHeight,bord
                 backgroundRepeat: "no-repeat",
                 backgroundSize: isBubbles || isMimmi ? "cover" : "100% 100%",
                 backgroundPosition: isMimmi ? "center 95%" : "bottom center",
+                position: "relative",
+                overflow: "hidden",
+                // Soft dark tint on the text side (left for English, right for Urdu) so the bot card text stays readable over busy art.
+                "&::after": {
+                  content: "\"\"",
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "inherit",
+                  pointerEvents: "none",
+                  background: `linear-gradient(${isUrdu ? "to left" : "to right"}, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.38) 45%, rgba(15, 23, 42, 0.08) 80%, rgba(15, 23, 42, 0) 100%)`,
+                },
                 [stackedLayout]: {
                   height: "15cqh",
                 },
@@ -548,6 +559,7 @@ paddingTop:"1.5cqh",paddingLeft:"2.1cqh",minHeight:contentCardOverlayHeight,bord
             fontFamily:isUrdu ? "JameelNooriNastaleeq" : "Petrona",
               fontWeight:"500",
               color:"rgba(255, 255, 255, 1)",
+              textShadow:"0 1px 3px rgba(0, 0, 0, 0.55)",
               fontSize:isUrdu ? "3.05cqh" : "2.45cqh",
               lineHeight:isUrdu ? "3.9cqh" : "2.8cqh",
               letterSpacing:"0.037cqh",

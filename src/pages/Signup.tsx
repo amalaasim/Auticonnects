@@ -155,7 +155,7 @@ const Signup: React.FC = () => {
             </form>
           )}
           
-          <p className="mt-[1.9cqh] w-full font-['Chewy'] text-center text-[1.6cqh] text-[#824D1F] leading-none phone:mt-[1cqh] phone:text-[2.2cqh]">
+          <p className="mt-[2.8cqh] w-full font-['Chewy'] text-center text-[1.6cqh] text-[#824D1F] leading-none phone:mt-[2.4cqh] phone:text-[2.2cqh]">
             Already have an account?{' '}
             <Link to="/login" className="font-bold underline hover:opacity-80 text-[#824D1F]">
               Login

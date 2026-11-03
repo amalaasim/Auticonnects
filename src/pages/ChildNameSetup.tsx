@@ -98,7 +98,7 @@ const ChildNameSetup: React.FC = () => {
 
       {/* Rectangle Image */}
       <div
-        className="absolute left-1/2 top-[43.08%] z-10 w-[200cqh] max-w-[100vw] -translate-x-1/2"
+        className="absolute left-1/2 top-[43.08%] z-10 w-[100vw] -translate-x-1/2"
         style={{ aspectRatio: '1440 / 214' }}
       >
         <img 
@@ -109,7 +109,7 @@ const ChildNameSetup: React.FC = () => {
       </div>
 
       <div
-        className="absolute left-1/2 top-[43.08%] z-20 w-[200cqh] max-w-[100vw] -translate-x-1/2 [container-type:size]"
+        className="absolute left-1/2 top-[43.08%] z-20 w-[100vw] -translate-x-1/2 [container-type:size]"
         style={{ aspectRatio: '1440 / 214' }}
       >
         <form onSubmit={handleSubmit} className="absolute inset-0 flex flex-col items-center justify-start px-[2.2cqh] pt-[2.2cqh]">

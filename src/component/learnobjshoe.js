@@ -260,6 +260,8 @@ function Verifyshoe({ closeModal, onVerified }) {
           gap: "6cqh",
           width: "78.2%",
           height: "32.9%",
+          // Phones held sideways: the box is ~130px tall, so fixed-px padding/inputs overflow it. Size them from the box instead.
+          [phoneLandscape]: { padding: "5cqh 5cqw 3cqh", gap: "4cqh" },
           zIndex: 3,
           pointerEvents: "auto",
           overflow: "visible",
@@ -289,11 +291,12 @@ function Verifyshoe({ closeModal, onVerified }) {
               right: "28px",
               zIndex: 3,
               fontSize: { lg: 40, sm: 30 },
+              [phoneLandscape]: { top: "4cqh", right: "4cqw", fontSize: 22 },
               color: "#5d2a00",
             }}
           />
 
-          <Box sx={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "3.8cqh", width: "100%" }}>
+          <Box sx={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "3.8cqh", width: "100%", [phoneLandscape]: { gap: "3cqh" } }}>
             <Typography
               sx={{
                 fontSize: "max(4.4cqw, 8.6cqh)",
@@ -336,6 +339,7 @@ function Verifyshoe({ closeModal, onVerified }) {
                   lineHeight: "90%",
                   letterSpacing: "0%",
                 },
+                [phoneLandscape]: { height: "22cqh", "& .MuiInputBase-root": { height: "100%" }, "& input": { padding: "0 12px" } },
               }}
             />
 
@@ -347,6 +351,7 @@ function Verifyshoe({ closeModal, onVerified }) {
                 "@media (min-width: 1200px) and (max-width: 1400px) and (min-height: 900px)": {
                   height: "65px",
                 },
+                [phoneLandscape]: { height: "22cqh" },
                 cursor: "pointer",
                 position: "relative",
               }}

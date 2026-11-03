@@ -103,7 +103,7 @@ const ChildAgeSetup: React.FC = () => {
 
       {/* Rectangle Image */}
       <div
-        className="absolute left-1/2 top-[43.08%] z-10 w-[200cqh] max-w-[100vw] -translate-x-1/2"
+        className="absolute left-1/2 top-[43.08%] z-10 w-[100vw] -translate-x-1/2"
         style={{ aspectRatio: '1440 / 214' }}
       >
         <img 
@@ -114,7 +114,7 @@ const ChildAgeSetup: React.FC = () => {
       </div>
 
       <div
-        className="absolute left-1/2 top-[43.08%] z-20 w-[200cqh] max-w-[100vw] -translate-x-1/2 [container-type:size]"
+        className="absolute left-1/2 top-[43.08%] z-20 w-[100vw] -translate-x-1/2 [container-type:size]"
         style={{ aspectRatio: '1440 / 214' }}
       >
         {/* Content inside Rectangle */}

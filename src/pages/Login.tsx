@@ -112,7 +112,7 @@ const Login: React.FC = () => {
           </AuthButton>
         </form>
         
-        <p className="mt-[1.1cqh] phone:mt-[0.8cqh] flex w-full items-center justify-center gap-[0.67cqh] font-['Chewy'] text-[1.6cqh] text-[#824D1F] leading-none phone:text-[2.2cqh]">
+        <p className="mt-[2cqh] phone:mt-[1.8cqh] flex w-full items-center justify-center gap-[0.67cqh] font-['Chewy'] text-[1.6cqh] text-[#824D1F] leading-none phone:text-[2.2cqh]">
           <span>Don't have an account?</span>
           <Link
             to="/signup"
