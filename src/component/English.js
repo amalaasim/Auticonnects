@@ -560,6 +560,12 @@ paddingTop:"1.5cqh",paddingLeft:"2.1cqh",minHeight:contentCardOverlayHeight,bord
               fontWeight:"500",
               color:"rgba(255, 255, 255, 1)",
               textShadow:"0 1px 3px rgba(0, 0, 0, 0.55)",
+              // Same frosted band the two top cards use, so the text sits on a soft blur instead of raw art.
+              background:"rgba(15, 23, 42, 0.2)",
+              backdropFilter:"blur(1.29cqh)",
+              WebkitBackdropFilter:"blur(1.29cqh)",
+              borderTopLeftRadius:0,
+              borderTopRightRadius:0,
               fontSize:isUrdu ? "3.05cqh" : "2.45cqh",
               lineHeight:isUrdu ? "3.9cqh" : "2.8cqh",
               letterSpacing:"0.037cqh",
