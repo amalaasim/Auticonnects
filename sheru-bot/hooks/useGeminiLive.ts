@@ -308,6 +308,13 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
             resolveSessionReadyRef.current = null;
           },
           onmessage: async (message) => {
+            console.log('[Sheru Debug] Gemini message received:', {
+              setupComplete: !!message.setupComplete,
+              serverContent: !!message.serverContent,
+              goAway: message.goAway || null,
+              error: (message as any).error || null
+            });
+
             if (activeConnectionIdRef.current !== connectionId || !sessionOpenRef.current) {
               return;
             }
@@ -382,14 +389,26 @@ export const useGeminiLive = (): UseGeminiLiveReturn => {
               // Note: Volume will naturally drop as analyzer empties
             }
           },
-          onclose: () => {
+          onclose: (event) => {
             if (activeConnectionIdRef.current !== connectionId) return;
-            console.log('Session closed');
+
+            console.error('[Sheru Debug] Session closed:', {
+              code: event.code,
+              reason: event.reason,
+              wasClean: event.wasClean
+            });
+
             cleanup(false);
           },
           onerror: (err) => {
             if (activeConnectionIdRef.current !== connectionId) return;
-            console.error('Session error:', err);
+
+            console.error('[Sheru Debug] Session error:', {
+              message: err.message,
+              type: err.type,
+              error: err.error
+            });
+
             setError("Connection error.");
             cleanup(false);
           }
